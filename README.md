@@ -11,3 +11,16 @@ Known to work with the following ROM images:
 2. [OMP 1.3](http://www.unna.org/incoming/omp-1.3-414059.rom.gz)
 3. [ARMistice J1 Image](http://www.unna.org/incoming/Newt%20J1Armistice%20image.zip)
 
+### Screenshots
+
+![image](http://i.imgur.com/95b1EFp.png)
+
+![image](http://i.imgur.com/vINdo33.png)
+
+![image](http://i.imgur.com/xXz552l.png)
+
+![image](http://i.imgur.com/J4q1ru9.png)
+
+![image](http://i.imgur.com/93sCQXF.png)
+
+![image](http://i.imgur.com/n01XpZp.png)
