@@ -1,0 +1,1 @@
+void hexdump(FILE *file, const void *ptr, uint32_t address, size_t len);

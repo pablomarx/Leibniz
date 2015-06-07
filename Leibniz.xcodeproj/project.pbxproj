@@ -1,0 +1,492 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		F10F099D19C651A700C8C8FD /* hexdump.c in Sources */ = {isa = PBXBuildFile; fileRef = F10F099B19C651A700C8C8FD /* hexdump.c */; };
+		F123BD5D19C4FC8800EC994F /* arm.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD4719C4FC8800EC994F /* arm.c */; };
+		F123BD5F19C4FC8800EC994F /* copr14.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD4A19C4FC8800EC994F /* copr14.c */; };
+		F123BD6119C4FC8800EC994F /* copr15.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD4C19C4FC8800EC994F /* copr15.c */; };
+		F123BD6319C4FC8800EC994F /* disasm.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD4E19C4FC8800EC994F /* disasm.c */; };
+		F123BD6819C4FC8800EC994F /* mmu.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD5519C4FC8800EC994F /* mmu.c */; };
+		F123BD6B19C4FC8800EC994F /* newton.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD5819C4FC8800EC994F /* newton.c */; };
+		F123BD6E19C4FC8800EC994F /* opcodes.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD5B19C4FC8800EC994F /* opcodes.c */; };
+		F123BD7319C508C200EC994F /* runt.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD7119C508C200EC994F /* runt.c */; };
+		F1DB3DD919C60F8B006C7102 /* monitor.c in Sources */ = {isa = PBXBuildFile; fileRef = F1DB3DD719C60F8B006C7102 /* monitor.c */; };
+		F1DB3DDC19C63121006C7102 /* linenoise.c in Sources */ = {isa = PBXBuildFile; fileRef = F1DB3DDA19C63121006C7102 /* linenoise.c */; };
+		F1E4AF1219C1327F00D8EFB4 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = F1E4AF1119C1327F00D8EFB4 /* main.m */; };
+		F1E4AF1519C1327F00D8EFB4 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = F1E4AF1419C1327F00D8EFB4 /* AppDelegate.m */; };
+		F1E4AF1719C1327F00D8EFB4 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F1E4AF1619C1327F00D8EFB4 /* Images.xcassets */; };
+		F1E4AF1A19C1327F00D8EFB4 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = F1E4AF1819C1327F00D8EFB4 /* MainMenu.xib */; };
+		F1E4AF2619C1328000D8EFB4 /* LeibnizTests.m in Sources */ = {isa = PBXBuildFile; fileRef = F1E4AF2519C1328000D8EFB4 /* LeibnizTests.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		F1E4AF2019C1328000D8EFB4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F1E4AF0419C1327F00D8EFB4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F1E4AF0B19C1327F00D8EFB4;
+			remoteInfo = Leibniz;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		F10F099B19C651A700C8C8FD /* hexdump.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = hexdump.c; sourceTree = "<group>"; };
+		F10F099C19C651A700C8C8FD /* hexdump.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = hexdump.h; sourceTree = "<group>"; };
+		F123BD4719C4FC8800EC994F /* arm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = arm.c; sourceTree = "<group>"; };
+		F123BD4819C4FC8800EC994F /* arm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = arm.h; sourceTree = "<group>"; };
+		F123BD4A19C4FC8800EC994F /* copr14.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = copr14.c; sourceTree = "<group>"; };
+		F123BD4C19C4FC8800EC994F /* copr15.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = copr15.c; sourceTree = "<group>"; };
+		F123BD4E19C4FC8800EC994F /* disasm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = disasm.c; sourceTree = "<group>"; };
+		F123BD5019C4FC8800EC994F /* internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = internal.h; sourceTree = "<group>"; };
+		F123BD5519C4FC8800EC994F /* mmu.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mmu.c; sourceTree = "<group>"; };
+		F123BD5819C4FC8800EC994F /* newton.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = newton.c; sourceTree = "<group>"; };
+		F123BD5B19C4FC8800EC994F /* opcodes.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = opcodes.c; sourceTree = "<group>"; };
+		F123BD7019C4FCF500EC994F /* newton.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = newton.h; sourceTree = "<group>"; };
+		F123BD7119C508C200EC994F /* runt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = runt.c; sourceTree = "<group>"; };
+		F123BD7219C508C200EC994F /* runt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = runt.h; sourceTree = "<group>"; };
+		F187B3091B24C4C6002F62E7 /* HammerConfigBits.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HammerConfigBits.h; sourceTree = "<group>"; };
+		F1DB3DD719C60F8B006C7102 /* monitor.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = monitor.c; sourceTree = "<group>"; };
+		F1DB3DD819C60F8B006C7102 /* monitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = monitor.h; sourceTree = "<group>"; };
+		F1DB3DDA19C63121006C7102 /* linenoise.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = linenoise.c; sourceTree = "<group>"; };
+		F1DB3DDB19C63121006C7102 /* linenoise.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = linenoise.h; sourceTree = "<group>"; };
+		F1E4AF0C19C1327F00D8EFB4 /* Leibniz.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Leibniz.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F1E4AF1019C1327F00D8EFB4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F1E4AF1119C1327F00D8EFB4 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		F1E4AF1319C1327F00D8EFB4 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		F1E4AF1419C1327F00D8EFB4 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		F1E4AF1619C1327F00D8EFB4 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
+		F1E4AF1919C1327F00D8EFB4 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		F1E4AF1F19C1327F00D8EFB4 /* LeibnizTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LeibnizTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F1E4AF2419C1328000D8EFB4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F1E4AF2519C1328000D8EFB4 /* LeibnizTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LeibnizTests.m; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		F1E4AF0919C1327F00D8EFB4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F1E4AF1C19C1327F00D8EFB4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		F123BD4619C4FC8800EC994F /* alt-emu */ = {
+			isa = PBXGroup;
+			children = (
+				F123BD4719C4FC8800EC994F /* arm.c */,
+				F123BD4819C4FC8800EC994F /* arm.h */,
+				F123BD4A19C4FC8800EC994F /* copr14.c */,
+				F123BD4C19C4FC8800EC994F /* copr15.c */,
+				F123BD4E19C4FC8800EC994F /* disasm.c */,
+				F187B3091B24C4C6002F62E7 /* HammerConfigBits.h */,
+				F10F099B19C651A700C8C8FD /* hexdump.c */,
+				F10F099C19C651A700C8C8FD /* hexdump.h */,
+				F123BD5019C4FC8800EC994F /* internal.h */,
+				F1DB3DDA19C63121006C7102 /* linenoise.c */,
+				F1DB3DDB19C63121006C7102 /* linenoise.h */,
+				F123BD5519C4FC8800EC994F /* mmu.c */,
+				F1DB3DD719C60F8B006C7102 /* monitor.c */,
+				F1DB3DD819C60F8B006C7102 /* monitor.h */,
+				F123BD5819C4FC8800EC994F /* newton.c */,
+				F123BD7019C4FCF500EC994F /* newton.h */,
+				F123BD5B19C4FC8800EC994F /* opcodes.c */,
+				F123BD7119C508C200EC994F /* runt.c */,
+				F123BD7219C508C200EC994F /* runt.h */,
+			);
+			name = "alt-emu";
+			path = "emu-core";
+			sourceTree = "<group>";
+		};
+		F1E4AF0319C1327F00D8EFB4 = {
+			isa = PBXGroup;
+			children = (
+				F123BD4619C4FC8800EC994F /* alt-emu */,
+				F1E4AF0E19C1327F00D8EFB4 /* Leibniz */,
+				F1E4AF2219C1328000D8EFB4 /* LeibnizTests */,
+				F1E4AF0D19C1327F00D8EFB4 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		F1E4AF0D19C1327F00D8EFB4 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F1E4AF0C19C1327F00D8EFB4 /* Leibniz.app */,
+				F1E4AF1F19C1327F00D8EFB4 /* LeibnizTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		F1E4AF0E19C1327F00D8EFB4 /* Leibniz */ = {
+			isa = PBXGroup;
+			children = (
+				F1E4AF1319C1327F00D8EFB4 /* AppDelegate.h */,
+				F1E4AF1419C1327F00D8EFB4 /* AppDelegate.m */,
+				F1E4AF1619C1327F00D8EFB4 /* Images.xcassets */,
+				F1E4AF1819C1327F00D8EFB4 /* MainMenu.xib */,
+				F1E4AF0F19C1327F00D8EFB4 /* Supporting Files */,
+			);
+			path = Leibniz;
+			sourceTree = "<group>";
+		};
+		F1E4AF0F19C1327F00D8EFB4 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				F1E4AF1019C1327F00D8EFB4 /* Info.plist */,
+				F1E4AF1119C1327F00D8EFB4 /* main.m */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		F1E4AF2219C1328000D8EFB4 /* LeibnizTests */ = {
+			isa = PBXGroup;
+			children = (
+				F1E4AF2519C1328000D8EFB4 /* LeibnizTests.m */,
+				F1E4AF2319C1328000D8EFB4 /* Supporting Files */,
+			);
+			path = LeibnizTests;
+			sourceTree = "<group>";
+		};
+		F1E4AF2319C1328000D8EFB4 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				F1E4AF2419C1328000D8EFB4 /* Info.plist */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		F1E4AF0B19C1327F00D8EFB4 /* Leibniz */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F1E4AF2919C1328000D8EFB4 /* Build configuration list for PBXNativeTarget "Leibniz" */;
+			buildPhases = (
+				F1E4AF0819C1327F00D8EFB4 /* Sources */,
+				F1E4AF0919C1327F00D8EFB4 /* Frameworks */,
+				F1E4AF0A19C1327F00D8EFB4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Leibniz;
+			productName = Leibniz;
+			productReference = F1E4AF0C19C1327F00D8EFB4 /* Leibniz.app */;
+			productType = "com.apple.product-type.application";
+		};
+		F1E4AF1E19C1327F00D8EFB4 /* LeibnizTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F1E4AF2C19C1328000D8EFB4 /* Build configuration list for PBXNativeTarget "LeibnizTests" */;
+			buildPhases = (
+				F1E4AF1B19C1327F00D8EFB4 /* Sources */,
+				F1E4AF1C19C1327F00D8EFB4 /* Frameworks */,
+				F1E4AF1D19C1327F00D8EFB4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F1E4AF2119C1328000D8EFB4 /* PBXTargetDependency */,
+			);
+			name = LeibnizTests;
+			productName = LeibnizTests;
+			productReference = F1E4AF1F19C1327F00D8EFB4 /* LeibnizTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		F1E4AF0419C1327F00D8EFB4 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0600;
+				ORGANIZATIONNAME = "Steve White";
+				TargetAttributes = {
+					F1E4AF0B19C1327F00D8EFB4 = {
+						CreatedOnToolsVersion = 6.0;
+					};
+					F1E4AF1E19C1327F00D8EFB4 = {
+						CreatedOnToolsVersion = 6.0;
+						TestTargetID = F1E4AF0B19C1327F00D8EFB4;
+					};
+				};
+			};
+			buildConfigurationList = F1E4AF0719C1327F00D8EFB4 /* Build configuration list for PBXProject "Leibniz" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = F1E4AF0319C1327F00D8EFB4;
+			productRefGroup = F1E4AF0D19C1327F00D8EFB4 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				F1E4AF0B19C1327F00D8EFB4 /* Leibniz */,
+				F1E4AF1E19C1327F00D8EFB4 /* LeibnizTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		F1E4AF0A19C1327F00D8EFB4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F1E4AF1719C1327F00D8EFB4 /* Images.xcassets in Resources */,
+				F1E4AF1A19C1327F00D8EFB4 /* MainMenu.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F1E4AF1D19C1327F00D8EFB4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		F1E4AF0819C1327F00D8EFB4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F123BD7319C508C200EC994F /* runt.c in Sources */,
+				F123BD5D19C4FC8800EC994F /* arm.c in Sources */,
+				F1E4AF1519C1327F00D8EFB4 /* AppDelegate.m in Sources */,
+				F123BD6319C4FC8800EC994F /* disasm.c in Sources */,
+				F10F099D19C651A700C8C8FD /* hexdump.c in Sources */,
+				F123BD6819C4FC8800EC994F /* mmu.c in Sources */,
+				F123BD5F19C4FC8800EC994F /* copr14.c in Sources */,
+				F1DB3DD919C60F8B006C7102 /* monitor.c in Sources */,
+				F123BD6119C4FC8800EC994F /* copr15.c in Sources */,
+				F123BD6B19C4FC8800EC994F /* newton.c in Sources */,
+				F123BD6E19C4FC8800EC994F /* opcodes.c in Sources */,
+				F1E4AF1219C1327F00D8EFB4 /* main.m in Sources */,
+				F1DB3DDC19C63121006C7102 /* linenoise.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F1E4AF1B19C1327F00D8EFB4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F1E4AF2619C1328000D8EFB4 /* LeibnizTests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		F1E4AF2119C1328000D8EFB4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F1E4AF0B19C1327F00D8EFB4 /* Leibniz */;
+			targetProxy = F1E4AF2019C1328000D8EFB4 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		F1E4AF1819C1327F00D8EFB4 /* MainMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				F1E4AF1919C1327F00D8EFB4 /* Base */,
+			);
+			name = MainMenu.xib;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		F1E4AF2719C1328000D8EFB4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		F1E4AF2819C1328000D8EFB4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		F1E4AF2A19C1328000D8EFB4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
+				INFOPLIST_FILE = Leibniz/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		F1E4AF2B19C1328000D8EFB4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
+				INFOPLIST_FILE = Leibniz/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		F1E4AF2D19C1328000D8EFB4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(DEVELOPER_FRAMEWORKS_DIR)",
+					"$(inherited)",
+				);
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				INFOPLIST_FILE = LeibnizTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Leibniz.app/Contents/MacOS/Leibniz";
+			};
+			name = Debug;
+		};
+		F1E4AF2E19C1328000D8EFB4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(DEVELOPER_FRAMEWORKS_DIR)",
+					"$(inherited)",
+				);
+				INFOPLIST_FILE = LeibnizTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Leibniz.app/Contents/MacOS/Leibniz";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		F1E4AF0719C1327F00D8EFB4 /* Build configuration list for PBXProject "Leibniz" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F1E4AF2719C1328000D8EFB4 /* Debug */,
+				F1E4AF2819C1328000D8EFB4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F1E4AF2919C1328000D8EFB4 /* Build configuration list for PBXNativeTarget "Leibniz" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F1E4AF2A19C1328000D8EFB4 /* Debug */,
+				F1E4AF2B19C1328000D8EFB4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F1E4AF2C19C1328000D8EFB4 /* Build configuration list for PBXNativeTarget "LeibnizTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F1E4AF2D19C1328000D8EFB4 /* Debug */,
+				F1E4AF2E19C1328000D8EFB4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = F1E4AF0419C1327F00D8EFB4 /* Project object */;
+}
