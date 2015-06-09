@@ -46,7 +46,7 @@ uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
         break;
       case 0x000013fc:
         fprintf(c->logFile, "Read access: gNewtConfig, PC=0x%08x\n", arm_get_pc(c->arm));
-//        result = kConfigBit3 | kDontPauseCPU | kHeapChecking | kStopOnThrows | kEnableStdout | kDefaultStdioOn | kEnableListener;
+        result = kConfigBit3 | kDontPauseCPU | kHeapChecking | kStopOnThrows | kEnableStdout | kDefaultStdioOn | kEnableListener;
         break;
     }
     if (addr >= c->romSize) {
@@ -418,9 +418,20 @@ void newton_log_undef (void *ext, uint32_t ir) {
     fprintf(c->logFile, "SendTestResults");
   }
   else if (ir == 0xE6000810) {
+    enum {
+      do_sys_open = 0x10,
+      do_sys_close = 0x11,
+      do_sys_istty = 0x12,
+      do_sys_read = 0x13,
+      do_sys_write = 0x14,
+      do_sys_set_input_notify = 0x15,
+    };
+
     fprintf(c->logFile, "TapFileCntl: ");
+
+    static int lastFp = 0;
     switch (c->arm->reg[0]) {
-      case 0x10: {
+      case do_sys_open: { // 0x0018c0cc
         bool memTrace = c->memTrace;
         c->memTrace = false;
         
@@ -439,23 +450,49 @@ void newton_log_undef (void *ext, uint32_t ir) {
         uint32_t arg2 = 0;
         arm_get_mem32(c->arm, c->arm->reg[1] + 4, 0, &arg2);
         
-        fprintf(c->logFile, "Open: name='%s', mode=%i", name, arg2);
+        fprintf(c->logFile, "Open: name='%s', mode=", name);
+        switch(arg2) {
+          case 4:
+            fprintf(c->logFile, "write");
+            break;
+          case 0:
+            fprintf(c->logFile, "read");
+            break;
+          default:
+            fprintf(c->logFile, "unknown %i", arg2);
+            break;
+        }
+        fprintf(c->logFile, ", fp=%i", lastFp);
         c->memTrace = memTrace;
+        c->arm->reg[0] = lastFp++; // fp
+        c->arm->reg[7] = 8;
         break;
       }
-      case 0x11: // 0x0018c120
-      case 0x12: // 0x0018c170
-      case 0x13: // 0x0018c1a0
-      case 0x14: // 0x0018c2b4
-      case 0x15: // 0x0018c06c
-      default:
-        fprintf(c->logFile, "Unknown!");
+      case do_sys_close: // 0x0018c120
+        fprintf(c->logFile, "close");
+        c->arm->reg[0] = 0x01;
+        break;
+      case do_sys_istty: { // 0x0018c170
+        uint32_t arg1 = 0;
+        arm_get_mem32(c->arm, c->arm->reg[1], 0, &arg1);
+        fprintf(c->logFile, "istty, fp=%i", arg1);
+        c->arm->reg[0] = 0x01; // 1, yes, is tty.
+      }
+        break;
+      case do_sys_read: // 0x0018c1a0
+        fprintf(c->logFile, "read");
+        c->arm->reg[0] = 0x01;
+        break;
+      case do_sys_write: // 0x0018c2b4
+        fprintf(c->logFile, "write");
+        c->arm->reg[0] = 0x01;
+        break;
+      case do_sys_set_input_notify: // 0x0018c06c
+        fprintf(c->logFile, "set_input_notify");
+        c->arm->reg[0] = 0x01;
         break;
     }
-    
-    //newton_stop(c);
-    c->arm->reg[15] = c->arm->reg[14]; // - 4, because when we return, arm.c will +4 it.
-    c->arm->reg[0] = 0x01;
+    c->arm->reg[15] = c->arm->reg[14];
   }
   else {
     fprintf(c->logFile, "UNKNOWN!");
