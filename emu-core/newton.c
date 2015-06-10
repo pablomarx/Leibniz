@@ -39,7 +39,7 @@ uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
     switch (addr) {
       case 0x000013f4:
         fprintf(c->logFile, "Read access: gDebuggerBits, PC=0x%08x\n", arm_get_pc(c->arm));
-//        result = 1;
+        result = 1;
         break;
       case 0x000013f8:
         fprintf(c->logFile, "Read access: gNewtTests, PC=0x%08x\n", arm_get_pc(c->arm));
@@ -378,6 +378,7 @@ void newton_log_undef (void *ext, uint32_t ir) {
   
   if (ir == 0xE6000010) {
     fprintf(c->logFile, "SystemBoot");
+    c->arm->reg[15] = c->arm->reg[14] + 4;
   }
   else if (ir == 0xE6000110) {
     fprintf(c->logFile, "ExitToShell");
