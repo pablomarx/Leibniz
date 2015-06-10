@@ -36,6 +36,7 @@ enum {
 
 typedef struct runt_s {
   arm_t *arm;
+  uint32_t base;
   uint32_t *memory;
   time_t bootTime;
   

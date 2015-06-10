@@ -14,86 +14,138 @@
 #include <stdlib.h>
 #include <string.h>
 
+enum {
+  RuntGetInterrupt = 0x04,
+  RuntClearInterrupt = 0x08,
+  RuntSwitches = 0x0c,
+  RuntPower = 0x10,
+    RuntPowerTrim = 0x40,
+    RuntPowerSerial = 0x20,
+    RuntPowerSound = 0x10,
+    RuntPowerVPP1 = 0x08,
+    RuntPowerVPP2 = 0x04,
+    RuntPowerLCD = 0x02,
+    RuntPowerTablet = 0x01,
+  RuntFlooder = 0x1c,
+  RuntRTC = 0x24,
+  RuntTimer = 0x30,
+  RuntTicks = 0x34,
+  RuntSound1 = 0x5c, // probably not sound, but frequently seen together.
+  RuntTablet = 0x58,
+  RuntLCD = 0x60,
+    RuntLCDNotBusy = 0x04,
+    RuntLCDSync = 0x38,
+    RuntLCDVersion = 0x3c,
+    RuntLCDContrast = 0xb0,
+    RuntLCDFillmode = 0xa0,
+    RuntLCDDisplayInverse = 0xe0,
+    RuntLCDDisplayOrientation = 0xec,
+    RuntLCDPixelData = 0x88,
+    RuntLCDCursorXLSB = 0xc0,
+    RuntLCDCursorXMSB = 0xc4,
+    RuntLCDCursorYLSB = 0xc8,
+    RuntLCDCursorYMSB = 0xcc,
+    RuntLCDScreenHeightLSB = 0xf0,
+    RuntLCDScreenHeightMSB = 0xf4,
+    RuntLCDScreenWidthLSB = 0xf8,
+    RuntLCDScreenWidthMSB = 0xfc,
+    RuntLCDFlush = 0xb8,
+
+  RuntSound = 0x64,
+  
+  RuntIR = 0x80,
+    RuntIRConfig = 0x08,
+    RuntIRData   = 0x04,
+  
+  RuntSerial = 0x81,
+    RuntSerialConfig = 0x08,
+    RuntSerialData   = 0x04,
+};
+
+enum {
+  RuntInterruptTablet = (1 << 10),
+  RuntInterruptSound  = (1 << 12),
+  RuntInterruptSwitch = (1 << 15),
+};
+
 #define SCREEN_WIDTH 336
 #define SCREEN_HEIGHT 240
-
-#define INTERRUPT_MASK_TABLET 0x00000400
 
 void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
   const char *prefix = NULL;
   uint32_t flag = 0;
-
+  
   switch ((addr >> 8) & 0xff) {
-    case 0x04:
+    case RuntGetInterrupt:
       flag = RuntLogInterrupts;
       prefix = "get-interrupt";
       break;
-    case 0x08:
+    case RuntClearInterrupt:
       flag = RuntLogInterrupts;
       prefix = "clear-interrupt";
       break;
-    case 0x1c:
+    case RuntFlooder:
       // don't know, but it happens a ton...
       return;
-    case 0x30:
+    case RuntTimer:
       flag = RuntLogTimer;
       prefix = "timer";
       break;
-    case 0x34:
+    case RuntTicks:
       flag = RuntLogTicks;
       prefix = "ticks";
       break;
-    case 0x58:
+    case RuntTablet:
       flag = RuntLogTablet;
       prefix = "tablet";
       break;
-    case 0x60: {
+    case RuntLCD: {
       flag = RuntLogLCD;
-      switch(addr) {
-        case 0x01406004: // lcd not busy
+      switch(addr & 0xff) {
+        case RuntLCDNotBusy: // lcd not busy
           prefix = "lcd-not-busy";
           break;
-        case 0x01406038: // lcd sync
+        case RuntLCDSync: // lcd sync
           prefix = "lcd-sync";
           break;
-        case 0x014060b0: // lcd contrast?
+        case RuntLCDContrast: // lcd contrast?
           prefix = "lcd-contrast";
           break;
-        case 0x014060a0:
+        case RuntLCDFillmode:
           prefix = "lcd-fill-mode";
           break;
-        case 0x014060e0:
+        case RuntLCDDisplayInverse:
           prefix = "lcd-display-inverse";
           break;
-        case 0x014060ec:
+        case RuntLCDDisplayOrientation:
           prefix = "lcd-display-orientation";
           break;
-        case 0x01406088:
+        case RuntLCDPixelData:
           prefix = "lcd-pixel-data";
           break;
-        case 0x014060c0:
+        case RuntLCDCursorXLSB:
           prefix = "lcd-cursor-x-lsb";
           break;
-        case 0x014060c4:
+        case RuntLCDCursorXMSB:
           prefix = "lcd-cursor-x-msb";
           break;
-        case 0x014060c8:
-          prefix = "lcd-cursor-x-lsb";
+        case RuntLCDCursorYLSB:
+          prefix = "lcd-cursor-y-lsb";
           break;
-        case 0x014060cc:
-          prefix = "lcd-cursor-x-msb";
+        case RuntLCDCursorYMSB:
+          prefix = "lcd-cursor-y-msb";
           break;
-        case 0x014060f0:
+        case RuntLCDScreenHeightLSB:
           prefix = "lcd-screen-height-lsb";
           break;
-        case 0x014060f4:
-          prefix = "lcd-screen height-msb";
+        case RuntLCDScreenHeightMSB:
+          prefix = "lcd-screen-height-msb";
           break;
-        case 0x014060f8:
-          prefix = "lcd-screen width-lsb";
+        case RuntLCDScreenWidthLSB:
+          prefix = "lcd-screen-width-lsb";
           break;
-        case 0x014060fc:
-          prefix = "lcd-screen width-msb";
+        case RuntLCDScreenWidthMSB:
+          prefix = "lcd-screen-width-msb";
           break;
         default:
           prefix = "lcd-unknown";
@@ -101,44 +153,48 @@ void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
       }
       break;
     }
-    case 0x80:
+    case RuntIR:
       flag = RuntLogIR;
-      if (addr == 0x01408004) {
-        prefix = "ir-data";
-      }
-      else if (addr == 0x01408008) {
-        prefix = "ir-config";
-      }
-      else {
-        prefix = "ir-unknown";
+      switch (addr & 0xff) {
+        case RuntIRConfig:
+          prefix = "ir-config";
+          break;
+        case RuntIRData:
+          prefix = "ir-data";
+          break;
+        default:
+          prefix = "ir-unknown";
+          break;
       }
       break;
-    case 0x81:
+    case RuntSerial:
       flag = RuntLogSerial;
-      if (addr == 0x01408104) {
-        prefix = "serial-data";
-      }
-      else if (addr == 0x01408108) {
-        prefix = "serial-config";
-      }
-      else {
-        prefix = "serial-unknown";
+      switch (addr & 0xff) {
+        case RuntSerialConfig:
+          prefix = "serial-config";
+          break;
+        case RuntSerialData:
+          prefix = "serial-data";
+          break;
+        default:
+          prefix = "serial-unknown";
+          break;
       }
       break;
-    case 0x10:
+    case RuntPower:
       flag = RuntLogPower;
       prefix = "power";
       break;
-    case 0x0c:
+    case RuntSwitches:
       flag = RuntLogSwitch;
       prefix = "switch";
       break;
-    case 0x5c:
-    case 0x64:
+    case RuntSound1:
+    case RuntSound:
       flag = RuntLogSound;
       prefix = "sound";
       break;
-    case 0x24:
+    case RuntRTC:
       flag = RuntLogRTC;
       prefix = "rtc";
       break;
@@ -147,7 +203,7 @@ void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
       prefix = "unknown";
       break;
   }
-
+  
   if ((c->logFlags & flag) == flag) {
     fprintf(c->logFile, "[RUNT ASIC:%s:%02x:%s] 0x%08x => 0x%08x (PC:0x%08x)\n", write?"WR":"RD", ((addr >> 8) & 0xff), prefix, addr, val, arm_get_pc(c->arm));
   }
@@ -157,36 +213,36 @@ void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
 #pragma mark LCD display
 void runt_display_set_mem32(runt_t *c, uint32_t addr, uint32_t val) {
   val = val >> 24;
-  switch (addr) {
-    case 0x014060c0:
+  switch (addr & 0xff) {
+    case RuntLCDCursorXLSB:
       c->displayCursorX = (val & 0xff);
       if (c->displayCursorX < 0) {
         fprintf(c->logFile, "bad x coordinate: 0x%08x\n", val);
       }
       break;
-    case 0x014060c4:
+    case RuntLCDCursorXMSB:
       c->displayCursorX = ((val & 0xff) << 8) | c->displayCursorX;
       break;
-    case 0x014060cc:
+    case RuntLCDCursorYMSB:
       c->displayCursorY = ((val & 0xff) << 8) | c->displayCursorY;
       break;
-    case 0x014060c8:
+    case RuntLCDCursorYLSB:
       c->displayCursorY = (val & 0xff);
       if (c->displayCursorY < 0) {
         fprintf(c->logFile, "bad y coordinate: 0x%08x\n", val);
       }
       break;
-    case 0x014060a0:
+    case RuntLCDFillmode:
       c->displayFillMode = ((val & 0xff) == 0x03);
       break;
-    case 0x014060e0:
+    case RuntLCDDisplayInverse:
       c->displayInverse = (val & 0xff);
       break;
-    case 0x014060ec:
+    case RuntLCDDisplayOrientation:
       c->displayOrientation = (val == 0x00); //1;//((data & 0xff) == 0x00);
       break;
       
-    case 0x01406088: {
+    case RuntLCDPixelData: {
       int x = c->displayCursorX;
       int y = c->displayCursorY;
       if (x < 0) {
@@ -225,6 +281,7 @@ void runt_display_set_mem32(runt_t *c, uint32_t addr, uint32_t val) {
         }
         x++;
       }
+      
       if (c->displayInverse) c->displayCursorX+=5;
       else if (c->displayOrientation) c->displayCursorY++;
       else c->displayCursorX+=8;
@@ -232,7 +289,7 @@ void runt_display_set_mem32(runt_t *c, uint32_t addr, uint32_t val) {
       c->displayDirty = 1;
       break;
     }
-    case 0x014060b8:
+    case RuntLCDFlush:
       if (c->displayDirty) {
         FlushDisplay((const char *)c->displayFramebuffer, SCREEN_WIDTH, SCREEN_HEIGHT);
         // fprintf(c->logFile,"flushing display\n");
@@ -245,15 +302,15 @@ void runt_display_set_mem32(runt_t *c, uint32_t addr, uint32_t val) {
 uint32_t runt_display_get_mem32(runt_t *c, uint32_t addr, uint32_t val) {
   uint32_t result = val;
   switch (addr) {
-    case 0x01406004: // lcd not busy
+    case RuntLCDNotBusy:
       result = (c->displayBusy++ % 2 ? 0x02000002 : 0x00000000);
       break;
       
-    case 0x01406038: // lcd sync
+    case RuntLCDSync:
       result = 165;
       break;
       
-    case 0x0140603c: // lcd driver version?
+    case RuntLCDVersion:
       result = 91;
       break;
   }
@@ -266,16 +323,16 @@ void runt_touch_down(runt_t *c, int x, int y) {
   c->touchX = x;
   c->touchY = y;
   c->touchActive = true;
-
-  c->interrupt |= INTERRUPT_MASK_TABLET;
+  
+  c->interrupt |= RuntInterruptTablet;
 }
 
 void runt_touch_up(runt_t *c) {
   c->touchX = 0;
   c->touchY = 0;
   c->touchActive = false;
-
-  c->interrupt ^= INTERRUPT_MASK_TABLET;
+  
+  c->interrupt ^= RuntInterruptTablet;
 }
 
 void runt_switch_state(runt_t *c, int switchNum, int state) {
@@ -288,16 +345,16 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val) {
   runt_log_access(c, addr, val, true);
   
   switch ((addr >> 8) & 0xff) {
-    case 0x60:
+    case RuntLCD:
       runt_display_set_mem32(c, addr, val);
       break;
-    case 0x08: // interrupt
+    case RuntClearInterrupt:
       if (c->interruptStick > 0) {
         c->interruptStick--;
       }
       else {
         bool log = ((c->logFlags & RuntLogInterrupts) == RuntLogInterrupts);
-        if (val != INTERRUPT_MASK_TABLET && val != 0x00040000 && val != 0x00001000 && val != 0x00008000 && val != 0x00010000) {
+        if (val != RuntInterruptTablet && val != 0x00040000 && val != 0x00001000 && val != 0x00008000 && val != 0x00010000) {
           if (log) fprintf(c->logFile, "clearing interrupt: 0x%08x\n", val);
         }
         if ((c->interrupt & val) == val) {
@@ -307,86 +364,70 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val) {
         }
       }
       break;
-    case 0x58:
-      //val = (val & 0xff);
+
+    case RuntSound:
+      // To get diagnostics moving, we'll set the interrupt...
+      c->interrupt |= RuntInterruptSound;
       break;
-    case 0x1c:
+    
+    case RuntSerial:
+      if ((addr & 0xff) == RuntSerialData) {
+        //fprintf(c->logFile, "serial_putc: 0x%02x '%c'\n", val & 0xff, val & 0xff);
+      }
       break;
-    case 0x5c:
-      // sound eval menu wrote here!!
+    case RuntIR:
+      if ((addr & 0xff) == RuntIRData) {
+        //fprintf(c->logFile, "ir_putc: 0x%02x '%c'\n", val & 0xff, val & 0xff);
+      }
       break;
-    case 0x64: // sound?
-      c->interrupt |= 0x1000;
-      break;
-    case 0x81:
-      // serial
-      // 0x01408104 is output byte
-      // 0x01408108 something else...
-      break;
-    case 0x80:
-      // ir ???
-      // 0x01408004 is output byte
-      // 0x01408008 something else...
-      break;
-    case 0x0c: // switch
-      // c->interrupt |= 0x00008000;
-      break;
-    case 0x10: // power
+    case RuntPower:
       if ((c->logFlags & RuntLogPower) == RuntLogPower) {
+        
         fprintf(c->logFile, "power on: 0x%08x -> 0x%08x: ", c->memory[0x1000/4], val);
-        if (val & 0x40) {
+        if (val & RuntPowerTrim) {
           fprintf(c->logFile, "trim, ");
         }
-        if (val & 0x20) {
+        if (val & RuntPowerSerial) {
           fprintf(c->logFile, "serial, ");
         }
-        if (val & 0x10) {
+        if (val & RuntPowerSound) {
           fprintf(c->logFile, "sound, ");
         }
-        if (val & 0x08) {
+        if (val & RuntPowerVPP1) {
           fprintf(c->logFile, "vpp1, ");
         }
-        if (val & 0x04) {
+        if (val & RuntPowerVPP2) {
           fprintf(c->logFile, "vpp2, ");
         }
-        if (val & 0x02) {
+        if (val & RuntPowerLCD) {
           fprintf(c->logFile, "lcd, ");
         }
-        if (val & 0x01) {
+        if (val & RuntPowerTablet) {
           fprintf(c->logFile, "tablet?, ");
         }
         fprintf(c->logFile, "\n");
       }
-      // 0x00000060 = trim on
-      // 0x00000030 = sound on
-      // 0x00000028 = vpp1 on
-      // 0x00000024 = vpp2 on
       break;
-    /*
-     during IR tests:
-     unknown write: addr=0x01406800, val=0x00000004...
-     unknown write: addr=0x01406800, val=0x00000000...
-     */
     default:
       break;
   }
   
-  c->memory[(addr-0x01400000) / 4] = val;
+  c->memory[(addr - c->base) / 4] = val;
   return val;
 }
 
 
 uint32_t runt_get_mem32(runt_t *c, uint32_t addr) {
-  uint32_t result = c->memory[(addr - 0x01400000) / 4];
+  uint32_t result = c->memory[(addr - c->base) / 4];
   
   switch ((addr >> 8) & 0xff) {
-    case 0x60:
+    case RuntLCD:
       result = runt_display_get_mem32(c, addr, result);
       break;
-    case 0x34: // ticks
+    case RuntTicks:
       result = arm_get_opcnt(c->arm) * 1000;
       break;
-    case 0x58: // tablet
+    case RuntTablet:
       if (((result >> 24) & 0xff) == 0x04) {
         result = 0xfff - c->touchY;
       }
@@ -394,9 +435,9 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr) {
         result = 0xfff - c->touchX;
       }
       break;
-    case 0x04: // interrupt
+    case RuntGetInterrupt:
       if (c->touchActive) {
-        c->interrupt |= INTERRUPT_MASK_TABLET;
+        c->interrupt |= RuntInterruptTablet;
       }
       if (c->switches[1]) {
         c->interrupt |= 0x00008000;
@@ -406,31 +447,26 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr) {
       }
       result = c->interrupt;
       break;
-    case 0x10:
+    case RuntPower:
       break;
-    case 0x0c: // switches?
+    case RuntSwitches:
       result = 0;
       if (c->switches[0]) result |= 0x00000000; // nicd switch?
       if (c->switches[1]) result |= 0x00008000; // card lock switch?
       if (c->switches[2]) result |= 0x00010000; // power switch?
       break;
-    case 0x1c:
+    case RuntFlooder:
       result = 0;
       break;
-    case 0x80: // ir?
-    case 0x81: // serial
+    case RuntIR:
+    case RuntSerial:
       if ((result & 0xff) == 0x00) {
         result = 0xffffffff;
       }
       break;
-    case 0x24: // rtc?
+    case RuntRTC:
       result = (uint32_t)(time(NULL) - c->bootTime) ;
       break;
-      /*
-    case 0x10: // 0x01401000 == power ?
-      result = 0x00000020;
-      break;
-       */
     default:
       fprintf(c->logFile, "unknown read: addr=0x%08x, PC=0x%08x...\n", addr, arm_get_pc(c->arm));
       break;
@@ -439,9 +475,9 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr) {
   if (result == addr) {
     result = 0;
   }
-
+  
   runt_log_access(c, addr, result, false);
-
+  
   return result;
 }
 
@@ -463,14 +499,15 @@ void runt_set_log_file (runt_t *c, FILE *file) {
 #pragma mark -
 #pragma mark
 void runt_init (runt_t *c) {
-  c->memory = calloc(0x01408fff - 0x01400000, 1);
-
+  c->base = 0x01400000;
+  c->memory = calloc(0x8fff, 1);
+  
   //
   // Display
   //
   c->displayFramebuffer = calloc(SCREEN_WIDTH * SCREEN_HEIGHT, 1);
   memset(c->displayFramebuffer, 0xff, SCREEN_WIDTH * SCREEN_HEIGHT);
-
+  
   //
   // Tablet
   //
@@ -512,7 +549,7 @@ void runt_set_arm(runt_t *c, arm_t *arm) {
 void runt_free (runt_t *c) {
   free(c->memory);
   free(c->displayFramebuffer);
-
+  
 }
 
 void runt_del (runt_t *c) {
