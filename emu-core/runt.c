@@ -422,7 +422,7 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr) {
   
   switch ((addr >> 8) & 0xff) {
     case RuntLCD:
-      result = runt_display_get_mem32(c, addr, result);
+      result = runt_display_get_mem32(c, addr & 0xff, result);
       break;
     case RuntTicks:
       result = arm_get_opcnt(c->arm) * 1000;
