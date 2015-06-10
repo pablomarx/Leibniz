@@ -48,6 +48,7 @@
   dispatch_async(_emulatorQueue, ^{
     _newton = newton_new();
     newton_load_rom(_newton, [romFile fileSystemRepresentation]);
+    newton_set_bootmode(_newton, NewtonBootModeDiagnostics);
     newton_emulate(_newton, INT32_MAX);
   });
 }

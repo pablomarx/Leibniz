@@ -45,6 +45,12 @@ typedef struct newton_s {
   FILE *logFile;
 } newton_t;
 
+typedef enum {
+  NewtonBootModeNormal = 0,
+  NewtonBootModeDiagnostics,
+  NewtonBootModeAutoPWB,
+} NewtonBootMode;
+
 void newton_init (newton_t *c);
 newton_t *newton_new (void);
 int newton_load_rom(newton_t *c, const char *path);
@@ -60,6 +66,7 @@ uint32_t newton_set_mem32 (newton_t *c, uint32_t addr, uint32_t val);
 
 void newton_emulate(newton_t *c, int32_t count);
 void newton_stop(newton_t *c);
+void newton_set_bootmode(newton_t *c, NewtonBootMode bootMode);
 
 void newton_set_logfile(newton_t *c, FILE *file);
 void newton_print_state(newton_t *c);

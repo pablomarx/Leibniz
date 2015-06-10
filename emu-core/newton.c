@@ -542,6 +542,24 @@ void newton_log_exception (void *ext, uint32_t addr) {
 
 #pragma mark -
 #pragma mark
+void newton_set_bootmode(newton_t *c, NewtonBootMode bootMode) {
+  switch (bootMode) {
+    case NewtonBootModeAutoPWB:
+      c->runt->interrupt = 0xffffffff;
+      c->runt->interruptStick = 2;
+      break;
+    case NewtonBootModeDiagnostics:
+      c->runt->interrupt = 0x00004000;
+      c->runt->interruptStick = 0;
+      break;
+    case NewtonBootModeNormal:
+    default:
+      c->runt->interrupt = 0;
+      c->runt->interruptStick = 0;
+      break;
+  }
+}
+
 void newton_stop(newton_t *c) {
   c->stop = true;
 }

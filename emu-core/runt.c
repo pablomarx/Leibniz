@@ -465,13 +465,6 @@ void runt_set_log_file (runt_t *c, FILE *file) {
 void runt_init (runt_t *c) {
   c->memory = calloc(0x01408fff - 0x01400000, 1);
 
-  // Go into diagnostics mode
-  c->interrupt = 0x00004000;
-
-  // Go into auto pwb mode
-  //c->interrupt = 0xffffffff;
-  //c->interruptStick = 2;
-  
   //
   // Display
   //
