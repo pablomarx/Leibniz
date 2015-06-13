@@ -60,6 +60,9 @@ uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
   else if (addr >= 0x01000000 && addr < 0x01100000) { // ram, 1MB
     result = c->ram1[(addr - 0x01000000) / 4];
   }
+  else if (addr >= 0x01100000 && addr < 0x01200000) { // ram, 1MB
+    result = c->ram3[(addr - 0x01100000) / 4];
+  }
   else if (addr >= 0x01200000 && addr < 0x01300000) { // ram, 1MB
     // "2nd bank RAM"
     result = c->ram2[(addr - 0x01200000) / 4];
@@ -71,6 +74,7 @@ uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
     if (addr >= 0x14000000 && addr < 0x14100000 ) {
       result = c->flash[(addr - 0x14000000) / 4];
     }
+    fprintf(c->logFile, "[FLASH:READ] 0x%08x => 0x%08x, PC=0x%08x\n", addr, result, arm_get_pc(c->arm));
     // return iocard_get_mem32(c, addr);
   }
   else if (addr >= 0x70000000 && addr < 0x80000000) { // card control registers
@@ -85,7 +89,9 @@ uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
   }
   else {
     fprintf(c->logFile, "UNKNOWN MEMORY READ: 0x%08x, PC=0x%08x\n", addr, arm_get_pc(c->arm));
-    newton_stop(c);
+	if (c->breakOnUnknownMemory) {
+		newton_stop(c);
+	}
   }
   
   dbug("GET: 0x%08x => 0x%08x, PC=0x%08x\n", addr, result, arm_get_pc(c->arm));
@@ -160,6 +166,9 @@ uint32_t newton_set_mem32 (newton_t *c, uint32_t addr, uint32_t val) {
   else if (addr >= 0x01000000 && addr < 0x01100000) { // ram, 1MB
     c->ram1[(addr - 0x01000000) / 4] = val;
   }
+  else if (addr >= 0x01100000 && addr < 0x01200000) { // ram, 1MB
+    c->ram3[(addr - 0x01100000) / 4] = val;
+  }
   else if (addr >= 0x01200000 && addr < 0x01300000) { // ram, 1MB
     c->ram2[(addr - 0x01200000) / 4] = val;
   }
@@ -168,15 +177,20 @@ uint32_t newton_set_mem32 (newton_t *c, uint32_t addr, uint32_t val) {
   }
   else if (addr >= 0x10000000 && addr < 0x20000000) { // "I/O card"
     // return iocard_set_mem32(c, addr, val);
+    fprintf(c->logFile, "[FLASH:WRITE] 0x%08x => 0x%08x, PC=0x%08x\n", addr, val, arm_get_pc(c->arm));
     if (addr >= 0x14000000 && addr < 0x14100000 ) {
       c->flash[(addr - 0x14000000) / 4] = val;
     }
   }
   else if (addr >= 0x70000000 && addr < 0x80000000) { // card control registers
+    fprintf(c->logFile, "[CARD:WRITE] 0x%08x => 0x%08x, PC=0x%08x\n", addr, val, arm_get_pc(c->arm));
     // return cardcont_set_mem32(c, addr, val);
   }
   else {
     fprintf(c->logFile, "UNKNOWN MEMORY SET: 0x%08x => 0x%08x, PC=0x%08x\n", addr, val, arm_get_pc(c->arm));
+	if (c->breakOnUnknownMemory) {
+        newton_stop(c);
+	}
   }
   return val;
 }
@@ -336,6 +350,14 @@ void newton_memwatch_del(newton_t *c, uint32_t memwatch) {
   }
 }
 
+void newton_set_break_on_unknown_memory(newton_t *c, bool breakOnUnknownMemory) {
+	c->breakOnUnknownMemory = breakOnUnknownMemory;
+}
+
+bool newton_get_break_on_unknown_memory(newton_t *c) {
+	return c->breakOnUnknownMemory;
+}
+
 void newton_set_instruction_trace(newton_t *c, bool instructionTrace) {
   c->instructionTrace = instructionTrace;
 }
@@ -430,7 +452,7 @@ void newton_log_undef (void *ext, uint32_t ir) {
 
     fprintf(c->logFile, "TapFileCntl: ");
 
-    static int lastFp = 0;
+    static int lastFp = 1;
     switch (c->arm->reg[0]) {
       case do_sys_open: { // 0x0018c0cc
         bool memTrace = c->memTrace;
@@ -635,7 +657,11 @@ void newton_init (newton_t *c)
   // Setup RAM
   //
   c->ram1 = calloc(0x01100000 - 0x01000000, 1);
+  c->ram3 = calloc(0x01200000 - 0x01100000, 1);
   c->ram2 = calloc(0x01300000 - 0x01200000, 1);
+  
+  // MessagePad 130 v1.3 loops until this is true...
+  c->ram3[0] = 0x400;
   
   //
   // Setup flash
@@ -726,6 +752,7 @@ void newton_free (newton_t *c)
   runt_free(c->runt);
   free(c->ram1);
   free(c->ram2);
+  free(c->ram3);
   free(c->rom);
   free(c->flash);
 }

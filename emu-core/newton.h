@@ -22,6 +22,7 @@ typedef struct newton_s {
   
   uint32_t *ram1;
   uint32_t *ram2;
+  uint32_t *ram3;
   uint32_t *rom;
   uint32_t romSize;
   uint32_t *flash;
@@ -36,6 +37,7 @@ typedef struct newton_s {
 
   bool instructionTrace;
   bool memTrace;
+  bool breakOnUnknownMemory;
 
   bool pcSpy;
   bool spSpy;
@@ -76,6 +78,9 @@ void newton_breakpoint_del(newton_t *c, uint32_t breakpoint);
 
 void newton_memwatch_add(newton_t *c, uint32_t memwatch);
 void newton_memwatch_del(newton_t *c, uint32_t memwatch);
+
+void newton_set_break_on_unknown_memory(newton_t *c, bool breakOnUnknownMemory);
+bool newton_get_break_on_unknown_memory(newton_t *c);
 
 void newton_set_instruction_trace(newton_t *c, bool instructionTrace);
 bool newton_get_instruction_trace(newton_t *c);
