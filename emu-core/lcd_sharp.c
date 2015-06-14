@@ -109,7 +109,7 @@ const char *lcd_sharp_get_address_name(lcd_sharp_t *c, uint32_t addr) {
 }
 
 uint32_t lcd_sharp_set_mem32(lcd_sharp_t *c, uint32_t addr, uint32_t val) {
-  c->memory[addr] = val;
+  c->memory[addr/4] = val;
   val = val >> 24;
   switch (addr) {
     case SharpLCDCursorXLSB:
@@ -198,7 +198,7 @@ uint32_t lcd_sharp_set_mem32(lcd_sharp_t *c, uint32_t addr, uint32_t val) {
 }
 
 uint32_t lcd_sharp_get_mem32(lcd_sharp_t *c, uint32_t addr) {
-  uint32_t result = c->memory[addr];
+  uint32_t result = c->memory[addr/4];
   
   switch (addr) {
     case SharpLCDNotBusy:

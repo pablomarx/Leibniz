@@ -31,12 +31,12 @@ const char *lcd_squirt_get_address_name(lcd_squirt_t *c, uint32_t addr) {
 }
 
 uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
-  c->memory[addr] = val;
+  c->memory[addr/4] = val;
   return val;
 }
 
 uint32_t lcd_squirt_get_mem32(lcd_squirt_t *c, uint32_t addr) {
-  uint32_t result = c->memory[addr];
+  uint32_t result = c->memory[addr/4];
   
   switch (addr) {
     case SquirtLCDNotBusy:
