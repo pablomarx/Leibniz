@@ -9,6 +9,8 @@
 #include "arm.h"
 #include "newton.h"
 #include "runt.h"
+#include "lcd_sharp.h"
+#include "lcd_squirt.h"
 #include "HammerConfigBits.h"
 
 #if 1
@@ -723,6 +725,11 @@ void newton_init (newton_t *c)
   runt_set_arm(c->runt, c->arm);
   
   //
+  //
+  //
+  c->lcd_driver = NULL;
+  
+  //
   // Logging
   //
   newton_set_logfile(c, stdout);
@@ -826,11 +833,31 @@ int newton_load_rom(newton_t *c, const char *path) {
   }
   printf("\n");
   
+  if (c->machineType == kGestalt_MachineType_Lindy) {
+    lcd_squirt_t *squirt = lcd_squirt_new();
+    runt_set_lcd_fct(c->runt, squirt, lcd_squirt_get_mem32, lcd_squirt_set_mem32, lcd_squirt_get_address_name);
+    c->lcd_driver = squirt;
+  }
+  else {
+    lcd_sharp_t *sharp = lcd_sharp_new();
+    runt_set_lcd_fct(c->runt, sharp, lcd_sharp_get_mem32, lcd_sharp_set_mem32, lcd_sharp_get_address_name);
+    c->lcd_driver = sharp;
+  }
+  
   return 0;
 }
 
 void newton_free (newton_t *c)
 {
+  if (c->lcd_driver != NULL) {
+    if (c->machineType == kGestalt_MachineType_Lindy) {
+      lcd_squirt_free((lcd_squirt_t *)c->lcd_driver);
+    }
+    else {
+      lcd_sharp_free((lcd_sharp_t *)c->lcd_driver);
+    }
+  }
+
   arm_free(c->arm);
   runt_free(c->runt);
   free(c->ram1);

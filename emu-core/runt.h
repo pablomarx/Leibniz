@@ -34,6 +34,11 @@ enum {
   RuntLogAll        = 0xffffffff,
 };
 
+typedef uint32_t (*lcd_get_uint32_f) (void *ext, uint32_t addr);
+typedef uint32_t (*lcd_set_uint32_f) (void *ext, uint32_t addr, uint32_t val);
+typedef const char * (*lcd_get_address_name_f) (void *ext, uint32_t addr);
+
+
 typedef struct runt_s {
   arm_t *arm;
   uint32_t base;
@@ -49,15 +54,11 @@ typedef struct runt_s {
   uint32_t interruptStick;
   
   // Display
-  int displayFillMode;
-  int displayOrientation;
-  int displayInverse;
-  int displayCursorX;
-  int displayCursorY;
-  int displayBusy;
-  int displayDirty;
-  unsigned char *displayFramebuffer;
-
+  void               *lcd_ext;
+  lcd_get_uint32_f   lcd_get_uint32;
+  lcd_set_uint32_f   lcd_set_uint32;
+  lcd_get_address_name_f lcd_get_address_name;
+  
   // Switches
   int8_t switches[3];
   
@@ -73,6 +74,9 @@ void runt_free (runt_t *c);
 void runt_del (runt_t *c);
 void runt_set_arm (runt_t *c, arm_t *arm);
 
+void runt_set_lcd_fct(runt_t *c, void *ext,
+                      void *get32, void *set32, void *getname);
+
 void runt_set_log_flags (runt_t *c, unsigned flags, int val);
 void runt_set_log_file (runt_t *c, FILE *file);
 
@@ -83,7 +87,5 @@ void runt_switch_state(runt_t *c, int switchNum, int state);
 
 void runt_touch_down(runt_t *c, int x, int y);
 void runt_touch_up(runt_t *c);
-
-extern void FlushDisplay(const char *display, int width, int height);
 
 #endif /* defined(__Leibniz__runt__) */

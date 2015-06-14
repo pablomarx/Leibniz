@@ -28,7 +28,7 @@ typedef struct newton_s {
   arm_t *arm;
   bool stop;
   
-  
+  void *lcd_driver;
   runt_t *runt;
   
   uint32_t *ram1;

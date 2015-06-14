@@ -18,6 +18,8 @@
 		F123BD7319C508C200EC994F /* runt.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD7119C508C200EC994F /* runt.c */; };
 		F1DB3DD919C60F8B006C7102 /* monitor.c in Sources */ = {isa = PBXBuildFile; fileRef = F1DB3DD719C60F8B006C7102 /* monitor.c */; };
 		F1DB3DDC19C63121006C7102 /* linenoise.c in Sources */ = {isa = PBXBuildFile; fileRef = F1DB3DDA19C63121006C7102 /* linenoise.c */; };
+		F1E09AED1B2D2AB000004CC8 /* lcd_sharp.c in Sources */ = {isa = PBXBuildFile; fileRef = F1E09AE91B2D2AB000004CC8 /* lcd_sharp.c */; };
+		F1E09AEE1B2D2AB000004CC8 /* lcd_squirt.c in Sources */ = {isa = PBXBuildFile; fileRef = F1E09AEB1B2D2AB000004CC8 /* lcd_squirt.c */; };
 		F1E4AF1219C1327F00D8EFB4 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = F1E4AF1119C1327F00D8EFB4 /* main.m */; };
 		F1E4AF1519C1327F00D8EFB4 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = F1E4AF1419C1327F00D8EFB4 /* AppDelegate.m */; };
 		F1E4AF1719C1327F00D8EFB4 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F1E4AF1619C1327F00D8EFB4 /* Images.xcassets */; };
@@ -55,6 +57,10 @@
 		F1DB3DD819C60F8B006C7102 /* monitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = monitor.h; sourceTree = "<group>"; };
 		F1DB3DDA19C63121006C7102 /* linenoise.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = linenoise.c; sourceTree = "<group>"; };
 		F1DB3DDB19C63121006C7102 /* linenoise.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = linenoise.h; sourceTree = "<group>"; };
+		F1E09AE91B2D2AB000004CC8 /* lcd_sharp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lcd_sharp.c; sourceTree = "<group>"; };
+		F1E09AEA1B2D2AB000004CC8 /* lcd_sharp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lcd_sharp.h; sourceTree = "<group>"; };
+		F1E09AEB1B2D2AB000004CC8 /* lcd_squirt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lcd_squirt.c; sourceTree = "<group>"; };
+		F1E09AEC1B2D2AB000004CC8 /* lcd_squirt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lcd_squirt.h; sourceTree = "<group>"; };
 		F1E4AF0C19C1327F00D8EFB4 /* Leibniz.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Leibniz.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F1E4AF1019C1327F00D8EFB4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F1E4AF1119C1327F00D8EFB4 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -107,6 +113,10 @@
 				F123BD5B19C4FC8800EC994F /* opcodes.c */,
 				F123BD7119C508C200EC994F /* runt.c */,
 				F123BD7219C508C200EC994F /* runt.h */,
+				F1E09AE91B2D2AB000004CC8 /* lcd_sharp.c */,
+				F1E09AEA1B2D2AB000004CC8 /* lcd_sharp.h */,
+				F1E09AEB1B2D2AB000004CC8 /* lcd_squirt.c */,
+				F1E09AEC1B2D2AB000004CC8 /* lcd_squirt.h */,
 			);
 			name = "alt-emu";
 			path = "emu-core";
@@ -270,7 +280,9 @@
 			files = (
 				F123BD7319C508C200EC994F /* runt.c in Sources */,
 				F123BD5D19C4FC8800EC994F /* arm.c in Sources */,
+				F1E09AED1B2D2AB000004CC8 /* lcd_sharp.c in Sources */,
 				F1E4AF1519C1327F00D8EFB4 /* AppDelegate.m in Sources */,
+				F1E09AEE1B2D2AB000004CC8 /* lcd_squirt.c in Sources */,
 				F123BD6319C4FC8800EC994F /* disasm.c in Sources */,
 				F10F099D19C651A700C8C8FD /* hexdump.c in Sources */,
 				F123BD6819C4FC8800EC994F /* mmu.c in Sources */,
