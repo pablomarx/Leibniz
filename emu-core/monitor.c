@@ -36,7 +36,7 @@ void monitor_init (monitor_t *c) {
   
   sigaction(SIGINT, &action, NULL);
   
-  c->lastInput = "";
+  c->lastInput = strdup("");
 }
 
 monitor_t *monitor_new (void) {
@@ -71,6 +71,9 @@ void monitor_dump_mmu (monitor_t *c) {
   arm_copr15_t *cp15 = arm_get_mmu(c->newton->arm);
   uint32_t pageTable = cp15->reg[2];
   printf("page table: 0x%08x\n", pageTable);
+  if (pageTable == 0x00) {
+    return;
+  }
 
   /* 
    * ARM architecture-based application processors implement an MMU 
@@ -276,16 +279,18 @@ void monitor_run(monitor_t *c) {
       break;
     }
     
-    if (line[0] == 0x00) {
-      line = c->lastInput;
-      c->lastInput = NULL;
-    }
-    else {
+    if (line[0] != 0x00) {
       linenoiseHistoryAdd(line); /* Add to the history. */
       linenoiseHistorySave("history.txt"); /* Save the history on disk. */
+      
+      if (c->lastInput != NULL) {
+        free(c->lastInput);
+      }
+      c->lastInput = strdup(line);
     }
+    free(line);
     
-    monitor_parse_input(c, line);
+    monitor_parse_input(c, c->lastInput);
     
     if (c->instructionsToExecute > 0) {
       newton_emulate(c->newton, c->instructionsToExecute);
@@ -296,7 +301,6 @@ void monitor_run(monitor_t *c) {
     }
     
     c->instructionsToExecute = 0;
-    c->lastInput = line;
   }
   
   if (gMonitor == c) {

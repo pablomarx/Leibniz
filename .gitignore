@@ -10,3 +10,6 @@ build/
 xcuserdata
 *.xcworkspacedata
 *.xccheckout
+*.o
+history.txt
+newton

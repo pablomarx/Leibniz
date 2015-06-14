@@ -673,6 +673,10 @@ void newton_emulate(newton_t *c, int32_t count) {
   }
 }
 
+runt_t *newton_get_runt (newton_t *c) {
+  return c->runt;
+}
+
 #pragma mark -
 #pragma mark
 newton_t *newton_new (void)
