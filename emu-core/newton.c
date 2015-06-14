@@ -200,9 +200,7 @@ uint32_t newton_set_mem32 (newton_t *c, uint32_t addr, uint32_t val) {
   else if (addr >= 0x01000000 && addr < 0x01400000) { // ram, 1MB
     uint32_t *bank = NULL;
     if (c->machineType == kGestalt_MachineType_MessagePad) {
-      if (addr >= 0x01000000 && addr < 0x01200000) { // ram, 1MB
-        bank = c->ram1;
-      }
+      bank = c->ram1;
     }
     else {
       if (addr >= 0x01000000 && addr < 0x01100000) {
