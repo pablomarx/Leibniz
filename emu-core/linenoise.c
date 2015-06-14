@@ -161,7 +161,7 @@ enum KEY_ACTION{
 	TAB = 9,            /* Tab */
 	CTRL_K = 11,        /* Ctrl+k */
 	CTRL_L = 12,        /* Ctrl+l */
-	ENTER = 13,         /* Enter */
+	ENTER_K = 13,         /* Enter */
 	CTRL_N = 14,        /* Ctrl-n */
 	CTRL_P = 16,        /* Ctrl-p */
 	CTRL_T = 20,        /* Ctrl-t */
@@ -348,7 +348,7 @@ static void freeCompletions(linenoiseCompletions *lc) {
  * structure as described in the structure definition. */
 static int completeLine(struct linenoiseState *ls) {
     linenoiseCompletions lc = { 0, NULL };
-    int nread, nwritten;
+    ssize_t nread, nwritten;
     char c = 0;
 
     completionCallback(ls->buf,&lc);
@@ -445,7 +445,7 @@ static void abInit(struct abuf *ab) {
     ab->len = 0;
 }
 
-static void abAppend(struct abuf *ab, const char *s, int len) {
+static void abAppend(struct abuf *ab, const char *s, ssize_t len) {
     char *new = realloc(ab->b,ab->len+len);
 
     if (new == NULL) return;
@@ -503,12 +503,12 @@ static void refreshSingleLine(struct linenoiseState *l) {
  * cursor position, and number of columns of the terminal. */
 static void refreshMultiLine(struct linenoiseState *l) {
     char seq[64];
-    int plen = strlen(l->prompt);
-    int rows = (plen+l->len+l->cols-1)/l->cols; /* rows used by current buf. */
-    int rpos = (plen+l->oldpos+l->cols)/l->cols; /* cursor relative row. */
-    int rpos2; /* rpos after refresh. */
-    int col; /* colum position, zero-based. */
-    int old_rows = l->maxrows;
+    ssize_t plen = strlen(l->prompt);
+    ssize_t rows = (plen+l->len+l->cols-1)/l->cols; /* rows used by current buf. */
+    ssize_t rpos = (plen+l->oldpos+l->cols)/l->cols; /* cursor relative row. */
+    ssize_t rpos2; /* rpos after refresh. */
+    ssize_t col; /* colum position, zero-based. */
+    ssize_t old_rows = l->maxrows;
     int fd = l->ofd, j;
     struct abuf ab;
 
@@ -520,7 +520,7 @@ static void refreshMultiLine(struct linenoiseState *l) {
     abInit(&ab);
     if (old_rows-rpos > 0) {
         lndebug("go down %d", old_rows-rpos);
-        snprintf(seq,64,"\x1b[%dB", old_rows-rpos);
+        snprintf(seq,64,"\x1b[%dB", (int)(old_rows-rpos));
         abAppend(&ab,seq,strlen(seq));
     }
 
@@ -561,7 +561,7 @@ static void refreshMultiLine(struct linenoiseState *l) {
     /* Go up till we reach the expected positon. */
     if (rows-rpos2 > 0) {
         lndebug("go-up %d", rows-rpos2);
-        snprintf(seq,64,"\x1b[%dA", rows-rpos2);
+        snprintf(seq,64,"\x1b[%dA", (int)(rows-rpos2));
         abAppend(&ab,seq,strlen(seq));
     }
 
@@ -569,7 +569,7 @@ static void refreshMultiLine(struct linenoiseState *l) {
     col = (plen+(int)l->pos) % (int)l->cols;
     lndebug("set col %d", 1+col);
     if (col)
-        snprintf(seq,64,"\r\x1b[%dC", col);
+        snprintf(seq,64,"\r\x1b[%dC", (int)col);
     else
         snprintf(seq,64,"\r");
     abAppend(&ab,seq,strlen(seq));
@@ -723,7 +723,7 @@ void linenoiseEditDeletePrevWord(struct linenoiseState *l) {
  * when ctrl+d is typed.
  *
  * The function returns the length of the current buffer. */
-static int linenoiseEdit(int stdin_fd, int stdout_fd, char *buf, size_t buflen, const char *prompt)
+static ssize_t linenoiseEdit(int stdin_fd, int stdout_fd, char *buf, size_t buflen, const char *prompt)
 {
     struct linenoiseState l;
 
@@ -752,7 +752,7 @@ static int linenoiseEdit(int stdin_fd, int stdout_fd, char *buf, size_t buflen, 
     if (write(l.ofd,prompt,l.plen) == -1) return -1;
     while(1) {
         char c;
-        int nread;
+        ssize_t nread;
         char seq[3];
 
         nread = read(l.ifd,&c,1);
@@ -770,7 +770,7 @@ static int linenoiseEdit(int stdin_fd, int stdout_fd, char *buf, size_t buflen, 
         }
 
         switch(c) {
-        case ENTER:    /* enter */
+        case ENTER_K:    /* enter */
             history_len--;
             free(history[history_len]);
             if (mlmode) linenoiseEditMoveEnd(&l);
@@ -911,7 +911,7 @@ void linenoisePrintKeyCodes(void) {
     memset(quit,' ',4);
     while(1) {
         char c;
-        int nread;
+        ssize_t nread;
 
         nread = read(STDIN_FILENO,&c,1);
         if (nread <= 0) continue;
@@ -929,8 +929,8 @@ void linenoisePrintKeyCodes(void) {
 
 /* This function calls the line editing function linenoiseEdit() using
  * the STDIN file descriptor set in raw mode. */
-static int linenoiseRaw(char *buf, size_t buflen, const char *prompt) {
-    int count;
+static ssize_t linenoiseRaw(char *buf, int buflen, const char *prompt) {
+    ssize_t count;
 
     if (buflen == 0) {
         errno = EINVAL;
@@ -961,7 +961,7 @@ static int linenoiseRaw(char *buf, size_t buflen, const char *prompt) {
  * something even in the most desperate of the conditions. */
 char *linenoise(const char *prompt) {
     char buf[LINENOISE_MAX_LINE];
-    int count;
+    ssize_t count;
 
     if (isUnsupportedTerm()) {
         size_t len;
