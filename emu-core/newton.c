@@ -59,18 +59,43 @@ uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
     }
   }
   else if (addr >= 0x00800000 && addr < 0x01000000) {
-    // Noticed on the Notepad
-    result = 0xe1a01006;
+    if (c->machineType == kGestalt_MachineType_MessagePad) {
+      // Noticed on the Notepad
+      result = 0xe1a01006;
+    }
+    else {
+      // mirror the ROM?
+      result = c->rom[(addr - 0x00800000) / 4];
+      
+    }
   }
-  else if (addr >= 0x01000000 && addr < 0x01100000) { // ram, 1MB
-    result = c->ram1[(addr - 0x01000000) / 4];
-  }
-  else if (addr >= 0x01100000 && addr < 0x01200000) { // ram, 1MB
-    result = c->ram3[(addr - 0x01100000) / 4];
-  }
-  else if (addr >= 0x01200000 && addr < 0x01300000) { // ram, 1MB
-    // "2nd bank RAM"
-    result = c->ram2[(addr - 0x01200000) / 4];
+  else if (addr >= 0x01000000 && addr < 0x01400000) {
+    uint32_t *bank = NULL;
+    if (c->machineType == kGestalt_MachineType_MessagePad) {
+      if (addr >= 0x01000000 && addr < 0x01200000) {
+		  // Mirror the RAM 
+        bank = c->ram1;
+      }
+      else {
+        // Noticed on the notepad
+        result = 0xe1a010ff;
+      }
+    }
+    else {
+      if (addr >= 0x01000000 && addr < 0x01100000) {
+        bank = c->ram1;
+      }
+      else if (addr >= 0x01100000 && addr < 0x01200000) {
+        bank = c->ram2;
+      }
+      else if (addr >= 0x01200000 && addr < 0x01300000) {
+        bank = c->ram3;
+      }
+    }
+    
+    if (bank != NULL) {
+      result = bank[(addr & 0x000fffff) / 4];
+    }
   }
   else if (addr >= 0x01400000 && addr < 0x01800000) { // runt, 4MB
     result = runt_get_mem32(c->runt, addr);
@@ -168,14 +193,33 @@ uint32_t newton_set_mem32 (newton_t *c, uint32_t addr, uint32_t val) {
     //return 0;
     // return rom_set_mem32(c, addr, val);
   }
-  else if (addr >= 0x01000000 && addr < 0x01100000) { // ram, 1MB
-    c->ram1[(addr - 0x01000000) / 4] = val;
-  }
-  else if (addr >= 0x01100000 && addr < 0x01200000) { // ram, 1MB
-    c->ram3[(addr - 0x01100000) / 4] = val;
-  }
-  else if (addr >= 0x01200000 && addr < 0x01300000) { // ram, 1MB
-    c->ram2[(addr - 0x01200000) / 4] = val;
+  
+  
+  else if (addr >= 0x01000000 && addr < 0x01400000) { // ram, 1MB
+    uint32_t *bank = NULL;
+    if (c->machineType == kGestalt_MachineType_MessagePad) {
+      if (addr >= 0x01000000 && addr < 0x01200000) { // ram, 1MB
+        bank = c->ram1;
+      }
+    }
+    else {
+      if (addr >= 0x01000000 && addr < 0x01100000) {
+        bank = c->ram1;
+      }
+      else if (addr >= 0x01100000 && addr < 0x01200000) {
+        bank = c->ram2;
+      }
+      else if (addr >= 0x01200000 && addr < 0x01300000) {
+        bank = c->ram3;
+      }
+    }
+    
+    if (bank != NULL) {
+      bank[(addr & 0x000fffff) / 4] = val;
+    }
+    else {
+      newton_stop(c);
+    }
   }
   else if (addr >= 0x01400000 && addr < 0x01800000) { // runt, 4MB
     return runt_set_mem32(c->runt, addr, val);
@@ -661,12 +705,9 @@ void newton_init (newton_t *c)
   //
   // Setup RAM
   //
-  c->ram1 = calloc(0x01100000 - 0x01000000, 1);
-  c->ram3 = calloc(0x01200000 - 0x01100000, 1);
-  c->ram2 = calloc(0x01300000 - 0x01200000, 1);
-  
-  // MessagePad 130 v1.3 loops until this is true...
-  c->ram3[0] = 0x400;
+  c->ram1 = calloc(1024 * 1024, 1);
+  c->ram2 = calloc(1024 * 1024, 1);
+  c->ram3 = calloc(1024 * 1024, 1);
   
   //
   // Setup flash
