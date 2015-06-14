@@ -14,17 +14,32 @@
 
 #include <stdio.h>
 
+/*	From NewtonGestalt.h: TGestaltSystemInfo */
+
+#define kGestalt_Manufacturer_Apple			0x01000000
+#define kGestalt_Manufacturer_Sharp 		0x10000100
+
+#define kGestalt_MachineType_MessagePad		0x10001000
+#define kGestalt_MachineType_Lindy			0x00726377
+#define kGestalt_MachineType_Bic			0x10002000
+
+
 typedef struct newton_s {
   arm_t *arm;
   bool stop;
+  
   
   runt_t *runt;
   
   uint32_t *ram1;
   uint32_t *ram2;
   uint32_t *ram3;
+
   uint32_t *rom;
   uint32_t romSize;
+  uint32_t machineType;
+  uint32_t romManufacturer;
+  
   uint32_t *flash;
   
   uint32_t *breakpoints;

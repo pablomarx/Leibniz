@@ -34,8 +34,13 @@ uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
   
   uint32_t result = 0;
   if (addr < 0x00800000) {      // rom, 8MB
-    result = c->rom[(addr % c->romSize) / 4];
-    // ROM is mirrored after 4MB
+    if (c->machineType == kGestalt_MachineType_MessagePad) {
+      // ROM is mirrored after 4MB
+      addr = addr % 0x400000;
+    }
+    
+    result = c->rom[addr / 4];
+
     switch (addr) {
       case 0x000013f4:
         fprintf(c->logFile, "Read access: gDebuggerBits, PC=0x%08x\n", arm_get_pc(c->arm));
@@ -742,7 +747,44 @@ int newton_load_rom(newton_t *c, const char *path) {
     (((romWord >> 24) & 0xff));
   }
   fclose(romFP);
-    
+  
+  printf("Loaded ROM: %s => %i bytes\n", path, c->romSize);
+  
+  c->machineType = c->rom[0x000013ec / 4];
+  printf("Machine Type    : 0x%08x => ", c->machineType);
+  switch (c->machineType) {
+    case kGestalt_MachineType_MessagePad:
+      printf("Junior");
+      break;
+    case kGestalt_MachineType_Lindy:
+      printf("Lindy");
+      break;
+    case kGestalt_MachineType_Bic:
+      printf("Bic");
+      break;
+    default:
+      printf("UNKNOWN - Defaulting to Junior");
+      c->machineType = kGestalt_MachineType_MessagePad;
+      break;
+  }
+  printf("\n");
+
+  c->romManufacturer = c->rom[0x000013f0 / 4];
+  printf("ROM Manufacturer: 0x%08x => ", c->romManufacturer);
+  switch (c->romManufacturer) {
+    case kGestalt_Manufacturer_Apple:
+      printf("Apple");
+      break;
+    case kGestalt_Manufacturer_Sharp:
+      printf("Sharp");
+      break;
+    default:
+      printf("UNKNOWN - Defaulting to Apple");
+      c->romManufacturer = kGestalt_Manufacturer_Apple;
+      break;
+  }
+  printf("\n");
+  
   return 0;
 }
 
