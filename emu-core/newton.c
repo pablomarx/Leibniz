@@ -443,6 +443,28 @@ int newton_log_opcode (void *ext, uint32_t ir) {
   return 0;
 }
 
+char *newton_get_cstring(newton_t *c, uint32_t address) {
+    uint32_t translated = address;
+    arm_translate_extern(c->arm, &translated, 0, NULL, NULL);
+
+    char *msg = calloc(1024, 1);
+    uint32_t value;
+    int index = 0;
+    while (1) {
+      value = newton_get_mem32(c, translated);
+      msg[index+0] = (value >> 24) & 0xff;
+      msg[index+1] = (value >> 16) & 0xff;
+      msg[index+2] = (value >>  8) & 0xff;
+      msg[index+3] = (value      ) & 0xff;
+      if (msg[index+3] == 0x00 || msg[index+2] == 0x00 || msg[index+1] == 0x00 || msg[index+0] == 0x00) {
+        break;
+      }
+      index += 4;
+      translated += 4;
+    }
+	return msg;
+}
+
 void newton_log_undef (void *ext, uint32_t ir) {
   newton_t *c = (newton_t *)ext;
   fprintf(c->logFile, "%s instr=0x%08x, PC=0x%08x: ", __PRETTY_FUNCTION__, ir, arm_get_pc(c->arm));
@@ -457,33 +479,22 @@ void newton_log_undef (void *ext, uint32_t ir) {
   }
   else if (ir == 0xE6000210) {
     fprintf(c->logFile, "Debugger");
+    newton_stop((newton_t *)ext);
   }
   else if (ir == 0xE6000310) {
-    fprintf(c->logFile, "DebugStr");
+	  char *msg = newton_get_cstring((newton_t *)ext, c->arm->reg[0]);
+    fprintf(c->logFile, "DebugStr: %s", msg);
+	free(msg);
+    newton_stop((newton_t *)ext);
   }
   else if (ir == 0xE6000410) {
     fprintf(c->logFile, "PublicFiller");
   }
   else if (ir == 0xE6000510) {
-    char *msg = calloc(1024, 1);
-    
-    uint32_t address = arm_get_pc(c->arm) + 4;
-    uint32_t value;
-    int index = 0;
-    while (1) {
-      value = newton_get_mem32(c, address);
-      msg[index+0] = (value >> 24) & 0xff;
-      msg[index+1] = (value >> 16) & 0xff;
-      msg[index+2] = (value >>  8) & 0xff;
-      msg[index+3] = (value      ) & 0xff;
-      if (msg[index+3] == 0x00 || msg[index+2] == 0x00 || msg[index+1] == 0x00 || msg[index+0] == 0x00) {
-        break;
-      }
-      index += 4;
-      address += 4;
-    }
-    
+	  uint32_t address = arm_get_pc(c->arm) + 4;
+	char *msg = newton_get_cstring((newton_t *)ext, address);
     fprintf(c->logFile, "SystemPanic: %s", msg);
+	free(msg);
     newton_stop((newton_t *)ext);
   }
   else if (ir == 0xE6000710) {
