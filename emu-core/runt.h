@@ -34,6 +34,22 @@ enum {
   RuntLogAll        = 0xffffffff,
 };
 
+// Unknown interrupts were observed being registered
+// via RegisterInterrupt() in a MP130 v2.0 ROM.
+enum {
+  RuntInterruptUnknown1         = (1 << 1),
+  RuntInterruptRTC              = (1 << 2), // questionable
+  RuntInterruptUnknown2         = (1 << 4),
+  RuntInterruptTablet           = (1 << 10),
+  RuntInterruptSound            = (1 << 12),
+  RuntInterruptUnknown3         = (1 << 13),
+  RuntInterruptUnknown4         = (1 << 14), // the diagnostic jumper pads?
+  RuntInterruptCardLockSwitch   = (1 << 15),
+  RuntInterruptPowerSwitch      = (1 << 16),
+  RuntInterruptSerial           = (1 << 17), // questionable
+  RuntInterruptUnknown5         = (1 << 25),
+};
+
 typedef uint32_t (*lcd_get_uint32_f) (void *ext, uint32_t addr);
 typedef uint32_t (*lcd_set_uint32_f) (void *ext, uint32_t addr, uint32_t val);
 typedef const char * (*lcd_get_address_name_f) (void *ext, uint32_t addr);

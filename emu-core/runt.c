@@ -44,13 +44,6 @@ enum {
     RuntSerialData   = 0x04,
 };
 
-enum {
-  RuntInterruptTablet = (1 << 10),
-  RuntInterruptSound  = (1 << 12),
-  RuntInterruptSwitch = (1 << 15),
-};
-
-
 void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
   const char *prefix = NULL;
   uint32_t flag = 0;
@@ -263,10 +256,10 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr) {
         c->interrupt |= RuntInterruptTablet;
       }
       if (c->switches[1]) {
-        c->interrupt |= 0x00008000;
+        c->interrupt |= RuntInterruptCardLockSwitch;
       }
       if (c->switches[2]) {
-        c->interrupt |= 0x00010000;
+        c->interrupt |= RuntInterruptPowerSwitch;
       }
       result = c->interrupt;
       break;
