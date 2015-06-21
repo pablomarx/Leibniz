@@ -23,6 +23,10 @@
 #define kGestalt_MachineType_Lindy			0x00726377
 #define kGestalt_MachineType_Bic			0x10002000
 
+typedef struct symbol_s {
+  const char *name;
+  uint32_t address;
+} symbol_t;
 
 typedef struct newton_s {
   arm_t *arm;
@@ -49,7 +53,11 @@ typedef struct newton_s {
   uint32_t *memwatch;
   uint32_t memwatchCapacity;
   uint32_t memwatchTail;
-
+  
+  symbol_t *symbols;
+  uint32_t symbolsCapacity;
+  uint32_t numOfSymbols;
+  
   bool instructionTrace;
   bool memTrace;
   bool breakOnUnknownMemory;
@@ -87,6 +95,7 @@ void newton_emulate(newton_t *c, int32_t count);
 void newton_stop(newton_t *c);
 void newton_set_bootmode(newton_t *c, NewtonBootMode bootMode);
 
+void newton_load_mapfile(newton_t *c, const char *mapfile);
 void newton_set_logfile(newton_t *c, FILE *file);
 void newton_print_state(newton_t *c);
 

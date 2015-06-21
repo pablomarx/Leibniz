@@ -431,6 +431,67 @@ bool newton_get_sp_spy(newton_t *c) {
   return c->spSpy;
 }
 
+void newton_add_symbol(newton_t *c, uint32_t address, const char *name) {
+  if (c->symbolsCapacity == 0) {
+    c->symbolsCapacity = 5000;
+    c->symbols = calloc(c->symbolsCapacity, sizeof(symbol_t));
+  }
+  else if (c->numOfSymbols + 1 == c->symbolsCapacity) {
+    c->symbolsCapacity += 5000;
+    c->symbols = realloc(c->symbols, c->symbolsCapacity * sizeof(symbol_t));
+  }
+  
+  c->symbols[c->numOfSymbols].address = address;
+  c->symbols[c->numOfSymbols].name = strdup(name);
+  c->numOfSymbols++;
+}
+
+void newton_load_mapfile(newton_t *c, const char *mapfile) {
+  FILE *fp = fopen(mapfile, "r");
+  if (fp == NULL) {
+    fprintf(stderr, "Couldn't open: %s\n", mapfile);
+    return;
+  }
+  
+  uint32_t symbolIndex = 0;
+  
+  while (!feof(fp)) {
+    uint32_t addr = 0;
+    uint32_t segment = 0;
+    
+    int matches = fscanf(fp, " %04x:%08x", &segment, &addr);
+    bool validLine = true;
+    if (matches != 2) {
+      validLine = false;
+    }
+    
+    for (int i=0; i<7; i++) {
+      if (fgetc(fp) != ' ') {
+        validLine = false;
+        break;
+      }
+    }
+    
+    if (validLine == true) {
+      char name[512];
+      uint16_t nameIndex=0;
+      
+      while((name[nameIndex++] = fgetc(fp)) != '\n')
+        ;
+      
+      name[nameIndex-2] = 0x00;
+      newton_add_symbol(c, addr, name);
+    }
+    else {
+      while(fgetc(fp) != '\n' && !feof(fp))
+        ;
+    }
+  }
+  
+  printf("Loaded %i symbols\n", c->numOfSymbols);
+  fclose(fp);
+}
+
 void newton_set_logfile(newton_t *c, FILE *file) {
   c->logFile = file;
   runt_set_log_file(c->runt, file);
@@ -663,8 +724,16 @@ void newton_emulate(newton_t *c, int32_t count) {
     }
     
     uint32_t pc = arm_get_pc (c->arm);
-    if (pc != c->lastPc + 4 && c->pcSpy) {
-      fprintf(c->logFile, "PC changed to 0x%08x (from 0x%08x)\n", pc, c->lastPc);
+    if (pc != c->lastPc + 4) {
+      if (c->pcSpy) {
+        fprintf(c->logFile, "PC changed to 0x%08x (from 0x%08x)\n", pc, c->lastPc);
+      }
+      for (uint32_t i=0; i<c->numOfSymbols; i++) {
+        if (c->symbols[i].address == pc) {
+		        fprintf(c->logFile, "Entering %s (addr=0x%08x, from 0x%08x)\n", c->symbols[i].name, pc, c->lastPc);
+          break;
+        }
+      }
     }
     if (c->lastSp != c->arm->reg[13] && c->spSpy) {
       fprintf(c->logFile, "SP changed from 0x%08x to 0x%08x (at PC 0x%08x)\n", c->lastSp, c->arm->reg[13], pc);
@@ -870,7 +939,15 @@ void newton_free (newton_t *c)
       lcd_sharp_free((lcd_sharp_t *)c->lcd_driver);
     }
   }
-
+  
+  if (c->symbolsCapacity > 0) {
+    for (uint32_t i=0; i<c->numOfSymbols; i++) {
+      free(c->symbols[i].name);
+    }
+    free(c->symbols);
+    c->symbolsCapacity = 0;
+  }
+  
   arm_free(c->arm);
   runt_free(c->runt);
   free(c->ram1);
