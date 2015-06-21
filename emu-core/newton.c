@@ -446,6 +446,37 @@ void newton_add_symbol(newton_t *c, uint32_t address, const char *name) {
   c->numOfSymbols++;
 }
 
+void newton_parse_aif_debug_data(newton_t *c, void *debugData, uint32_t length) {
+  printf("%s debugData=%p, length=%i\n", __PRETTY_FUNCTION__, debugData, length);
+  
+  uint32_t *bytes = (uint32_t *)debugData;
+  bytes += 8; // skip past header
+  
+  uint32_t numOfEntries = htonl(bytes[0]);
+  bytes++;
+  
+  const char *nameTable = bytes + (numOfEntries * 2);
+  
+  uint32_t entry = 0;
+  while (entry < numOfEntries) {
+    uint32_t symbol = htonl(*bytes);
+    bytes++;
+    uint8_t type = ((symbol >> 24) & 0xff);
+    uint32_t tableIndex = (symbol & 0x00ffffff);
+    uint32_t address = htonl(*bytes);
+    bytes++;
+    
+    const char *name = nameTable+tableIndex;
+    uint8_t nameLen = name[0];
+    name++;
+    
+    newton_add_symbol(c, address, name);
+    entry++;
+  }
+  
+  printf("Parsed %i symbols from AIF debug data\n", c->numOfSymbols);
+}
+
 void newton_load_mapfile(newton_t *c, const char *mapfile) {
   FILE *fp = fopen(mapfile, "r");
   if (fp == NULL) {
@@ -859,7 +890,31 @@ int newton_load_rom(newton_t *c, const char *path) {
     if (htonl(romWord) == 0xE1A00000) {
       fprintf(c->logFile, "ROM file appears to be an AIF image\n");
       romSize -= 128;
-      fseek(romFP, 128, SEEK_SET);
+      
+      fseek(romFP, 0x14, SEEK_SET);
+      
+#define AIF_HEADER_SIZE 128
+      uint32_t readOnlySize=0, readWriteSize=0, debugSize=0;
+      
+      fread(&readOnlySize, 1, sizeof(readOnlySize), romFP);
+      readOnlySize = htonl(readOnlySize);
+      fread(&readWriteSize, 1, sizeof(readWriteSize), romFP);
+      readWriteSize = htonl(readWriteSize);
+      fread(&debugSize, 1, sizeof(debugSize), romFP);
+      debugSize = htonl(debugSize);
+      
+      if (readOnlySize + readWriteSize + debugSize != romSize) {
+        printf("readOnlySize:%i + readWriteSize:%i + debugSize:%i != romSize:%i\n", readOnlySize, readWriteSize, debugSize, romSize);
+      }
+      else {
+        void *debugData = malloc(debugSize);
+        fseek(romFP, AIF_HEADER_SIZE + readOnlySize + readWriteSize, SEEK_SET);
+        if (fread(debugData, 1, debugSize, romFP) == debugSize) {
+          newton_parse_aif_debug_data(c, debugData, debugSize);
+        }
+        free(debugData);
+      }
+      fseek(romFP, AIF_HEADER_SIZE, SEEK_SET);
     }
     else {
       fseek(romFP, 0, SEEK_SET);
