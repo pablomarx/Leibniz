@@ -222,7 +222,7 @@ void lcd_sharp_set_log_file (lcd_sharp_t *c, FILE *file) {
 }
 
 void lcd_sharp_init (lcd_sharp_t *c) {
-  c->memory = calloc(0xff, 1);
+  c->memory = calloc(0xff, sizeof(uint32_t));
   
   //
   // Display

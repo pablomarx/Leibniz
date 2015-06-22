@@ -162,7 +162,7 @@ arm_t *arm_new (void)
 {
 	arm_t *c;
 
-	c = malloc (sizeof (arm_t));
+	c = calloc (1, sizeof (arm_t));
 	if (c == NULL) {
 		return (NULL);
 	}

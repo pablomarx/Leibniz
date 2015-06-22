@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -I. -g
+CFLAGS = -I. -g -std=c99 
 LDFLAGS = -g
 LD = $(CC)
 

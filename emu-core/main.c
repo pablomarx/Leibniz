@@ -63,5 +63,8 @@ int main(int argc, char **argv) {
   monitor_set_newton(monitor, newton);
   monitor_run(monitor);
   
+  monitor_del(monitor);
+  newton_del(newton);
+
   return 0;
 }

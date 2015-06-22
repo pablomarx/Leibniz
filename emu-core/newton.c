@@ -988,10 +988,10 @@ void newton_free (newton_t *c)
 {
   if (c->lcd_driver != NULL) {
     if (c->machineType == kGestalt_MachineType_Lindy) {
-      lcd_squirt_free((lcd_squirt_t *)c->lcd_driver);
+      lcd_squirt_del((lcd_squirt_t *)c->lcd_driver);
     }
     else {
-      lcd_sharp_free((lcd_sharp_t *)c->lcd_driver);
+      lcd_sharp_del((lcd_sharp_t *)c->lcd_driver);
     }
   }
   
@@ -1003,8 +1003,8 @@ void newton_free (newton_t *c)
     c->symbolsCapacity = 0;
   }
   
-  arm_free(c->arm);
-  runt_free(c->runt);
+  arm_del(c->arm);
+  runt_del(c->runt);
   free(c->ram1);
   free(c->ram2);
   free(c->ram3);

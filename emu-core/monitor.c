@@ -53,7 +53,9 @@ monitor_t *monitor_new (void) {
 }
 
 void monitor_free (monitor_t *c) {
-  
+  if (c->lastInput != NULL) {
+    free(c->lastInput);
+  }
 }
 
 void monitor_del (monitor_t *c) {
