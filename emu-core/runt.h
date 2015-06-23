@@ -37,10 +37,10 @@ enum {
 // Unknown interrupts were observed being registered
 // via RegisterInterrupt() in a MP130 v2.0 ROM.
 enum {
-  RuntInterruptUnknown1         = (1 << 1),
-  RuntInterruptRTC              = (1 << 2), // questionable
+  RuntInterruptRTC              = (1 << 1), // questionable
+  RuntInterruptUnknown1         = (1 << 2),
   RuntInterruptUnknown2         = (1 << 4),
-  RuntInterruptADC           = (1 << 10),
+  RuntInterruptADC              = (1 << 10),
   RuntInterruptSound            = (1 << 12),
   RuntInterruptUnknown3         = (1 << 13),
   RuntInterruptUnknown4         = (1 << 14), // the diagnostic jumper pads?
