@@ -457,7 +457,7 @@ void newton_parse_aif_debug_data(newton_t *c, void *debugData, uint32_t length) 
   uint32_t numOfEntries = htonl(bytes[0]);
   bytes++;
   
-  const char *nameTable = bytes + (numOfEntries * 2);
+  const char *nameTable = (const char *)(bytes + (numOfEntries * 2));
   
   uint32_t entry = 0;
   while (entry < numOfEntries) {
@@ -999,7 +999,7 @@ void newton_free (newton_t *c)
   
   if (c->symbolsCapacity > 0) {
     for (uint32_t i=0; i<c->numOfSymbols; i++) {
-      free(c->symbols[i].name);
+      free((void *)(c->symbols[i].name));
     }
     free(c->symbols);
     c->symbolsCapacity = 0;
