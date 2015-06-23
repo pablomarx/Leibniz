@@ -25,13 +25,15 @@ enum {
     RuntPowerVPP1 = 0x08,
     RuntPowerVPP2 = 0x04,
     RuntPowerLCD = 0x02,
-    RuntPowerTablet = 0x01,
+    RuntPowerADC = 0x01,
   RuntFlooder = 0x1c,
   RuntRTC = 0x24,
+  RuntRTCAlarm = 0x28,
   RuntTimer = 0x30,
   RuntTicks = 0x34,
+  RuntTicksAlarm = 0x38,
   RuntSound1 = 0x5c, // probably not sound, but frequently seen together.
-  RuntTablet = 0x58,
+  RuntADC = 0x58,
   RuntLCD = 0x60,
   RuntSound = 0x64,
   
@@ -66,11 +68,15 @@ void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
       break;
     case RuntTicks:
       flag = RuntLogTicks;
-      prefix = "ticks";
+      prefix = "get-ticks";
       break;
-    case RuntTablet:
-      flag = RuntLogTablet;
-      prefix = "tablet";
+    case RuntTicksAlarm:
+      flag = RuntLogTicks;
+      prefix = "set-ticks-alarm";
+      break;
+    case RuntADC:
+      flag = RuntLogADC;
+      prefix = "adc";
       break;
     case RuntLCD: {
       flag = RuntLogLCD;
@@ -120,7 +126,11 @@ void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
       break;
     case RuntRTC:
       flag = RuntLogRTC;
-      prefix = "rtc";
+      prefix = "get-rtc";
+      break;
+    case RuntRTCAlarm:
+      flag = RuntLogRTC;
+      prefix = "set-rtc-alarm";
       break;
     default:
       flag = RuntLogUnknown;
@@ -140,7 +150,7 @@ void runt_touch_down(runt_t *c, int x, int y) {
   c->touchY = y;
   c->touchActive = true;
   
-  c->interrupt |= RuntInterruptTablet;
+  c->interrupt |= RuntInterruptADC;
 }
 
 void runt_touch_up(runt_t *c) {
@@ -148,7 +158,7 @@ void runt_touch_up(runt_t *c) {
   c->touchY = 0;
   c->touchActive = false;
   
-  c->interrupt ^= RuntInterruptTablet;
+  c->interrupt ^= RuntInterruptADC;
 }
 
 void runt_switch_state(runt_t *c, int switchNum, int state) {
@@ -170,7 +180,7 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val) {
       }
       else {
         bool log = ((c->logFlags & RuntLogInterrupts) == RuntLogInterrupts);
-        if (val != RuntInterruptTablet && val != 0x00040000 && val != 0x00001000 && val != 0x00008000 && val != 0x00010000) {
+        if (val != RuntInterruptADC && val != 0x00040000 && val != 0x00001000 && val != 0x00008000 && val != 0x00010000) {
           if (log) fprintf(c->logFile, "clearing interrupt: 0x%08x\n", val);
         }
         if ((c->interrupt & val) == val) {
@@ -218,8 +228,8 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val) {
         if (val & RuntPowerLCD) {
           fprintf(c->logFile, "lcd, ");
         }
-        if (val & RuntPowerTablet) {
-          fprintf(c->logFile, "tablet?, ");
+        if (val & RuntPowerADC) {
+          fprintf(c->logFile, "adc, ");
         }
         fprintf(c->logFile, "\n");
       }
@@ -243,7 +253,7 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr) {
     case RuntTicks:
       result = arm_get_opcnt(c->arm) * 1000;
       break;
-    case RuntTablet:
+    case RuntADC:
       if (((result >> 24) & 0xff) == 0x04) {
         result = 0xfff - c->touchY;
       }
@@ -253,7 +263,7 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr) {
       break;
     case RuntGetInterrupt:
       if (c->touchActive) {
-        c->interrupt |= RuntInterruptTablet;
+        c->interrupt |= RuntInterruptADC;
       }
       if (c->switches[1]) {
         c->interrupt |= RuntInterruptCardLockSwitch;
@@ -341,7 +351,7 @@ void runt_init (runt_t *c) {
   runt_set_log_flags(c, RuntLogAll, 1);
   runt_set_log_flags(c, RuntLogTicks, 0);
   runt_set_log_flags(c, RuntLogInterrupts, 0);
-  runt_set_log_flags(c, RuntLogTablet, 0);
+  runt_set_log_flags(c, RuntLogADC, 0);
   runt_set_log_flags(c, RuntLogLCD, 0);
   runt_set_log_flags(c, RuntLogSwitch, 0);
   

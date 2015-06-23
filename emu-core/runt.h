@@ -21,7 +21,7 @@ enum {
   RuntLogInterrupts = (1 << 1),
   RuntLogTimer      = (1 << 2),
   RuntLogTicks      = (1 << 3),
-  RuntLogTablet     = (1 << 4),
+  RuntLogADC        = (1 << 4),
   RuntLogLCD        = (1 << 5),
   RuntLogIR         = (1 << 6),
   RuntLogSerial     = (1 << 7),
@@ -40,7 +40,7 @@ enum {
   RuntInterruptUnknown1         = (1 << 1),
   RuntInterruptRTC              = (1 << 2), // questionable
   RuntInterruptUnknown2         = (1 << 4),
-  RuntInterruptTablet           = (1 << 10),
+  RuntInterruptADC           = (1 << 10),
   RuntInterruptSound            = (1 << 12),
   RuntInterruptUnknown3         = (1 << 13),
   RuntInterruptUnknown4         = (1 << 14), // the diagnostic jumper pads?
