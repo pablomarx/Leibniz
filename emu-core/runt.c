@@ -167,6 +167,14 @@ void runt_switch_state(runt_t *c, int switchNum, int state) {
 
 #pragma mark -
 #pragma mark
+uint32_t runt_get_ticks(runt_t *c) {
+  return arm_get_opcnt(c->arm) * 1000;
+}
+
+uint32_t runt_get_rtc(runt_t *c) {
+  return (uint32_t)(time(NULL) - c->bootTime);
+}
+
 uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val) {
   runt_log_access(c, addr, val, true);
   
@@ -251,7 +259,7 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr) {
       result = c->lcd_get_uint32(c->lcd_ext, (addr & 0xff));
       break;
     case RuntTicks:
-      result = arm_get_opcnt(c->arm) * 1000;
+      result = runt_get_ticks(c);
       break;
     case RuntADC:
       if (((result >> 24) & 0xff) == 0x04) {
@@ -291,7 +299,7 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr) {
       }
       break;
     case RuntRTC:
-      result = (uint32_t)(time(NULL) - c->bootTime) ;
+      result = runt_get_rtc(c);
       break;
     default:
       fprintf(c->logFile, "unknown read: addr=0x%08x, PC=0x%08x...\n", addr, arm_get_pc(c->arm));
@@ -305,6 +313,25 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr) {
   runt_log_access(c, addr, result, false);
   
   return result;
+}
+
+void runt_step(runt_t *c) {
+  uint32_t rtc = c->memory[0x2800 / 4];
+  if (rtc != 0 && runt_get_rtc(c) >= rtc) {
+    if ((c->interrupt & RuntInterruptRTC) != RuntInterruptRTC) {
+      c->interrupt |= RuntInterruptRTC;
+    }
+    c->memory[0x2800 / 4] = 0;
+  }
+  
+  uint32_t ticks = c->memory[0x3800 / 4];
+#define RuntInterruptTicks (1 << 4)
+  if (ticks != 0 && runt_get_ticks(c) >= ticks) {
+    if ((c->interrupt & RuntInterruptTicks) != RuntInterruptTicks) {
+      c->interrupt |= RuntInterruptTicks;
+    }
+    c->memory[0x3800 / 4] = 0;
+  }
 }
 
 #pragma mark -

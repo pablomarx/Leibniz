@@ -89,6 +89,7 @@ runt_t *runt_new (void);
 void runt_free (runt_t *c);
 void runt_del (runt_t *c);
 void runt_set_arm (runt_t *c, arm_t *arm);
+void runt_step(runt_t *c);
 
 void runt_set_lcd_fct(runt_t *c, void *ext,
                       void *get32, void *set32, void *getname);

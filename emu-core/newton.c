@@ -756,6 +756,8 @@ void newton_emulate(newton_t *c, int32_t count) {
       remaining--;
     }
     
+    runt_step(c->runt);
+    
     uint32_t pc = arm_get_pc (c->arm);
     if (pc != c->lastPc + 4) {
       if (c->pcSpy) {
