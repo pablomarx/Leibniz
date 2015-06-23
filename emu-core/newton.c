@@ -41,7 +41,12 @@ uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
       addr = addr % 0x400000;
     }
     
-    result = c->rom[addr / 4];
+    if (addr > c->romSize) {
+      result = 0x00;
+    }
+    else {
+      result = c->rom[addr / 4];
+    }
 
     switch (addr) {
       case 0x000013f4:
