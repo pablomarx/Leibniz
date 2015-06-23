@@ -74,14 +74,7 @@ uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
   else if (addr >= 0x01000000 && addr < 0x01400000) {
     uint32_t *bank = NULL;
     if (c->machineType == kGestalt_MachineType_MessagePad) {
-      if (addr >= 0x01000000 && addr < 0x01200000) {
-		  // Mirror the RAM 
-        bank = c->ram1;
-      }
-      else {
-        // Noticed on the notepad
-        result = 0xe1a010ff;
-      }
+      bank = c->ram1;
     }
     else {
       if (addr >= 0x01000000 && addr < 0x01100000) {
