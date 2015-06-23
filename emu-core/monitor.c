@@ -173,17 +173,28 @@ void monitor_dump_mmu (monitor_t *c) {
 void monitor_parse_input(monitor_t *c, const char *input) {
   int argValue = 0;
   int arg2Value = 0;
+  char strValue[255];
   if (strcmp(input, "go") == 0 || strcmp(input, "run") == 0) {
     c->instructionsToExecute = INT32_MAX;
   }
-  else if (sscanf(input, "break 0x%08x", &argValue) == 1 || sscanf(input, "break %08x", &argValue) == 1) {
+  else if (sscanf(input, "break 0x%x", &argValue) == 1 || sscanf(input, "break %x", &argValue) == 1) {
     newton_breakpoint_add(c->newton, argValue);
     printf("Breakpoint added: 0x%08x\n", argValue);
   }
-  else if (sscanf(input, "delete 0x%08x", &argValue) == 1 || sscanf(input, "delete %08x", &argValue) == 1) {
+  else if (sscanf(input, "break %s", &strValue) == 1) {
+    uint32_t addr = newton_address_for_symbol(c->newton, strValue);
+    if (addr == 0) {
+      printf("Couldn't find symbol: %s\n", strValue);
+    }
+    else {
+      newton_breakpoint_add(c->newton, addr);
+      printf("Breakpoint added: 0x%08x => %s\n", addr, strValue);
+    }
+  }
+  else if (sscanf(input, "delete 0x%x", &argValue) == 1 || sscanf(input, "delete %x", &argValue) == 1) {
     newton_breakpoint_del(c->newton, argValue);
   }
-  else if (sscanf(input, "memwatch 0x%08x", &argValue) == 1 || sscanf(input, "memwatch %08x", &argValue) == 1) {
+  else if (sscanf(input, "memwatch 0x%x", &argValue) == 1 || sscanf(input, "memwatch %x", &argValue) == 1) {
     newton_memwatch_add(c->newton, argValue);
     printf("Watching memory: 0x%08x\n", argValue);
   }
@@ -201,7 +212,6 @@ void monitor_parse_input(monitor_t *c, const char *input) {
       uint32_t word = htonl(*(c->newton->ram1 + i));
       fwrite(&word, sizeof(word), 1, fp);
     }
-    //	  fwrite(c->newton->ram1, , 1, fp);
     fclose(fp);
   }
   else if (strcmp(input, "step") == 0 || strcmp(input, "s") == 0) {
@@ -230,13 +240,10 @@ void monitor_parse_input(monitor_t *c, const char *input) {
     newton_set_instruction_trace(c->newton, trace);
     printf("Tracing now %s\n", trace ? "on" : "off");
   }
-  else if (sscanf(input, "write 0x%08x 0x%08x", &argValue, &arg2Value) == 2) {
+  else if (sscanf(input, "write 0x%x 0x%x", &argValue, &arg2Value) == 2) {
     newton_set_mem32(c->newton, argValue, arg2Value);
   }
-  else if (sscanf(input, "write 0x%08x 0x%02x", &argValue, &arg2Value) == 2) {
-    newton_set_mem8(c->newton, argValue, arg2Value);
-  }
-  else if (sscanf(input, "read 0x%08x %i", &argValue, &arg2Value) == 2 || sscanf(input, "read 0x%08x", &argValue) == 1) {
+  else if (sscanf(input, "read 0x%x %i", &argValue, &arg2Value) == 2 || sscanf(input, "read 0x%x", &argValue) == 1) {
     if (arg2Value == 0) {
       arg2Value = 4;
     }
@@ -257,7 +264,7 @@ void monitor_parse_input(monitor_t *c, const char *input) {
     hexdump(c->newton->logFile, data, translated, arg2Value);
     free(data);
   }
-  else if (sscanf(input, "set r%i 0x%08x", &argValue, &arg2Value) == 2) {
+  else if (sscanf(input, "set r%i 0x%x", &argValue, &arg2Value) == 2) {
     printf("Setting r%i to 0x%08x\n", argValue, arg2Value);
     c->newton->arm->reg[argValue] = arg2Value;
   }

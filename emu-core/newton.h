@@ -95,6 +95,7 @@ void newton_emulate(newton_t *c, int32_t count);
 void newton_stop(newton_t *c);
 void newton_set_bootmode(newton_t *c, NewtonBootMode bootMode);
 
+uint32_t newton_address_for_symbol(newton_t *c, const char *symbol);
 void newton_load_mapfile(newton_t *c, const char *mapfile);
 void newton_set_logfile(newton_t *c, FILE *file);
 void newton_print_state(newton_t *c);

@@ -431,6 +431,15 @@ bool newton_get_sp_spy(newton_t *c) {
   return c->spSpy;
 }
 
+uint32_t newton_address_for_symbol(newton_t *c, const char *symbol) {
+  for (uint32_t i=0; i<c->numOfSymbols; i++) {
+    if (strcasecmp(c->symbols[i].name, symbol) == 0) {
+      return c->symbols[i].address;
+    }
+  }
+  return 0;
+}
+
 void newton_add_symbol(newton_t *c, uint32_t address, const char *name) {
   if (c->symbolsCapacity == 0) {
     c->symbolsCapacity = 5000;
