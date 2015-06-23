@@ -54,15 +54,21 @@
 }
 
 - (IBAction) toggleNicdSwitch:(id)sender {
-  runt_switch_state(_newton->runt, 0, ([sender state] == NSOnState ? 1 : 0));
+  BOOL on = ([sender state] == NSOnState ? 0 : 1);
+  runt_switch_state(_newton->runt, 0, on);
+  [sender setState:(!on ? NSOffState : NSOnState)];
 }
 
 - (IBAction) toggleCardLockSwitch:(id)sender {
-  runt_switch_state(_newton->runt, 1, ([sender state] == NSOnState ? 1 : 0));
+  BOOL on = ([sender state] == NSOnState ? 0 : 1);
+  runt_switch_state(_newton->runt, 1, on);
+  [sender setState:(!on ? NSOffState : NSOnState)];
 }
 
 - (IBAction) togglePowerSwitch:(id)sender {
-  runt_switch_state(_newton->runt, 2, ([sender state] == NSOnState ? 1 : 0));
+  BOOL on = ([sender state] == NSOnState ? 0 : 1);
+  runt_switch_state(_newton->runt, 2, on);
+  [sender setState:(!on ? NSOffState : NSOnState)];
 }
 
 
