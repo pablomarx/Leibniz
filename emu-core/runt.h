@@ -26,10 +26,9 @@ enum {
   RuntLogIR         = (1 << 6),
   RuntLogSerial     = (1 << 7),
   RuntLogPower      = (1 << 8),
-  RuntLogSwitch     = (1 << 9),
-  RuntLogSound      = (1 << 10),
-  RuntLogRTC        = (1 << 11),
-  RuntLogUnknown    = (1 << 12),
+  RuntLogSound      = (1 << 9),
+  RuntLogRTC        = (1 << 10),
+  RuntLogUnknown    = (1 << 11),
 
   RuntLogAll        = 0xffffffff,
 };
@@ -37,8 +36,8 @@ enum {
 // Unknown interrupts were observed being registered
 // via RegisterInterrupt() in a MP130 v2.0 ROM.
 enum {
-  RuntInterruptRTC              = (1 << 1), // questionable
-  RuntInterruptUnknown1         = (1 << 2),
+  RuntInterruptRTC              = (1 << 1),
+  RuntInterruptTicks            = (1 << 2),
   RuntInterruptUnknown2         = (1 << 4),
   RuntInterruptADC              = (1 << 10),
   RuntInterruptSound            = (1 << 12),

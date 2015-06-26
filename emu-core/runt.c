@@ -13,11 +13,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/time.h>
 
 enum {
   RuntGetInterrupt = 0x04,
   RuntClearInterrupt = 0x08,
-  RuntSwitches = 0x0c,
+  RuntSetInterrupt = 0x0c,
   RuntPower = 0x10,
     RuntPowerTrim = 0x40,
     RuntPowerSerial = 0x20,
@@ -27,9 +28,11 @@ enum {
     RuntPowerLCD = 0x02,
     RuntPowerADC = 0x01,
   RuntADCSource = 0x1c,
-    RuntADCSourceThermistor = 0x00003202,
-    RuntADCSourceMainBattery = 0x00003402,
-    RuntADCSourceBackupBattery = 0x00003802,
+    RuntADCSourceTabletA = 0x30,
+    RuntADCSourceTabletB = 0x31,
+    RuntADCSourceThermistor = 0x32,
+    RuntADCSourceMainBattery = 0x34,
+    RuntADCSourceBackupBattery = 0x38,
   
   RuntRTC = 0x24,
   RuntRTCAlarm = 0x28,
@@ -62,6 +65,10 @@ void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
     case RuntClearInterrupt:
       flag = RuntLogInterrupts;
       prefix = "clear-interrupt";
+      break;
+    case RuntSetInterrupt:
+      flag = RuntLogInterrupts;
+      prefix = "set-interrupt";
       break;
     case RuntADCSource:
       prefix = "adc-source";
@@ -120,10 +127,6 @@ void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
       flag = RuntLogPower;
       prefix = "power";
       break;
-    case RuntSwitches:
-      flag = RuntLogSwitch;
-      prefix = "switch";
-      break;
     case RuntSound1:
     case RuntSound:
       flag = RuntLogSound;
@@ -148,14 +151,52 @@ void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
   }
 }
 
-#pragma mark -
-#pragma mark Touches
+#pragma mark - Interrupts
+void runt_raise_interrupt(runt_t *c, uint32_t interrupt) {
+  if ((c->interrupt & interrupt) != interrupt) {
+    c->interrupt |= interrupt;
+  }
+  
+  if ((c->memory[0x0c00 / 4] & interrupt) == interrupt) {
+    arm_set_irq(c->arm, 1);
+  }
+}
+
+void runt_lower_interrupt(runt_t *c, uint32_t interrupt) {
+  if (interrupt == RuntInterruptADC) {
+    uint32_t sampleSource = (c->memory[0x1c00 / 4] >> 8);
+    if (sampleSource == RuntADCSourceBackupBattery || sampleSource == RuntADCSourceMainBattery || sampleSource == RuntADCSourceThermistor) {
+      return;
+    }
+    else if (sampleSource == RuntADCSourceTabletA || sampleSource == RuntADCSourceTabletB) {
+      if (c->touchActive == true) {
+        return;
+      }
+    }
+  }
+  else if (interrupt == RuntInterruptCardLockSwitch && c->switches[1] == 1) {
+    return;
+  }
+  else if (interrupt == RuntInterruptPowerSwitch && c->switches[2] == 1) {
+    return;
+  }
+  
+  if ((c->interrupt & interrupt) == interrupt) {
+    c->interrupt ^= interrupt;
+  }
+  
+  if (c->interrupt == 0x00) {
+    arm_set_irq(c->arm, 0);
+  }
+}
+
+#pragma mark - Touches
 void runt_touch_down(runt_t *c, int x, int y) {
   c->touchX = x;
   c->touchY = y;
   c->touchActive = true;
   
-  c->interrupt |= RuntInterruptADC;
+  runt_raise_interrupt(c, RuntInterruptADC);
 }
 
 void runt_touch_up(runt_t *c) {
@@ -163,17 +204,39 @@ void runt_touch_up(runt_t *c) {
   c->touchY = 0;
   c->touchActive = false;
   
-  c->interrupt ^= RuntInterruptADC;
+  runt_lower_interrupt(c, RuntInterruptADC);
 }
 
 void runt_switch_state(runt_t *c, int switchNum, int state) {
+  uint32_t interrupt = 0;
+  switch (switchNum) {
+    case 0:
+      break;
+    case 1:
+      interrupt = RuntInterruptCardLockSwitch;
+      break;
+    case 2:
+      interrupt = RuntInterruptPowerSwitch;
+      break;
+  }
+  
+  if (state == 1) {
+    runt_raise_interrupt(c, interrupt);
+  }
+  else {
+    runt_lower_interrupt(c, interrupt);
+  }
   c->switches[switchNum] = state;
 }
 
 #pragma mark -
 #pragma mark
 uint32_t runt_get_ticks(runt_t *c) {
-  return arm_get_opcnt(c->arm) * 1000;
+  struct timeval now;
+  (void) gettimeofday( &now, NULL );
+  uint32_t theResult = (uint32_t) now.tv_sec * 3686400;
+  theResult += (uint32_t)((((uint64_t)now.tv_usec) * 36864) / 10000);
+  return theResult;
 }
 
 uint32_t runt_get_rtc(runt_t *c) {
@@ -192,23 +255,15 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val) {
         c->interruptStick--;
       }
       else {
-        bool log = ((c->logFlags & RuntLogInterrupts) == RuntLogInterrupts);
-        if (val != RuntInterruptADC && val != 0x00040000 && val != 0x00001000 && val != 0x00008000 && val != 0x00010000) {
-          if (log) fprintf(c->logFile, "clearing interrupt: 0x%08x\n", val);
-        }
-        if ((c->interrupt & val) == val) {
-          if (log) fprintf(c->logFile, " c->interrupt was: 0x%08x, ", c->interrupt);
-          c->interrupt ^= val;
-          if (log) fprintf(c->logFile, " c->interrupt now: 0x%08x \n", c->interrupt);
-        }
+        runt_lower_interrupt(c, val);
       }
       break;
-
+      
     case RuntSound:
       // To get diagnostics moving, we'll set the interrupt...
-      c->interrupt |= RuntInterruptSound;
+      runt_raise_interrupt(c, RuntInterruptSound);
       break;
-    
+      
     case RuntSerial:
       if ((addr & 0xff) == RuntSerialData) {
         //fprintf(c->logFile, "serial_putc: 0x%02x '%c'\n", val & 0xff, val & 0xff);
@@ -219,6 +274,19 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val) {
         //fprintf(c->logFile, "ir_putc: 0x%02x '%c'\n", val & 0xff, val & 0xff);
       }
       break;
+    case RuntADCSource: {
+      uint8_t source = ((val >> 8) & 0xff);
+      if (source == RuntADCSourceBackupBattery || source == RuntADCSourceMainBattery || source == RuntADCSourceThermistor) {
+        runt_raise_interrupt(c, RuntInterruptADC);
+      }
+      else if ((source == RuntADCSourceTabletA || source == RuntADCSourceTabletB) && c->touchActive == true) {
+        runt_raise_interrupt(c, RuntInterruptADC);
+      }
+      else {
+        runt_lower_interrupt(c, RuntInterruptADC);
+      }
+      break;
+    }
     case RuntPower:
       if ((c->logFlags & RuntLogPower) == RuntLogPower) {
         
@@ -267,18 +335,22 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr) {
       result = runt_get_ticks(c);
       break;
     case RuntADC: {
-        if (((result >> 24) & 0xff) == 0x04) {
-          result = 0xfff - c->touchY;
-        }
-        else {
-          result = 0xfff - c->touchX;
-        }
-
-      uint32_t sampleSource = c->memory[0x1c00 / 4];
+      uint32_t sampleSource = (c->memory[0x1c00 / 4] >> 8);
       switch (sampleSource) {
+        case RuntADCSourceTabletA:
+        case RuntADCSourceTabletB:
+          if (((result >> 24) & 0xff) == 0x04) {
+            result = 0xfff - c->touchY;
+          }
+          else {
+            result = 0xfff - c->touchX;
+          }
+          break;
         case RuntADCSourceMainBattery:
           // AD Main Battery, 0xaba = 6.0, 0xaca = 6.1, 0xa9a = 5.9
-          result = 0xa9a;
+          // AutoPWB on Notepad 1.0b1 wants ~ 0x8ba.
+          // AutoPWB on J1 & omp1.3 images wants ~ 0xaba
+          result = 0x8ba;
           break;
         case RuntADCSourceBackupBattery:
           // backup battery, 0xfc3 = 4.8, 0xfc7 = 4.9, 0x986 = 2.9, 0x686 = 2.0, 0x486 = 1.4
@@ -288,34 +360,18 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr) {
           result = 0x765; // 19.0
           break;
         default:
+          result = 0;
           break;
       }
       
       break;
     }
+    case RuntSetInterrupt:
+      break;
     case RuntGetInterrupt:
-      if (c->touchActive) {
-        c->interrupt |= RuntInterruptADC;
-      }
-      if (c->switches[1]) {
-        c->interrupt |= RuntInterruptCardLockSwitch;
-      }
-      if (c->switches[2]) {
-        c->interrupt |= RuntInterruptPowerSwitch;
-      }
-      uint32_t sampleSource = c->memory[0x1c00 / 4];
-      if (sampleSource == RuntADCSourceBackupBattery || sampleSource == RuntADCSourceMainBattery || sampleSource == RuntADCSourceThermistor) {
-        c->interrupt |= RuntInterruptADC;
-      }
       result = c->interrupt;
       break;
     case RuntPower:
-      break;
-    case RuntSwitches:
-      result = 0;
-      if (c->switches[0]) result |= 0x00000000; // nicd switch?
-      if (c->switches[1]) result |= 0x00008000; // card lock switch?
-      if (c->switches[2]) result |= 0x00010000; // power switch?
       break;
     case RuntIR:
     case RuntSerial:
@@ -343,18 +399,13 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr) {
 void runt_step(runt_t *c) {
   uint32_t rtc = c->memory[0x2800 / 4];
   if (rtc != 0 && runt_get_rtc(c) >= rtc) {
-    if ((c->interrupt & RuntInterruptRTC) != RuntInterruptRTC) {
-      c->interrupt |= RuntInterruptRTC;
-    }
+    runt_raise_interrupt(c, RuntInterruptRTC);
     c->memory[0x2800 / 4] = 0;
   }
   
   uint32_t ticks = c->memory[0x3800 / 4];
-#define RuntInterruptTicks (1 << 4)
   if (ticks != 0 && runt_get_ticks(c) >= ticks) {
-    if ((c->interrupt & RuntInterruptTicks) != RuntInterruptTicks) {
-      c->interrupt |= RuntInterruptTicks;
-    }
+    runt_raise_interrupt(c, RuntInterruptTicks);
     c->memory[0x3800 / 4] = 0;
   }
 }
@@ -405,7 +456,6 @@ void runt_init (runt_t *c) {
   runt_set_log_flags(c, RuntLogInterrupts, 0);
   runt_set_log_flags(c, RuntLogADC, 0);
   runt_set_log_flags(c, RuntLogLCD, 0);
-  runt_set_log_flags(c, RuntLogSwitch, 0);
   
   c->bootTime = time(NULL);
 }
