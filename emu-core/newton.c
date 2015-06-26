@@ -663,12 +663,26 @@ void newton_log_undef (void *ext, uint32_t ir) {
         break;
       case do_sys_read: // 0x0018c1a0
         fprintf(c->logFile, "read");
-        c->arm->reg[0] = 0x01;
+        c->arm->reg[0] = 0x00;
         break;
       case do_sys_write: // 0x0018c2b4
-        fprintf(c->logFile, "write");
-        c->arm->reg[0] = 0x01;
+      {
+        uint32_t fp = 0;
+        uint32_t len = 0;
+        uint32_t buf = 0;
+        
+        arm_get_mem32(c->arm, c->arm->reg[1], 0, &fp);
+        arm_get_mem32(c->arm, c->arm->reg[1] + 4, 0, &buf);
+        arm_get_mem32(c->arm, c->arm->reg[1] + 8, 0, &len);
+        
+        char *msg = newton_get_cstring(c, buf);
+        
+        fprintf(c->logFile, "write(fp=%i, len=0x%08x, buf=0x%08x)\n", fp, len, buf);
+        fprintf(c->logFile, "msg: %s\n", msg);
+        free(msg);
+        c->arm->reg[0] = 0x00;
         break;
+      }
       case do_sys_set_input_notify: // 0x0018c06c
         fprintf(c->logFile, "set_input_notify");
         c->arm->reg[0] = 0x01;
