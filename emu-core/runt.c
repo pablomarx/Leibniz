@@ -38,7 +38,8 @@ enum {
   RuntRTCAlarm = 0x28,
   RuntTimer = 0x30,
   RuntTicks = 0x34,
-  RuntTicksAlarm = 0x38,
+  RuntTicksAlarm1 = 0x38,
+  RuntTicksAlarm2 = 0x40,
   RuntSound1 = 0x5c, // probably not sound, but frequently seen together.
   RuntADC = 0x58,
   RuntLCD = 0x60,
@@ -82,9 +83,13 @@ void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
       flag = RuntLogTicks;
       prefix = "get-ticks";
       break;
-    case RuntTicksAlarm:
+    case RuntTicksAlarm1:
       flag = RuntLogTicks;
       prefix = "set-ticks-alarm";
+      break;
+    case RuntTicksAlarm2:
+      flag = RuntLogTicks;
+      prefix = "set-ticks-alarm2";
       break;
     case RuntADC:
       flag = RuntLogADC;
@@ -315,6 +320,15 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val) {
         fprintf(c->logFile, "\n");
       }
       break;
+    case RuntRTCAlarm:
+      c->rtcAlarm = val;
+      break;
+    case RuntTicksAlarm1:
+      c->ticksAlarm1 = val;
+      break;
+    case RuntTicksAlarm2:
+      c->ticksAlarm2 = val;
+      break;
     default:
       break;
   }
@@ -382,6 +396,15 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr) {
     case RuntRTC:
       result = runt_get_rtc(c);
       break;
+    case RuntRTCAlarm:
+      result = c->rtcAlarm;
+      break;
+    case RuntTicksAlarm1:
+      result = c->ticksAlarm1;
+      break;
+    case RuntTicksAlarm2:
+      result = c->ticksAlarm2;
+      break;
     default:
       fprintf(c->logFile, "unknown read: addr=0x%08x, PC=0x%08x...\n", addr, arm_get_pc(c->arm));
       break;
@@ -397,16 +420,19 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr) {
 }
 
 void runt_step(runt_t *c) {
-  uint32_t rtc = c->memory[0x2800 / 4];
-  if (rtc != 0 && runt_get_rtc(c) >= rtc) {
+  if (c->rtcAlarm != 0 && runt_get_rtc(c) >= c->rtcAlarm) {
     runt_raise_interrupt(c, RuntInterruptRTC);
-    c->memory[0x2800 / 4] = 0;
+    c->rtcAlarm = 0;
   }
   
-  uint32_t ticks = c->memory[0x3800 / 4];
-  if (ticks != 0 && runt_get_ticks(c) >= ticks) {
+  if (c->ticksAlarm1 != 0 && runt_get_ticks(c) >= c->ticksAlarm1) {
     runt_raise_interrupt(c, RuntInterruptTicks);
-    c->memory[0x3800 / 4] = 0;
+    c->ticksAlarm1 = 0;
+  }
+  
+  if (c->ticksAlarm2 != 0 && runt_get_ticks(c) >= c->ticksAlarm2) {
+    runt_raise_interrupt(c, RuntInterruptTicks);
+    c->ticksAlarm2 = 0;
   }
 }
 
