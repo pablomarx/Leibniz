@@ -514,10 +514,15 @@ void newton_load_mapfile(newton_t *c, const char *mapfile) {
       char name[512];
       uint16_t nameIndex=0;
       
-      while((name[nameIndex++] = fgetc(fp)) != '\n')
-        ;
+	  char letter = 0;
+      while((letter = fgetc(fp))) {
+		  if (letter == '\n' || letter == '\r') {
+			  break;
+		  }
+		  name[nameIndex++] = letter;
+	  }
       
-      name[nameIndex-2] = 0x00;
+      name[nameIndex] = 0x00;
       newton_add_symbol(c, addr, name);
     }
     else {
