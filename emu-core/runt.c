@@ -169,7 +169,7 @@ void runt_raise_interrupt(runt_t *c, uint32_t interrupt) {
 
 void runt_lower_interrupt(runt_t *c, uint32_t interrupt) {
   if (interrupt == RuntInterruptADC) {
-    uint32_t sampleSource = (c->memory[0x1c00 / 4] >> 8);
+    uint32_t sampleSource = c->adcSource;
     if (sampleSource == RuntADCSourceBackupBattery || sampleSource == RuntADCSourceMainBattery || sampleSource == RuntADCSourceThermistor) {
       return;
     }
@@ -281,6 +281,8 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val) {
       break;
     case RuntADCSource: {
       uint8_t source = ((val >> 8) & 0xff);
+      c->adcSource = source;
+      
       if (source == RuntADCSourceBackupBattery || source == RuntADCSourceMainBattery || source == RuntADCSourceThermistor) {
         runt_raise_interrupt(c, RuntInterruptADC);
       }
@@ -348,8 +350,11 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr) {
     case RuntTicks:
       result = runt_get_ticks(c);
       break;
+    case RuntADCSource:
+      result = c->adcSource;
+      break;
     case RuntADC: {
-      uint32_t sampleSource = (c->memory[0x1c00 / 4] >> 8);
+      uint32_t sampleSource = c->adcSource;
       switch (sampleSource) {
         case RuntADCSourceTabletA:
         case RuntADCSourceTabletB:

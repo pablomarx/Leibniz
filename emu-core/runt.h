@@ -63,6 +63,7 @@ typedef struct runt_s {
   uint32_t rtcAlarm;
   uint32_t ticksAlarm1;
   uint32_t ticksAlarm2;
+  uint32_t adcSource;
   
   // Logging
   uint32_t logFlags;
