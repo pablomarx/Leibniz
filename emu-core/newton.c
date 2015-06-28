@@ -836,6 +836,9 @@ void newton_init (newton_t *c)
   // Setup processor
   //
   c->arm = arm_new();
+  arm_set_flags(c->arm, ARM_FLAG_BIGENDIAN, 1);
+  arm_set_id(c->arm, 0x41560610);
+
   c->arm->log_ext = c;
   c->arm->log_exception = newton_log_exception;
   c->arm->log_opcode = newton_log_opcode;
