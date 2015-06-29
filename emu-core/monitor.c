@@ -248,6 +248,17 @@ void monitor_parse_input(monitor_t *c, const char *input) {
   else if (sscanf(input, "write 0x%x 0x%x", &argValue, &arg2Value) == 2) {
     newton_set_mem32(c->newton, argValue, arg2Value);
   }
+  else if (sscanf(input, "dasm 0x%x %i", &argValue, &arg2Value) == 2) {
+    for (uint32_t i=0; i<arg2Value; i++) {
+      uint32_t pc = argValue + (i * 4);
+      arm_dasm_t         op;
+      char               str[256];
+      arm_dasm_mem (c->newton->arm, &op, pc, ARM_XLAT_CPU);
+      arm_dasm_str (str, &op);
+      
+      fprintf(c->newton->logFile, "%08lX  %s\n", (unsigned long) pc, str);
+    }
+  }
   else if (sscanf(input, "read 0x%x %i", &argValue, &arg2Value) == 2 || sscanf(input, "read 0x%x", &argValue) == 1) {
     if (arg2Value == 0) {
       arg2Value = 4;

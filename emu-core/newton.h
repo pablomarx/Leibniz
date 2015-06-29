@@ -76,6 +76,8 @@ typedef enum {
   NewtonBootModeAutoPWB,
 } NewtonBootMode;
 
+void arm_dasm_str (char *dst, arm_dasm_t *op);
+
 void newton_init (newton_t *c);
 newton_t *newton_new (void);
 int newton_load_rom(newton_t *c, const char *path);
