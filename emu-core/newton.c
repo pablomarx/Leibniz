@@ -703,10 +703,43 @@ void newton_log_undef (void *ext, uint32_t ir) {
   //newton_stop((newton_t *)ext);
 }
 
+static const char *swiNames[33] = {
+  "_GetPortSWI",
+  "PortSendSWI",
+  "PortReceiveSWI",
+  "_EnterAtomicSWI",
+  "_ExitAtomicSWI",
+  "_GenericWithReturnSWI",
+  "_GenerateMessageIRQ",
+  "_PurgeMMUTLBEntry",
+  "_FlushMMU",
+  "_FlushIDC",
+  "_GetCPUVersion",
+  "SemaphoreOpGlue",
+  "_SetDomainRegister",
+  "SMemSetBufferSWI",
+  "SMemGetSizeSWI",
+  "_SMemCopyToSharedSWI",
+  "_SMemCopyFromSharedSWI",
+  "SMemMsgSetTimerParmsSWI",
+  "SMemMsgSetMsgAvailPortSWI",
+  "SMemMsgGetSenderTaskIdSWI",
+  "SMemMsgSetUserRefConSWI",
+  "SMemMsgGetUserRefConSWI",
+  "SMemMsgCheckForDoneSWI",
+  "SMemMsgMsgDoneSWI",
+  "TurnOffCache",
+  "TurnOnCache",
+  "unknown",
+  "_MonitorDispatchSWI",
+  "_MonitorExitSWI",
+  "MonitorThrowSWI",
+  "_EnterFIQAtomicSWI",
+  "_ExitFIQAtomicSWI",
+  "_MonitorFlushSWI"
+};
+
 void newton_log_exception (void *ext, uint32_t addr) {
-  if (addr == 0x08) {
-    return;
-  }
   newton_t *c = (newton_t *)ext;
   fprintf(c->logFile, "%s PC=0x%08x: ", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
   switch(addr) {
@@ -716,9 +749,23 @@ void newton_log_exception (void *ext, uint32_t addr) {
     case 0x04:
       fprintf(c->logFile, "undefined_handler");
       break;
-    case 0x08:
-      fprintf(c->logFile, "swi_handler 0x%06x", newton_get_mem32(c, arm_get_pc(c->arm)) & 0x00ffffff);
+    case 0x08: {
+      uint32_t swi = newton_get_mem32(c, arm_get_pc(c->arm)) & 0x00ffffff;
+      const char *swiName;
+      if (swi < 33) {
+        swiName = swiNames[swi];
+      }
+      else {
+        swiName = "unknown";
+      }
+      fprintf(c->logFile, "swi_handler 0x%06x: %s", swi, swiName);
+	  if (swi == 0x1d) {
+		  char *exception = newton_get_cstring(c, c->arm->reg[0]);
+		  fprintf(c->logFile, ": %s", exception);
+		  free(exception);
+	  }
       break;
+    }
     case 0x0c:
       fprintf(c->logFile, "prefetch_handler");
       break;
