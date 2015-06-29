@@ -76,14 +76,17 @@ void monitor_dump_mmu (monitor_t *c) {
   if (pageTable == 0x00) {
     return;
   }
-
-  /* 
-   * ARM architecture-based application processors implement an MMU 
-   * defined by ARM's virtual memory system architecture. The current 
-   * architecture defines PTEs for describing 4 KB and 64 KB pages, 
-   * 1 MB sections and 16 MB super-sections; legacy versions also 
+  
+  bool trace = c->newton->memTrace;
+  c->newton->memTrace = false;
+  
+  /*
+   * ARM architecture-based application processors implement an MMU
+   * defined by ARM's virtual memory system architecture. The current
+   * architecture defines PTEs for describing 4 KB and 64 KB pages,
+   * 1 MB sections and 16 MB super-sections; legacy versions also
    * defined a 1 KB tiny page. The ARM uses a two-level page table if
-   * using 4 KB and 64 KB pages, or just a one-level page table for 
+   * using 4 KB and 64 KB pages, or just a one-level page table for
    * 1 MB sections and 16 MB sections.
    */
   
@@ -94,7 +97,7 @@ void monitor_dump_mmu (monitor_t *c) {
    * • Each entry covers 1MB of ARM address space
    * • Each entry points to physical address of a level 2 table
    * Alignment required for level 1 page table: 4096 * 4 bytes
-   * 
+   *
    * Second level table
    * • This table (Page table in ARM parlance) consists of 256 entries in each
    * • Each entry covers 4kB of ARM address space
@@ -114,60 +117,62 @@ void monitor_dump_mmu (monitor_t *c) {
     
     const char *typeDesc = NULL;
     uint32_t mask = 0;
-	uint32_t domain = 0;
-	uint32_t permission = 0;
+    uint32_t domain = 0;
+    uint32_t permission = 0;
     switch (type) {
       case 0x01:
         mask = 0xfffffc00;
         typeDesc = "page";
-		domain = arm_get_bits (desc1, 5, 4);
+        domain = arm_get_bits (desc1, 5, 4);
         break;
       case 0x02:
         mask = 0xfff00000;
         typeDesc = "section";
-		domain = arm_get_bits (desc1, 5, 4);
-		permission = arm_get_bits (desc1, 10, 2);
+        domain = arm_get_bits (desc1, 5, 4);
+        permission = arm_get_bits (desc1, 10, 2);
         break;
       case 0x03:
         mask = 0xfffff000;
         typeDesc = "fine";
-		domain = arm_get_bits (desc1, 5, 4);
+        domain = arm_get_bits (desc1, 5, 4);
         break;
     }
     
     uint32_t addr = i*(1024*1024);
-
+    
     printf("0x%08x     0x%08x   %7s  %i     %i        %i\n", addr, desc1 & mask, typeDesc, permission, domain, 0);
-	if (type == 0x01) {
-		for (int i=0; i<256; i++) {
-			uint32_t pageTableEntry = (desc1 & mask) + (i * 4);
-		    uint32_t desc2 = newton_get_mem32(c->newton, pageTableEntry);
-			uint32_t addr2 = addr + (i * 4096);
-			
-			uint32_t mask2 = 0;
-			uint32_t permission2 = 0;
-			uint32_t ap = 0;
-			char *type2Desc = NULL;
-			switch (desc2 & 0x03) {
-				case 0x00:
-					continue;
-				case 0x01:
-					type2Desc = "large";
-					break;
-				case 0x02:
-					type2Desc = "small";
-					mask2 = 0xfffff000;
-					ap = 4 + 2 * arm_get_bits (addr2, 10, 2);
-					permission2 = arm_get_bits (desc2, ap, 2);
-					break;
-				case 0x03:
-					type2Desc = "tiny";
-					break;
-			}
-		    printf("| 0x%08x   0x%08x   %7s  %i\t(entry: 0x%08x)\n", addr2, desc2 & mask2, type2Desc, permission2, pageTableEntry);
-		}
-	}
+    if (type == 0x01) {
+      for (int i=0; i<256; i++) {
+        uint32_t pageTableEntry = (desc1 & mask) + (i * 4);
+        uint32_t desc2 = newton_get_mem32(c->newton, pageTableEntry);
+        uint32_t addr2 = addr + (i * 4096);
+        
+        uint32_t mask2 = 0;
+        uint32_t permission2 = 0;
+        uint32_t ap = 0;
+        char *type2Desc = NULL;
+        switch (desc2 & 0x03) {
+          case 0x00:
+            continue;
+          case 0x01:
+            type2Desc = "large";
+            break;
+          case 0x02:
+            type2Desc = "small";
+            mask2 = 0xfffff000;
+            ap = 4 + 2 * arm_get_bits (addr2, 10, 2);
+            permission2 = arm_get_bits (desc2, ap, 2);
+            break;
+          case 0x03:
+            type2Desc = "tiny";
+            break;
+        }
+        printf("| 0x%08x   0x%08x   %7s  %i\t(entry: 0x%08x)\n", addr2, desc2 & mask2, type2Desc, permission2, pageTableEntry);
+      }
+    }
   }
+  
+  c->newton->memTrace = trace;
 }
 
 void monitor_parse_input(monitor_t *c, const char *input) {
