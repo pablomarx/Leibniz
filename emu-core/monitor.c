@@ -284,6 +284,11 @@ void monitor_parse_input(monitor_t *c, const char *input) {
     printf("Setting r%i to 0x%08x\n", argValue, arg2Value);
     c->newton->arm->reg[argValue] = arg2Value;
   }
+  else if (sscanf(input, "switch %i %i", &argValue, &arg2Value) == 2) {
+    printf("Setting switch %i to %i\n", argValue, arg2Value);
+    runt_switch_state(newton_get_runt(c->newton), argValue, arg2Value);
+    c->newton->arm->reg[argValue] = arg2Value;
+  }
   
   //  return NULL;
 }
