@@ -47,18 +47,18 @@ uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
     else {
       result = c->rom[addr / 4];
     }
-
+    
     switch (addr) {
       case 0x000013f4:
         fprintf(c->logFile, "Read access: gDebuggerBits, PC=0x%08x\n", arm_get_pc(c->arm));
-        result = 1;
+        result = c->debuggerBits;
         break;
       case 0x000013f8:
         fprintf(c->logFile, "Read access: gNewtTests, PC=0x%08x\n", arm_get_pc(c->arm));
         break;
       case 0x000013fc:
         fprintf(c->logFile, "Read access: gNewtConfig, PC=0x%08x\n", arm_get_pc(c->arm));
-        result = kConfigBit3 | kDontPauseCPU | kHeapChecking | kStopOnThrows | kEnableStdout | kDefaultStdioOn | kEnableListener;
+        result = c->newtConfig;
         break;
     }
     if (addr >= c->romSize) {
@@ -427,6 +427,22 @@ void newton_set_sp_spy(newton_t *c, bool spSpy) {
 
 bool newton_get_sp_spy(newton_t *c) {
   return c->spSpy;
+}
+
+void newton_set_debugger_bits(newton_t *c, uint32_t debugger_bits) {
+  c->debuggerBits = debugger_bits;
+}
+
+uint32_t newton_get_debugger_bits(newton_t *c) {
+  return c->debuggerBits;
+}
+
+void newton_set_newt_config(newton_t *c, uint32_t newt_config) {
+  c->newtConfig = newt_config;
+}
+
+uint32_t newton_get_newt_config(newton_t *c) {
+  return c->newtConfig;
 }
 
 uint32_t newton_address_for_symbol(newton_t *c, const char *symbol) {
@@ -919,6 +935,9 @@ void newton_init (newton_t *c)
   //
   //
   c->lcd_driver = NULL;
+  
+  c->newtConfig = 0;
+  c->debuggerBits = 0;
   
   //
   // Logging

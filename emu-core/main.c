@@ -1,6 +1,7 @@
 #include "newton.h"
 #include "monitor.h"
 #include "runt.h"
+#include "HammerConfigBits.h"
 
 #include <getopt.h>
 #include <stdio.h>
@@ -10,7 +11,7 @@ void FlushDisplay(const char *display, int width, int height) {
 }
 
 void print_usage(const char *name) {
-  fprintf(stderr, "usage: %s [-b bootmode] [-m mapfile] romfile\n", name);
+  fprintf(stderr, "usage: %s [-b bootmode] [-d debugmode] [-m mapfile] romfile\n", name);
   exit(1);
 }
 
@@ -20,9 +21,13 @@ int main(int argc, char **argv) {
   
   char *bootmode = NULL;
   char *mapname = NULL;
+  int debugmode = 0;
   
-  while ((c = getopt(argc, argv, "b:m:")) != -1) {
+  while ((c = getopt(argc, argv, "b:m:d:")) != -1) {
     switch (c) {
+      case 'd':
+        debugmode = atoi(optarg);
+        break;
       case 'b':
         bootmode = optarg;
         break;
@@ -58,6 +63,10 @@ int main(int argc, char **argv) {
   runt_set_log_flags(runt, RuntLogAll, 1);
   
   newton_set_break_on_unknown_memory(newton, true);
+  if (debugmode) {
+    newton_set_debugger_bits(newton, 1);
+    newton_set_newt_config(newton, kConfigBit3 | kDontPauseCPU | kHeapChecking | kStopOnThrows | kEnableStdout | kDefaultStdioOn | kEnableListener);
+  }
   
   monitor_t *monitor = monitor_new();
   monitor_set_newton(monitor, newton);
