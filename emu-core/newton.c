@@ -775,11 +775,30 @@ void newton_log_exception (void *ext, uint32_t addr) {
         swiName = "unknown";
       }
       fprintf(c->logFile, "swi_handler 0x%06x: %s", swi, swiName);
-	  if (swi == 0x1d) {
-		  char *exception = newton_get_cstring(c, c->arm->reg[0]);
-		  fprintf(c->logFile, ": %s", exception);
-		  free(exception);
-	  }
+      switch (swi) {
+        case 0x1d: {
+          char *exception = newton_get_cstring(c, c->arm->reg[0]);
+          fprintf(c->logFile, ": %s", exception);
+          free(exception);
+          break;
+        }
+        case 0x01:
+        case 0x02:
+          fprintf(c->logFile, " ObjectId=%i, msgId=%i, msgFilter=%i, flags=%i", c->arm->reg[0], c->arm->reg[1], c->arm->reg[2], c->arm->reg[3]);
+          break;
+        case 0x0d:
+        case 0x0f:
+          fprintf(c->logFile, " ObjectId=%i, buffer=0x%08x, size=%i, permissions=%i", c->arm->reg[0], c->arm->reg[1], c->arm->reg[2], c->arm->reg[3]);
+          break;
+        case 0x0e:
+        case 0x10:
+        case 0x11:
+        case 0x13:
+        case 0x16:
+        case 0x17:
+          fprintf(c->logFile, " ObjectId=%i", c->arm->reg[0]);
+          break;
+      }
       break;
     }
     case 0x0c:
