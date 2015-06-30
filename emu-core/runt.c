@@ -18,7 +18,7 @@
 enum {
   RuntGetInterrupt = 0x04,
   RuntClearInterrupt = 0x08,
-  RuntSetInterrupt = 0x0c,
+  RuntEnableInterrupt = 0x0c,
   RuntPower = 0x10,
     RuntPowerTrim = 0x40,
     RuntPowerSerial = 0x20,
@@ -67,9 +67,9 @@ void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
       flag = RuntLogInterrupts;
       prefix = "clear-interrupt";
       break;
-    case RuntSetInterrupt:
+    case RuntEnableInterrupt:
       flag = RuntLogInterrupts;
-      prefix = "set-interrupt";
+      prefix = "enable-interrupt";
       break;
     case RuntADCSource:
       prefix = "adc-source";
@@ -385,7 +385,7 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr) {
       
       break;
     }
-    case RuntSetInterrupt:
+    case RuntEnableInterrupt:
       break;
     case RuntGetInterrupt:
       result = c->interrupt;
