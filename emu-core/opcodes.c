@@ -2096,12 +2096,7 @@ void op1b (arm_t *c)
 	arm_set_rd (c, c->ir, d);
 
 	if (arm_rd_is_pc (c->ir)) {
-    // If you use the S suffix, the SPSR of the current mode is copied to the CPSR.
-    // You can use this to return from exceptions (see Chapter 6 Handling Processor
-    // Exceptions in the Developer Guide).
-    uint32_t spsr = arm_get_spsr(c);
 		arm_write_cpsr (c, arm_get_spsr (c), 1);
-    arm_set_spsr(c, spsr);
 		arm_set_clk (c, 0, 1);
 	}
 	else {
