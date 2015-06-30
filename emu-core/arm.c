@@ -33,77 +33,6 @@
 #include "arm.h"
 #include "internal.h"
 
-
-static unsigned arm_spsr_map[32] = {
-	0,  /* 00 */
-	0,  /* 01 */
-	0,  /* 02 */
-	0,  /* 03 */
-	0,  /* 04 */
-	0,  /* 05 */
-	0,  /* 06 */
-	0,  /* 07 */
-	0,  /* 08 */
-	0,  /* 09 */
-	0,  /* 0a */
-	0,  /* 0b */
-	0,  /* 0c */
-	0,  /* 0d */
-	0,  /* 0e */
-	0,  /* 0f */
-	0,  /* 10 usr */
-	1,  /* 11 fiq */
-	2,  /* 12 irq */
-	3,  /* 13 svc */
-	0,  /* 14 */
-	0,  /* 15 */
-	0,  /* 16 */
-	4,  /* 17 abt */
-	0,  /* 18 */
-	0,  /* 19 */
-	5,  /* 1a und */
-	0,  /* 1b */
-	0,  /* 1c */
-	0,  /* 1d */
-	0,  /* 1e */
-	0,  /* 1f sys */
-};
-
-static unsigned arm_reg_map[32][8] = {
-	{ 0,  0,  0,  0,  0,  0,  0,  0 },  /* 00 */
-	{ 0,  0,  0,  0,  0,  0,  0,  0 },  /* 01 */
-	{ 0,  0,  0,  0,  0,  0,  0,  0 },  /* 02 */
-	{ 0,  0,  0,  0,  0,  0,  0,  0 },  /* 03 */
-	{ 0,  0,  0,  0,  0,  0,  0,  0 },  /* 04 */
-	{ 0,  0,  0,  0,  0,  0,  0,  0 },  /* 05 */
-	{ 0,  0,  0,  0,  0,  0,  0,  0 },  /* 06 */
-	{ 0,  0,  0,  0,  0,  0,  0,  0 },  /* 07 */
-	{ 0,  0,  0,  0,  0,  0,  0,  0 },  /* 08 */
-	{ 0,  0,  0,  0,  0,  0,  0,  0 },  /* 09 */
-	{ 0,  0,  0,  0,  0,  0,  0,  0 },  /* 0a */
-	{ 0,  0,  0,  0,  0,  0,  0,  0 },  /* 0b */
-	{ 0,  0,  0,  0,  0,  0,  0,  0 },  /* 0c */
-	{ 0,  0,  0,  0,  0,  0,  0,  0 },  /* 0d */
-	{ 0,  0,  0,  0,  0,  0,  0,  0 },  /* 0e */
-	{ 0,  0,  0,  0,  0,  0,  0,  0 },  /* 0f */
-	{ 1,  2,  3,  4,  5,  6,  7,  8 },  /* 10 usr */
-	{ 9, 10, 11, 12, 13, 14, 15,  8 },  /* 11 fiq */
-	{ 1,  2,  3,  4,  5, 16, 17,  8 },  /* 12 irq */
-	{ 1,  2,  3,  4,  5, 18, 19,  8 },  /* 13 svc */
-	{ 0,  0,  0,  0,  0,  0,  0,  0 },  /* 14 */
-	{ 0,  0,  0,  0,  0,  0,  0,  0 },  /* 15 */
-	{ 0,  0,  0,  0,  0,  0,  0,  0 },  /* 16 */
-	{ 1,  2,  3,  4,  5, 20, 21,  8 },  /* 17 abt */
-	{ 0,  0,  0,  0,  0,  0,  0,  0 },  /* 18 */
-	{ 0,  0,  0,  0,  0,  0,  0,  0 },  /* 19 */
-	{ 0,  0,  0,  0,  0,  0,  0,  0 },  /* 1a */
-	{ 1,  2,  3,  4,  5, 22, 23,  8 },  /* 1b und */
-	{ 0,  0,  0,  0,  0,  0,  0,  0 },  /* 1c */
-	{ 0,  0,  0,  0,  0,  0,  0,  0 },  /* 1d */
-	{ 0,  0,  0,  0,  0,  0,  0,  0 },  /* 1e */
-	{ 1,  2,  3,  4,  5,  6,  7,  8 }   /* 1f sys */
-};
-
 void arm_init (arm_t *c)
 {
 	unsigned i;
@@ -131,8 +60,6 @@ void arm_init (arm_t *c)
 	arm_set_opcodes (c);
 
 	c->cpsr = 0;
-
-	c->reg_map = 0;
 
 	c->exception_base = 0;
 
@@ -228,7 +155,7 @@ unsigned long arm_get_id (arm_t *c)
 	return (c->copr15.reg[0]);
 }
 
-void arm_set_id (arm_t *c, unsigned long id)
+void arm_set_id (arm_t *c, uint32_t id)
 {
 	c->copr15.reg[0] = id;
 }
@@ -397,31 +324,86 @@ void arm_set_copr (arm_t *c, unsigned i, arm_copr_t *p)
 }
 
 
-void arm_set_reg_map (arm_t *c, unsigned mode)
+void arm_set_reg_map (arm_t *c, unsigned new_mode)
 {
-	unsigned i;
-	unsigned m1, m2;
-	unsigned *map1, *map2;
-
-	m1 = c->reg_map;
-	m2 = mode & 0x1f;
-
-	if (m1 == m2) {
-		return;
-	}
-
-	c->spsr_alt[arm_spsr_map[m1]] = c->spsr;
-	c->spsr = c->spsr_alt[arm_spsr_map[m2]];
-
-	map1 = arm_reg_map[m1];
-	map2 = arm_reg_map[m2];
-
-	for (i = 0; i < 8; i++) {
-		c->reg_alt[map1[i]] = c->reg[i + 8];
-		c->reg[i + 8] = c->reg_alt[map2[i]];
-	}
-
-	c->reg_map = m2;
+  uint32_t *bank = NULL;
+  unsigned old_mode = c->old_mode;
+  if (old_mode == new_mode) {
+    return;
+  }
+  
+  c->old_mode = new_mode;
+  switch (old_mode) {
+    case ARM_MODE_USR:
+    case ARM_MODE_SYS:
+      // usr and sys mode share the same "bank" of registers
+      c->usr_regs[0] = c->reg[13]; // sp
+      c->usr_regs[1] = c->reg[14]; // lr
+      break;
+      
+    case ARM_MODE_FIQ:
+      // fiq mode has a seperate bank for r8-r14, and spsr
+      // fiq mode has a seperate bank for r8-r14, and spsr
+      memcpy(c->fiq_regs, &c->reg[8], sizeof(uint32_t) * 7); // r8-r14
+      c->fiq_regs[7] = c->spsr;
+      
+      // we must be moving to a "user" mode so switch to the user r8-r12
+      memcpy(&c->reg[8], c->usr_regs_low, sizeof(uint32_t) * 5); // r8-r12
+      break;
+      
+      // the other 4 modes are similar, so select the bank and share the code
+    case ARM_MODE_IRQ:
+      bank = c->irq_regs;
+      goto save_3reg;
+    case ARM_MODE_SVC:
+      bank = c->svc_regs;
+      goto save_3reg;
+    case ARM_MODE_ABT:
+      bank = c->abt_regs;
+      goto save_3reg;
+    case ARM_MODE_UND:
+      bank = c->und_regs;
+    save_3reg:
+      bank[0] = c->reg[13]; // sp
+      bank[1] = c->reg[14]; // lr
+      bank[2] = c->spsr;  // spsr
+      break;
+  }
+  
+  switch (new_mode) {
+    case ARM_MODE_USR:
+    case ARM_MODE_SYS:
+      // usr and sys mode share the same "bank" of registers
+      c->reg[13] = c->usr_regs[0];
+      c->reg[14] = c->usr_regs[1];
+      break;
+      
+    case ARM_MODE_FIQ:
+      // we must be coming from one of the "user" modes, so save r8-r12
+      memcpy(c->usr_regs_low, &c->reg[8], sizeof(uint32_t) * 5); // r8-r12
+      
+      // fiq mode has a seperate bank for r8-r14, and spsr
+      memcpy(&c->reg[8], c->fiq_regs, sizeof(uint32_t) * 7); // r8-r14
+      c->spsr = c->fiq_regs[7];
+      break;
+      
+    case ARM_MODE_IRQ:
+      bank = c->irq_regs;
+      goto restore_3reg;
+    case ARM_MODE_SVC:
+      bank = c->svc_regs;
+      goto restore_3reg;
+    case ARM_MODE_ABT:
+      bank = c->abt_regs;
+      goto restore_3reg;
+    case ARM_MODE_UND:
+      bank = c->und_regs;
+    restore_3reg:
+      c->reg[13] = bank[0]; // sp
+      c->reg[14] = bank[1]; // lr
+      c->spsr = bank[2];  // spsr
+      break;
+  }
 }
 
 void arm_reset (arm_t *c)
@@ -436,13 +418,27 @@ void arm_reset (arm_t *c)
 		c->reg[i] = 0;
 	}
 
-	for (i = 0; i < ARM_REG_ALT_CNT; i++) {
-		c->reg_alt[i] = 0;
-	}
-
-	for (i = 0; i < ARM_SPSR_CNT; i++) {
-		c->spsr_alt[i] = 0;
-	}
+  for (i = 0; i < 5; i ++) {
+    c->usr_regs_low[i] = 0x00;
+  }
+  for (i = 0; i < 2; i ++) {
+    c->usr_regs[i] = 0x00;
+  }
+  for (i = 0; i < 3; i ++) {
+    c->irq_regs[i] = 0x00;
+  }
+  for (i = 0; i < 3; i ++) {
+    c->svc_regs[i] = 0x00;
+  }
+  for (i = 0; i < 3; i ++) {
+    c->abt_regs[i] = 0x00;
+  }
+  for (i = 0; i < 3; i ++) {
+    c->und_regs[i] = 0x00;
+  }
+  for (i = 0; i < 8; i ++) {
+    c->fiq_regs[i] = 0x00;
+  }
 
 	c->lastpc[0] = 0;
 	c->lastpc[1] = 0;

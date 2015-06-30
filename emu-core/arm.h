@@ -230,16 +230,21 @@ typedef struct arm_s {
 	uint32_t           cpsr;
 
 	uint32_t           spsr;
-	uint32_t           spsr_alt[ARM_SPSR_CNT];
 
 	uint32_t           reg[16];
-	uint32_t           reg_alt[ARM_REG_ALT_CNT];
 
 	uint32_t           lastpc[2];
 
-	/* the current register mapping */
-	unsigned           reg_map;
-
+  // banked_regs
+  uint32_t old_mode;
+  uint32_t usr_regs_low[5]; // non-fiq r8-r12
+  uint32_t usr_regs[2];     // sp, lr
+  uint32_t irq_regs[3];     // sp, lr, spsr
+  uint32_t svc_regs[3];     //     "
+  uint32_t abt_regs[3];     //     "
+  uint32_t und_regs[3];     //     "
+  uint32_t fiq_regs[8];     // r8-r12, sp, lr, spsr
+  
 	arm_copr_t         *copr[16];
 
 	arm_copr14_t       copr14;
@@ -339,7 +344,7 @@ unsigned arm_get_flags (const arm_t *c, unsigned flags);
 void arm_set_flags (arm_t *c, unsigned flags, int val);
 
 unsigned long arm_get_id (arm_t *c);
-void arm_set_id (arm_t *c, unsigned long id);
+void arm_set_id (arm_t *c, uint32_t id);
 
 
 int arm_get_reg (arm_t *c, const char *reg, uint32_t *val);
