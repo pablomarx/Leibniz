@@ -80,6 +80,7 @@ uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
     uint32_t *bank = NULL;
     if (c->machineType == kGestalt_MachineType_MessagePad) {
       bank = c->ram1;
+      addr = 0x01000000 + ((addr - 0x01000000) % 0xa0000);
     }
     else {
       if (addr >= 0x01000000 && addr < 0x01100000) {
@@ -199,6 +200,7 @@ uint32_t newton_set_mem32 (newton_t *c, uint32_t addr, uint32_t val) {
     uint32_t *bank = NULL;
     if (c->machineType == kGestalt_MachineType_MessagePad) {
       bank = c->ram1;
+      addr = 0x01000000 + ((addr - 0x01000000) % 0xa0000);
     }
     else {
       if (addr >= 0x01000000 && addr < 0x01100000) {
