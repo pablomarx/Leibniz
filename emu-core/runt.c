@@ -332,7 +332,7 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val) {
       
       
       if ((c->logFlags & RuntLogADC) == RuntLogADC) {
-        fprintf(c->logFile, "ADC sample: 0x%08x -> 0x%08x: ", c->memory[0x1000/4], val);
+        fprintf(c->logFile, " => ADC sample: 0x%08x -> 0x%08x: ", c->memory[0x1000/4], val);
         bool matched = false;
         for (int i=0; i<sizeof(runt_adc_names) / sizeof(name_index); i++) {
           if (runt_adc_names[i].index == source) {
@@ -351,7 +351,7 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val) {
     }
     case RuntPower:
       if ((c->logFlags & RuntLogPower) == RuntLogPower) {
-        fprintf(c->logFile, "power on: 0x%08x -> 0x%08x: ", c->memory[0x1000/4], val);
+        fprintf(c->logFile, " => power on: 0x%08x -> 0x%08x: ", c->memory[0x1000/4], val);
         for (int i=1; i<32; i++) {
           uint32_t bit = (1 << i);
           if ((val & bit) == bit) {
@@ -369,7 +369,7 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val) {
       break;
     case RuntEnableInterrupt: {
       if ((c->logFlags & RuntLogInterrupts) == RuntLogInterrupts) {
-        fprintf(c->logFile, "enable interrupts: 0x%08x -> 0x%08x: ", c->memory[0x1000/4], val);
+        fprintf(c->logFile, " => enable interrupts: 0x%08x -> 0x%08x: ", c->memory[0x1000/4], val);
         for (int i=1; i<32; i++) {
           uint32_t bit = (1 << i);
           if ((val & bit) == bit) {

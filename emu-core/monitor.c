@@ -204,14 +204,14 @@ void monitor_parse_input(monitor_t *c, const char *input) {
     printf("Watching memory: 0x%08x\n", argValue);
   }
   else if (sscanf(input, "runt-interrupt %i %i", &argValue, &arg2Value) == 2) {
-	  if (arg2Value == 1) {
-	  	runt_raise_interrupt(c->newton->runt, argValue);
-		printf("Raising interrupt: %i\n", argValue);
-	  }
-	  else {
+    if (arg2Value == 1) {
+      runt_raise_interrupt(c->newton->runt, argValue);
+      printf("Raising interrupt: %i\n", argValue);
+    }
+    else {
   	  	runt_lower_interrupt(c->newton->runt, argValue);
-		printf("Lowering interrupt: %i\n", argValue);
-	  }
+      printf("Lowering interrupt: %i\n", argValue);
+    }
   }
   
   else if (sscanf(input, "step %i", &argValue) == 1) {
@@ -230,12 +230,12 @@ void monitor_parse_input(monitor_t *c, const char *input) {
   }
   else if (strcmp(input, "pcspy") == 0) {
     bool pcspy = !newton_get_pc_spy(c->newton);
-	newton_set_pc_spy(c->newton, pcspy);
+    newton_set_pc_spy(c->newton, pcspy);
     printf("PC spying now %s\n", pcspy ? "on" : "off");
   }
   else if (strcmp(input, "spspy") == 0) {
     bool spspy = !newton_get_sp_spy(c->newton);
-	newton_set_sp_spy(c->newton, spspy);
+    newton_set_sp_spy(c->newton, spspy);
     printf("SP spying now %s\n", spspy ? "on" : "off");
   }
   else if (strcmp(input, "mem-trace") == 0) {
@@ -294,6 +294,9 @@ void monitor_parse_input(monitor_t *c, const char *input) {
     printf("Setting switch %i to %i\n", argValue, arg2Value);
     runt_switch_state(newton_get_runt(c->newton), argValue, arg2Value);
     c->newton->arm->reg[argValue] = arg2Value;
+  }
+  else {
+    printf("Unknown command: %s\n", input);
   }
   
   //  return NULL;

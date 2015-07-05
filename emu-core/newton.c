@@ -125,7 +125,17 @@ uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
 	}
   }
   
-  dbug("GET: 0x%08x => 0x%08x, PC=0x%08x\n", addr, result, arm_get_pc(c->arm));
+  if (addr != arm_get_pc(c->arm)) {
+    const char *symbol = "";
+    for (uint32_t i=0; i<c->numOfSymbols; i++) {
+      if (c->symbols[i].address == addr) {
+        symbol = c->symbols[i].name;
+        break;
+      }
+    }
+    
+    dbug("GET: 0x%08x %s => 0x%08x, PC=0x%08x\n", addr, symbol, result, arm_get_pc(c->arm));
+  }
   
   return result;
 }
@@ -177,7 +187,8 @@ uint16_t newton_set_mem16 (newton_t *c, uint32_t addr, uint16_t val) {
 }
 
 uint32_t newton_set_mem32 (newton_t *c, uint32_t addr, uint32_t val) {
-  dbug("SET: 0x%08x => 0x%08x, PC=0x%08x\n", addr, val, arm_get_pc(c->arm));
+  uint32_t oldval = 0;
+  
   if (c->memwatchTail > 0) {
     for (int i=0; i<c->memwatchTail; i++) {
       if (addr == c->memwatch[i]) {
@@ -215,6 +226,7 @@ uint32_t newton_set_mem32 (newton_t *c, uint32_t addr, uint32_t val) {
     }
     
     if (bank != NULL) {
+      oldval = bank[(addr & 0x000fffff) / 4];
       bank[(addr & 0x000fffff) / 4] = val;
     }
     else {
@@ -228,6 +240,7 @@ uint32_t newton_set_mem32 (newton_t *c, uint32_t addr, uint32_t val) {
     // return iocard_set_mem32(c, addr, val);
     fprintf(c->logFile, "[FLASH:WRITE] 0x%08x => 0x%08x, PC=0x%08x\n", addr, val, arm_get_pc(c->arm));
     if (addr >= 0x14000000 && addr < 0x14100000 ) {
+      oldval = c->flash[(addr - 0x14000000) / 4];
       c->flash[(addr - 0x14000000) / 4] = val;
     }
   }
@@ -237,10 +250,21 @@ uint32_t newton_set_mem32 (newton_t *c, uint32_t addr, uint32_t val) {
   }
   else {
     fprintf(c->logFile, "UNKNOWN MEMORY SET: 0x%08x => 0x%08x, PC=0x%08x\n", addr, val, arm_get_pc(c->arm));
-	if (c->breakOnUnknownMemory) {
-        newton_stop(c);
-	}
+    if (c->breakOnUnknownMemory) {
+      newton_stop(c);
+    }
   }
+  
+  const char *symbol = "";
+  for (uint32_t i=0; i<c->numOfSymbols; i++) {
+    if (c->symbols[i].address == addr) {
+      symbol = c->symbols[i].name;
+      break;
+    }
+  }
+  
+  dbug("SET: 0x%08x %s => 0x%08x (was 0x%08x), PC=0x%08x\n", addr, symbol, val, oldval, arm_get_pc(c->arm));
+  
   return val;
 }
 
@@ -532,13 +556,13 @@ void newton_load_mapfile(newton_t *c, const char *mapfile) {
       char name[512];
       uint16_t nameIndex=0;
       
-	  char letter = 0;
+      char letter = 0;
       while((letter = fgetc(fp))) {
-		  if (letter == '\n' || letter == '\r') {
-			  break;
-		  }
-		  name[nameIndex++] = letter;
-	  }
+        if (letter == '\n' || letter == '\r') {
+          break;
+        }
+        name[nameIndex++] = letter;
+      }
       
       name[nameIndex] = 0x00;
       newton_add_symbol(c, addr, name);
@@ -869,13 +893,15 @@ void newton_emulate(newton_t *c, int32_t count) {
     uint32_t pc = arm_get_pc (c->arm);
     if (pc != c->lastPc + 4) {
       if (c->pcSpy) {
-        fprintf(c->logFile, "PC changed to 0x%08x (from 0x%08x)\n", pc, c->lastPc);
-      }
-      for (uint32_t i=0; i<c->numOfSymbols; i++) {
-        if (c->symbols[i].address == pc) {
-		        fprintf(c->logFile, "Entering %s (addr=0x%08x, from 0x%08x)\n", c->symbols[i].name, pc, c->lastPc);
-          break;
+        const char *symbol = "";
+        for (uint32_t i=0; i<c->numOfSymbols; i++) {
+          if (c->symbols[i].address == pc) {
+            symbol = c->symbols[i].name;
+            break;
+          }
         }
+        
+        fprintf(c->logFile, "PC changed to 0x%08x %s (from 0x%08x)\n", pc, symbol, c->lastPc);
       }
     }
     if (c->lastSp != c->arm->reg[13] && c->spSpy) {
