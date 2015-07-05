@@ -104,6 +104,9 @@ void runt_set_log_file (runt_t *c, FILE *file);
 uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val);
 uint32_t runt_get_mem32(runt_t *c, uint32_t addr);
 
+void runt_raise_interrupt(runt_t *c, uint32_t interrupt);
+void runt_lower_interrupt(runt_t *c, uint32_t interrupt);
+
 void runt_switch_state(runt_t *c, int switchNum, int state);
 
 void runt_touch_down(runt_t *c, int x, int y);

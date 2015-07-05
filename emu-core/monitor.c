@@ -203,9 +203,15 @@ void monitor_parse_input(monitor_t *c, const char *input) {
     newton_memwatch_add(c->newton, argValue);
     printf("Watching memory: 0x%08x\n", argValue);
   }
-  else if (sscanf(input, "interrupt %i", &argValue) == 1) {
-    // XXX: meh.
-    c->newton->runt->interrupt = argValue;
+  else if (sscanf(input, "runt-interrupt %i %i", &argValue, &arg2Value) == 2) {
+	  if (arg2Value == 1) {
+	  	runt_raise_interrupt(c->newton->runt, argValue);
+		printf("Raising interrupt: %i\n", argValue);
+	  }
+	  else {
+  	  	runt_lower_interrupt(c->newton->runt, argValue);
+		printf("Lowering interrupt: %i\n", argValue);
+	  }
   }
   
   else if (sscanf(input, "step %i", &argValue) == 1) {
