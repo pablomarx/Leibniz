@@ -279,6 +279,16 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val) {
   runt_log_access(c, addr, val, true);
   
   switch ((addr >> 8) & 0xff) {
+	  case 0x00:
+	  // Observed bit 2 changing depending on gNewtConfig
+	  // kDontPauseCPU being set...
+	  if ((val & 2) == 2) {
+		  fprintf(c->logFile, " => CPU pausing enabled?\n");
+	  }
+	  else {
+		  fprintf(c->logFile, " => CPU pausing disabled?\n");
+	  }
+	  break;
     case RuntLCD:
       c->lcd_set_uint32(c->lcd_ext, (addr & 0xff), val);
       break;
