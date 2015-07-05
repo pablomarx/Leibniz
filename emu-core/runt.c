@@ -54,6 +54,33 @@ enum {
     RuntSerialData   = 0x04,
 };
 
+typedef struct {
+  uint32_t index;
+  const char *name;
+} name_index;
+
+static name_index runt_adc_names[] = {
+  { .index = 0x30, .name = "TabletA" },
+  { .index = 0x31, .name = "TabletB" },
+  { .index = 0x32, .name = "Thermistor" },
+  { .index = 0x34, .name = "MainBattery" },
+  { .index = 0x38, .name = "BackupBattery" },
+};
+
+static const char *runt_power_names[32] = {
+  "adc", "lcd", "vpp2", "vpp1", "sound", "serial", "trim", NULL,
+  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+};
+
+static const char *runt_interrupt_names[32] = {
+  "rtc", "ticks", NULL, NULL, NULL, NULL, NULL, NULL,
+  NULL, "adc", NULL, "sound", NULL, "diags", "cardlock", "powerswitch",
+  "serial", NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+};
+
 void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
   const char *prefix = NULL;
   uint32_t flag = 0;
@@ -292,36 +319,63 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val) {
       else {
         runt_lower_interrupt(c, RuntInterruptADC);
       }
+      
+      
+      if ((c->logFlags & RuntLogADC) == RuntLogADC) {
+        fprintf(c->logFile, "ADC sample: 0x%08x -> 0x%08x: ", c->memory[0x1000/4], val);
+        bool matched = false;
+        for (int i=0; i<sizeof(runt_adc_names) / sizeof(name_index); i++) {
+          if (runt_adc_names[i].index == source) {
+            fprintf(c->logFile, "%s", runt_adc_names[i].name);
+            matched = true;
+            break;
+          }
+        }
+        if (matched == false) {
+          fprintf(c->logFile, "**unknown: %i**", source);
+        }
+        fprintf(c->logFile, "\n");
+      }
+      
       break;
     }
     case RuntPower:
       if ((c->logFlags & RuntLogPower) == RuntLogPower) {
-        
         fprintf(c->logFile, "power on: 0x%08x -> 0x%08x: ", c->memory[0x1000/4], val);
-        if (val & RuntPowerTrim) {
-          fprintf(c->logFile, "trim, ");
-        }
-        if (val & RuntPowerSerial) {
-          fprintf(c->logFile, "serial, ");
-        }
-        if (val & RuntPowerSound) {
-          fprintf(c->logFile, "sound, ");
-        }
-        if (val & RuntPowerVPP1) {
-          fprintf(c->logFile, "vpp1, ");
-        }
-        if (val & RuntPowerVPP2) {
-          fprintf(c->logFile, "vpp2, ");
-        }
-        if (val & RuntPowerLCD) {
-          fprintf(c->logFile, "lcd, ");
-        }
-        if (val & RuntPowerADC) {
-          fprintf(c->logFile, "adc, ");
+        for (int i=1; i<32; i++) {
+          uint32_t bit = (1 << i);
+          if ((val & bit) == bit) {
+            const char *name = runt_power_names[i-1];
+            if (name != NULL) {
+              fprintf(c->logFile, "%s, ", name);
+            }
+            else {
+              fprintf(c->logFile, "unknown-%i, ", i);
+            }
+          }
         }
         fprintf(c->logFile, "\n");
       }
       break;
+    case RuntEnableInterrupt: {
+      if ((c->logFlags & RuntLogInterrupts) == RuntLogInterrupts) {
+        fprintf(c->logFile, "enable interrupts: 0x%08x -> 0x%08x: ", c->memory[0x1000/4], val);
+        for (int i=1; i<32; i++) {
+          uint32_t bit = (1 << i);
+          if ((val & bit) == bit) {
+            const char *name = runt_interrupt_names[i-1];
+            if (name != NULL) {
+              fprintf(c->logFile, "%s, ", name);
+            }
+            else {
+              fprintf(c->logFile, "unknown-%i, ", i);
+            }
+          }
+        }
+        fprintf(c->logFile, "\n");
+      }
+      break;
+    }
     case RuntRTCAlarm:
       c->rtcAlarm = val;
       break;
