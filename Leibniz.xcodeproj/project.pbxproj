@@ -16,6 +16,7 @@
 		F123BD6B19C4FC8800EC994F /* newton.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD5819C4FC8800EC994F /* newton.c */; };
 		F123BD6E19C4FC8800EC994F /* opcodes.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD5B19C4FC8800EC994F /* opcodes.c */; };
 		F123BD7319C508C200EC994F /* runt.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD7119C508C200EC994F /* runt.c */; };
+		F1853F761CBD87B800CFA4F4 /* newton-buttons.png in Resources */ = {isa = PBXBuildFile; fileRef = F1853F751CBD87B800CFA4F4 /* newton-buttons.png */; };
 		F1DB3DD919C60F8B006C7102 /* monitor.c in Sources */ = {isa = PBXBuildFile; fileRef = F1DB3DD719C60F8B006C7102 /* monitor.c */; };
 		F1DB3DDC19C63121006C7102 /* linenoise.c in Sources */ = {isa = PBXBuildFile; fileRef = F1DB3DDA19C63121006C7102 /* linenoise.c */; };
 		F1E09AED1B2D2AB000004CC8 /* lcd_sharp.c in Sources */ = {isa = PBXBuildFile; fileRef = F1E09AE91B2D2AB000004CC8 /* lcd_sharp.c */; };
@@ -52,6 +53,7 @@
 		F123BD7019C4FCF500EC994F /* newton.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = newton.h; sourceTree = "<group>"; };
 		F123BD7119C508C200EC994F /* runt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = runt.c; sourceTree = "<group>"; };
 		F123BD7219C508C200EC994F /* runt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = runt.h; sourceTree = "<group>"; };
+		F1853F751CBD87B800CFA4F4 /* newton-buttons.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "newton-buttons.png"; sourceTree = "<group>"; };
 		F187B3091B24C4C6002F62E7 /* HammerConfigBits.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HammerConfigBits.h; sourceTree = "<group>"; };
 		F1DB3DD719C60F8B006C7102 /* monitor.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = monitor.c; sourceTree = "<group>"; };
 		F1DB3DD819C60F8B006C7102 /* monitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = monitor.h; sourceTree = "<group>"; };
@@ -148,6 +150,7 @@
 				F1E4AF1419C1327F00D8EFB4 /* AppDelegate.m */,
 				F1E4AF1619C1327F00D8EFB4 /* Images.xcassets */,
 				F1E4AF1819C1327F00D8EFB4 /* MainMenu.xib */,
+				F1853F751CBD87B800CFA4F4 /* newton-buttons.png */,
 				F1E4AF0F19C1327F00D8EFB4 /* Supporting Files */,
 			);
 			path = Leibniz;
@@ -259,6 +262,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F1853F761CBD87B800CFA4F4 /* newton-buttons.png in Resources */,
 				F1E4AF1719C1327F00D8EFB4 /* Images.xcassets in Resources */,
 				F1E4AF1A19C1327F00D8EFB4 /* MainMenu.xib in Resources */,
 			);
