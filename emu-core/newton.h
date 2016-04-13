@@ -35,19 +35,20 @@ typedef struct newton_s {
   void *lcd_driver;
   runt_t *runt;
   
-  uint32_t *ram1;
-  uint32_t *ram2;
-  uint32_t *ram3;
+  uint32_t *ram;
+  uint32_t ramSize;
 
   uint32_t *rom;
   uint32_t romSize;
+  
+  uint32_t *flash;
+  uint32_t flashSize;
+  
   uint32_t machineType;
   uint32_t romManufacturer;
   uint32_t debuggerBits;
   uint32_t newtConfig;
-  
-  uint32_t *flash;
-  
+
   uint32_t *breakpoints;
   uint32_t breakpointsCapacity;
   uint32_t breakpointsTail;

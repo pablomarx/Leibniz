@@ -55,31 +55,16 @@ uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
         result = c->newtConfig;
         break;
     }
-    if (addr >= c->romSize) {
-      printf("reading from mirrored rom\n");
-    }
   }
-  else if (addr >= 0x01000000 && addr < 0x01400000) {
-    uint32_t *bank = NULL;
-    if (c->machineType == kGestalt_MachineType_MessagePad) {
-      bank = c->ram1;
-      addr = 0x01000000 + ((addr - 0x01000000) % 0xa0000);
-    }
-    else {
-      if (addr >= 0x01000000 && addr < 0x01100000) {
-        bank = c->ram1;
-      }
-      else if (addr >= 0x01100000 && addr < 0x01200000) {
-        bank = c->ram2;
-      }
-      else if (addr >= 0x01200000 && addr < 0x01300000) {
-        bank = c->ram3;
-      }
+  else if (addr >= 0x01000000 && addr < 0x01400000) { // 4MB address space for RAM
+    uint32_t localAddr = addr - 0x01000000;
+    
+    if (localAddr > c->ramSize) {
+//      fprintf(c->logFile, "RAM request:0x%08x greater than ramSize:0x%08x\n", localAddr, c->ramSize);
     }
     
-    if (bank != NULL) {
-      result = bank[(addr & 0x000fffff) / 4];
-    }
+    localAddr = localAddr % c->ramSize;
+    result = c->ram[localAddr/4];
   }
   else if (addr >= 0x01400000 && addr < 0x01800000) { // runt, 4MB
     result = runt_get_mem32(c->runt, addr);
@@ -180,42 +165,25 @@ uint32_t newton_set_mem32 (newton_t *c, uint32_t addr, uint32_t val) {
       }
     }
   }
-  if (addr < 0x00800000) {      // rom, 8MB
+  if (addr < 0x01000000) {      // ROM, first 16MB of address space
     fprintf(c->logFile, "bad write to ROM!!!! addr=0x%08x, val=0x%08x\n", addr, val);
     fprintf(c->logFile, "pc: 0x%08x\n", arm_get_pc(c->arm));
-    
+    newton_stop(c);
     //arm_exception_data_abort(c);
     //return 0;
     // return rom_set_mem32(c, addr, val);
   }
   
   
-  else if (addr >= 0x01000000 && addr < 0x01400000) { // ram, 1MB
-    uint32_t *bank = NULL;
-    if (c->machineType == kGestalt_MachineType_MessagePad) {
-      bank = c->ram1;
-      addr = 0x01000000 + ((addr - 0x01000000) % 0xa0000);
-    }
-    else {
-      if (addr >= 0x01000000 && addr < 0x01100000) {
-        bank = c->ram1;
-      }
-      else if (addr >= 0x01100000 && addr < 0x01200000) {
-        bank = c->ram2;
-      }
-      else if (addr >= 0x01200000 && addr < 0x01300000) {
-        bank = c->ram3;
-      }
+  else if (addr >= 0x01000000 && addr < 0x01400000) { // RAM: 4MB of address space
+    uint32_t localAddr = addr - 0x01000000;
+    
+    if (localAddr > c->ramSize) {
+//      fprintf(c->logFile, "RAM request:0x%08x greater than ramSize:0x%08x\n", localAddr, c->ramSize);
     }
     
-    if (bank != NULL) {
-      oldval = bank[(addr & 0x000fffff) / 4];
-      bank[(addr & 0x000fffff) / 4] = val;
-    }
-    else {
-      fprintf(c->logFile, "Don't know which ram bank to use for addr:0x%08x\n", addr);
-      newton_stop(c);
-    }
+    localAddr = localAddr % c->ramSize;
+    c->ram[localAddr/4] = val;
   }
   else if (addr >= 0x01400000 && addr < 0x01800000) { // runt, 4MB
     return runt_set_mem32(c->runt, addr, val);
@@ -945,14 +913,14 @@ void newton_init (newton_t *c)
   //
   // Setup RAM
   //
-  c->ram1 = calloc(1024 * 1024, 1);
-  c->ram2 = calloc(1024 * 1024, 1);
-  c->ram3 = calloc(1024 * 1024, 1);
+  c->ramSize = 4 * 1024 * 1024;
+  c->ram = calloc(c->ramSize, 1);
   
   //
   // Setup flash
   //
-  c->flash = calloc(0x14100000 - 0x14000000, 1);
+  c->flashSize = 0x14100000 - 0x14000000;
+  c->flash = calloc(c->flashSize, 1);
   // c->flash[0] = 'SERD';
   // c->flash[0] = 'SEWR';
   
@@ -980,21 +948,6 @@ void newton_init (newton_t *c)
   //
   c->lastPc = 0;
   c->lastSp = 0;
-  
-  //
-  // Sanity checking
-  //
-  newton_set_mem8(c, 0x01000000, 0x00);
-  newton_set_mem8(c, 0x01000001, 0x44);
-  newton_set_mem8(c, 0x01000002, 0x88);
-  newton_set_mem8(c, 0x01000003, 0xcc);
-  
-  assert(newton_get_mem8(c, 0x01000000) == 0x00);
-  assert(newton_get_mem8(c, 0x01000001) == 0x44);
-  assert(newton_get_mem8(c, 0x01000002) == 0x88);
-  assert(newton_get_mem8(c, 0x01000003) == 0xcc);
-  
-  newton_set_mem32(c, 0x01000000, 0x00);
 }
 
 int newton_load_rom(newton_t *c, const char *path) {
@@ -1133,9 +1086,7 @@ void newton_free (newton_t *c)
   
   arm_del(c->arm);
   runt_del(c->runt);
-  free(c->ram1);
-  free(c->ram2);
-  free(c->ram3);
+  free(c->ram);
   free(c->rom);
   free(c->flash);
 }
