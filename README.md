@@ -7,9 +7,13 @@ Currently able to boot into diagnostics mode. LCD and tablet work, so one can na
 
 Known to work with the following ROM images:
 
-1. [Notepad 1.0b1](http://www.unna.org/incoming/notepad-1.0b1.rom.gz)
-2. [OMP 1.3](http://www.unna.org/incoming/omp-1.3-414059.rom.gz)
-3. [ARMistice J1 Image](http://www.unna.org/incoming/Newt%20J1Armistice%20image.zip)
+1. [Notepad v1.0b1](http://www.unna.org/incoming/notepad-1.0b1.rom.gz)
+2. [OMP v1.0](http://www.unna.org/incoming/MessagePad%20100%20v1.00.rom)
+3. [OMP v1.3](http://www.unna.org/incoming/omp-1.3-414059.rom.gz)
+4. [ARMistice J1 Image](http://www.unna.org/incoming/Newt%20J1Armistice%20image.zip)
+5. [Sharp ExpertPad PI-7000 v1.1](http://www.unna.org/incoming/Sharp%20ExpertPad%20PI-7000%20v1.10.rom)
+6. [Motorola Marco v1.3](http://www.unna.org/incoming/Motorola%20Marco%20v1.3%20(444347).rom)
+7. [MessagePad 120 v1.3](http://www.unna.org/incoming/MessagePad%20120%20v1.3%20(444217).rom)
 
 ### Screenshots
 
