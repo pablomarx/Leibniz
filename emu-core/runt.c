@@ -503,6 +503,10 @@ void runt_step(runt_t *c) {
     runt_raise_interrupt(c, RuntInterruptTicks);
     c->ticksAlarm2 = 0;
   }
+  
+  if (c->lcd_step != NULL) {
+    c->lcd_step(c->lcd_ext);
+  }
 }
 
 #pragma mark -
@@ -523,12 +527,13 @@ void runt_set_log_file (runt_t *c, FILE *file) {
 #pragma mark -
 #pragma mark
 void runt_set_lcd_fct(runt_t *c, void *ext,
-                      void *get32, void *set32, void *getname)
+                      void *get32, void *set32, void *getname, void *step)
 {
   c->lcd_ext = ext;
   c->lcd_get_uint32 = get32;
   c->lcd_set_uint32 = set32;
   c->lcd_get_address_name = getname;
+  c->lcd_step = step;
 }
 
 void runt_init (runt_t *c) {

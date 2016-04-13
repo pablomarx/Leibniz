@@ -23,6 +23,7 @@ typedef struct lcd_squirt_s {
   int displayInverse;
 
   int displayDirty;
+  int stepsSinceLastFlush;
   uint16_t displayCursor;
   uint8_t displayPixelInvert;
   unsigned char *displayFramebuffer;
@@ -34,6 +35,8 @@ void lcd_squirt_free (lcd_squirt_t *c);
 void lcd_squirt_del (lcd_squirt_t *c);
 
 void lcd_squirt_set_log_file (lcd_squirt_t *c, FILE *file);
+
+void lcd_squirt_step(lcd_squirt_t *c);
 
 uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val);
 uint32_t lcd_squirt_get_mem32(lcd_squirt_t *c, uint32_t addr);

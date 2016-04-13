@@ -70,7 +70,7 @@ uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
         uint8_t bitVal = ((pixels>>bitIdx) & 1);
         
         if (c->displayPixelInvert == 0) {
-          bitVal = ~(c->displayFramebuffer[framebufferIdx]);
+          bitVal = !(c->displayFramebuffer[framebufferIdx]);
         }
 
         c->displayFramebuffer[framebufferIdx] = (bitVal ? 0x00 : 0xff);
@@ -82,10 +82,6 @@ uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
       c->displayCursor++;
 
       c->displayDirty++;
-      if (c->displayDirty % 100 == 0) {
-        FlushDisplay((const char *)c->displayFramebuffer, SCREEN_WIDTH, SCREEN_HEIGHT);
-        c->displayDirty = 1;
-      }
       break;
     }
     default:
@@ -93,6 +89,18 @@ uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
       break;
   }
   return val;
+}
+
+void lcd_squirt_step(lcd_squirt_t *c) {
+  if (c->displayDirty != 0) {
+    c->stepsSinceLastFlush++;
+    
+    if (c->stepsSinceLastFlush >= 500) {
+      FlushDisplay((const char *)c->displayFramebuffer, SCREEN_WIDTH, SCREEN_HEIGHT);
+      c->displayDirty = 0;
+      c->stepsSinceLastFlush = 0;
+    }
+  }
 }
 
 uint32_t lcd_squirt_get_mem32(lcd_squirt_t *c, uint32_t addr) {

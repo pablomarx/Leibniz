@@ -1116,12 +1116,12 @@ int newton_load_rom(newton_t *c, const char *path) {
   
   if (c->machineType == kGestalt_MachineType_Lindy) {
     lcd_squirt_t *squirt = lcd_squirt_new();
-    runt_set_lcd_fct(c->runt, squirt, lcd_squirt_get_mem32, lcd_squirt_set_mem32, lcd_squirt_get_address_name);
+    runt_set_lcd_fct(c->runt, squirt, lcd_squirt_get_mem32, lcd_squirt_set_mem32, lcd_squirt_get_address_name, lcd_squirt_step);
     c->lcd_driver = squirt;
   }
   else {
     lcd_sharp_t *sharp = lcd_sharp_new();
-    runt_set_lcd_fct(c->runt, sharp, lcd_sharp_get_mem32, lcd_sharp_set_mem32, lcd_sharp_get_address_name);
+    runt_set_lcd_fct(c->runt, sharp, lcd_sharp_get_mem32, lcd_sharp_set_mem32, lcd_sharp_get_address_name, NULL);
     c->lcd_driver = sharp;
   }
   

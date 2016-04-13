@@ -52,7 +52,7 @@ enum {
 typedef uint32_t (*lcd_get_uint32_f) (void *ext, uint32_t addr);
 typedef uint32_t (*lcd_set_uint32_f) (void *ext, uint32_t addr, uint32_t val);
 typedef const char * (*lcd_get_address_name_f) (void *ext, uint32_t addr);
-
+typedef void (*lcd_step_f)(void *ext);
 
 typedef struct runt_s {
   arm_t *arm;
@@ -78,6 +78,7 @@ typedef struct runt_s {
   lcd_get_uint32_f   lcd_get_uint32;
   lcd_set_uint32_f   lcd_set_uint32;
   lcd_get_address_name_f lcd_get_address_name;
+  lcd_step_f          lcd_step;
   
   // Switches
   int8_t switches[3];
@@ -96,7 +97,7 @@ void runt_set_arm (runt_t *c, arm_t *arm);
 void runt_step(runt_t *c);
 
 void runt_set_lcd_fct(runt_t *c, void *ext,
-                      void *get32, void *set32, void *getname);
+                      void *get32, void *set32, void *getname, void *step);
 
 void runt_set_log_flags (runt_t *c, unsigned flags, int val);
 void runt_set_log_file (runt_t *c, FILE *file);
