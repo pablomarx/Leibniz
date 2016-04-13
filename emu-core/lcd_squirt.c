@@ -17,7 +17,20 @@ enum {
   SquirtLCDCursorHigh = 0x4c,
   SquirtLCDCursorLow = 0x50,
   SquirtLCDPixelInvert = 0x54,
+
+  // Not sure what these are, but see them
+  // being written when invoking:
+  // Evaluation -> LCD Blanking
+  SquirtLCDBlanking = 0x60,
+  // Evaluation -> LCD MCount
+  SquirtLCDMCount = 0x6c,
 };
+
+// Evaluation -> LCD VRAM displays:
+// 68: VRAM DATA: 000000AA
+// 69: VRAM ABUS: 000000FF
+// 70: VRAM DBUS LO: 000000FF
+// 73: VRAM DBUS SH: 00000000
 
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
@@ -40,6 +53,12 @@ const char *lcd_squirt_get_address_name(lcd_squirt_t *c, uint32_t addr) {
     case SquirtLCDPixelInvert:
       prefix = "lcd-pixel-invert";
       break;
+    case SquirtLCDBlanking:
+      prefix = "lcd-blanking";
+      break;
+    case SquirtLCDMCount:
+      prefix = "lcd-m-count";
+      break;
     default:
       prefix = "lcd-unknown";
       break;
@@ -58,7 +77,7 @@ uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
       c->displayCursor = (c->displayCursor & 0x00ff) | ((val >> 24) << 8);
       break;
     case SquirtLCDPixelInvert:
-      c->displayPixelInvert = (val >> 24) & 1;
+      c->displayPixelInvert = (val >> 24);
       break;
     case SquirtLCDData:
     {
@@ -70,7 +89,13 @@ uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
         uint8_t bitVal = ((pixels>>bitIdx) & 1);
         
         if (c->displayPixelInvert == 0) {
-          bitVal = !(c->displayFramebuffer[framebufferIdx]);
+          uint8_t curVal = (c->displayFramebuffer[framebufferIdx]) ? 0 : 1;
+          if (bitVal == 0) {
+            bitVal = curVal;
+          }
+          else {
+            bitVal = !curVal;
+          }
         }
 
         c->displayFramebuffer[framebufferIdx] = (bitVal ? 0x00 : 0xff);
@@ -82,8 +107,12 @@ uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
       c->displayCursor++;
 
       c->displayDirty++;
+      c->stepsSinceLastFlush = 0;
       break;
     }
+    case SquirtLCDBlanking:
+    case SquirtLCDMCount:
+      break;
     default:
       printf("unknown %02x => %08x\n", addr, val);
       break;
