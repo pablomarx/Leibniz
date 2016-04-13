@@ -17,6 +17,8 @@ Known to work with the following ROM images:
 
 ### Screenshots
 
+Junior diagnostics:
+
 ![image](http://i.imgur.com/95b1EFp.png)
 
 ![image](http://i.imgur.com/vINdo33.png)
@@ -28,3 +30,7 @@ Known to work with the following ROM images:
 ![image](http://i.imgur.com/93sCQXF.png)
 
 ![image](http://i.imgur.com/n01XpZp.png)
+
+Lindy diagnostics:
+
+![image](http://i.imgur.com/phUfF1w.png)
