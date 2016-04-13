@@ -72,7 +72,7 @@ uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
     }
     else {
       // mirror the ROM?
-      result = c->rom[(addr - 0x00800000) / 4];
+      result = c->rom[((addr - 0x00800000) % c->romSize) / 4];
       
     }
   }
