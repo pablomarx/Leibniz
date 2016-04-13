@@ -230,6 +230,7 @@ uint32_t newton_set_mem32 (newton_t *c, uint32_t addr, uint32_t val) {
       bank[(addr & 0x000fffff) / 4] = val;
     }
     else {
+      fprintf(c->logFile, "Don't know which ram bank to use for addr:0x%08x\n", addr);
       newton_stop(c);
     }
   }
