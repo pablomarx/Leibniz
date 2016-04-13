@@ -35,18 +35,12 @@ uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
   }
   
   uint32_t result = 0;
-  if (addr < 0x00800000) {      // rom, 8MB
-    if (c->machineType == kGestalt_MachineType_MessagePad) {
-      // ROM is mirrored after 4MB
-      addr = addr % 0x400000;
-    }
-    
-    if (addr > c->romSize) {
-      result = 0x00;
-    }
-    else {
-      result = c->rom[addr / 4];
-    }
+  if (addr < 0x01000000) {      // ROM occupies the first 16MB
+    // ROM is mirrored, so on Junior the 4MB ROM should appear
+    // 4 times: 0x00000000, 0x00400000, 0x00800000, 0x00c00000
+    // MP130 has 8MB ROM, so it should appear twice..
+    addr = addr % c->romSize;
+    result = c->rom[addr / 4];
     
     switch (addr) {
       case 0x000013f4:
@@ -63,17 +57,6 @@ uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
     }
     if (addr >= c->romSize) {
       printf("reading from mirrored rom\n");
-    }
-  }
-  else if (addr >= 0x00800000 && addr < 0x01000000) {
-    if (c->machineType == kGestalt_MachineType_MessagePad) {
-      // Noticed on the Notepad
-      result = 0xe1a01006;
-    }
-    else {
-      // mirror the ROM?
-      result = c->rom[((addr - 0x00800000) % c->romSize) / 4];
-      
     }
   }
   else if (addr >= 0x01000000 && addr < 0x01400000) {
