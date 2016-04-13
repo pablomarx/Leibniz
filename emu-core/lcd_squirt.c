@@ -12,6 +12,11 @@
 
 enum {
   SquirtLCDNotBusy = 0x00,
+  SquirtLCDBacklight = 0x30,
+  SquirtLCDData = 0x48,
+  SquirtLCDCursorHigh = 0x4c,
+  SquirtLCDCursorLow = 0x50,
+  SquirtLCDPixelInvert = 0x54,
 };
 
 #define SCREEN_WIDTH 320
@@ -20,8 +25,20 @@ enum {
 const char *lcd_squirt_get_address_name(lcd_squirt_t *c, uint32_t addr) {
   const char *prefix = NULL;
   switch(addr) {
-    case SquirtLCDNotBusy: // lcd not busy
+    case SquirtLCDNotBusy:
       prefix = "lcd-not-busy";
+      break;
+    case SquirtLCDCursorLow:
+      prefix = "lcd-cursor-low";
+      break;
+    case SquirtLCDCursorHigh:
+      prefix = "lcd-cursor-high";
+      break;
+    case SquirtLCDData:
+      prefix = "lcd-data";
+      break;
+    case SquirtLCDPixelInvert:
+      prefix = "lcd-pixel-invert";
       break;
     default:
       prefix = "lcd-unknown";
@@ -32,6 +49,49 @@ const char *lcd_squirt_get_address_name(lcd_squirt_t *c, uint32_t addr) {
 
 uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
   c->memory[addr/4] = val;
+  
+  switch(addr) {
+    case SquirtLCDCursorLow: // Values written are 0x00 through 0xff
+      c->displayCursor = (c->displayCursor & 0xff00) | (val >> 24);
+      break;
+    case SquirtLCDCursorHigh: // Values written are 0x00 through 0x24
+      c->displayCursor = (c->displayCursor & 0x00ff) | ((val >> 24) << 8);
+      break;
+    case SquirtLCDPixelInvert:
+      c->displayPixelInvert = (val >> 24) & 1;
+      break;
+    case SquirtLCDData:
+    {
+      uint32_t framebufferIdx = (c->displayCursor) * 8;
+      
+      // Splat the pixels
+      uint8_t pixels = ((uint8_t)(val >> 24));
+      for (int bitIdx=7; bitIdx>=0; bitIdx--) {
+        uint8_t bitVal = ((pixels>>bitIdx) & 1);
+        
+        if (c->displayPixelInvert == 0) {
+          bitVal = ~(c->displayFramebuffer[framebufferIdx]);
+        }
+
+        c->displayFramebuffer[framebufferIdx] = (bitVal ? 0x00 : 0xff);
+        
+        framebufferIdx++;
+      }
+      
+      // Advance the cursor
+      c->displayCursor++;
+
+      c->displayDirty++;
+      if (c->displayDirty % 100 == 0) {
+        FlushDisplay((const char *)c->displayFramebuffer, SCREEN_WIDTH, SCREEN_HEIGHT);
+        c->displayDirty = 1;
+      }
+      break;
+    }
+    default:
+      printf("unknown %02x => %08x\n", addr, val);
+      break;
+  }
   return val;
 }
 
@@ -39,8 +99,18 @@ uint32_t lcd_squirt_get_mem32(lcd_squirt_t *c, uint32_t addr) {
   uint32_t result = c->memory[addr/4];
   
   switch (addr) {
+    case SquirtLCDCursorHigh:
+      result = ((c->displayCursor >> 8) << 24);
+      break;
+    case SquirtLCDCursorLow:
+      result = ((c->displayCursor & 0xff) << 24);
+      break;
+    case SquirtLCDPixelInvert:
+      result = (c->displayPixelInvert << 24);
+      break;
     case SquirtLCDNotBusy:
-      result = (c->displayBusy++ % 2 ? 0x20202020 : 0x00000000);
+      // We're never busy...
+      result = (0x20 << 24);
       break;
   }
   
