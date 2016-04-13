@@ -13,7 +13,8 @@ Known to work with the following ROM images:
 4. [ARMistice J1 Image](http://www.unna.org/incoming/Newt%20J1Armistice%20image.zip)
 5. [Sharp ExpertPad PI-7000 v1.1](http://www.unna.org/incoming/Sharp%20ExpertPad%20PI-7000%20v1.10.rom)
 6. [Motorola Marco v1.3](http://www.unna.org/incoming/Motorola%20Marco%20v1.3%20(444347).rom)
-7. [MessagePad 120 v1.3](http://www.unna.org/incoming/MessagePad%20120%20v1.3%20(444217).rom)
+7. [MessagePad 110 v1.2](http://www.unna.org/incoming/MessagePad%20110%20v1.2.rom)
+8. [MessagePad 120 v1.3](http://www.unna.org/incoming/MessagePad%20120%20v1.3%20(444217).rom)
 
 ### Screenshots
 
@@ -33,4 +34,9 @@ Junior diagnostics:
 
 Lindy diagnostics:
 
+MessagePad 110 v1.2:
+![image](http://i.imgur.com/wlYEm8U.png)
+
+
+MessagePad 120 v1.3:
 ![image](http://i.imgur.com/phUfF1w.png)
