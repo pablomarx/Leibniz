@@ -90,10 +90,7 @@ uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
         
         if (c->displayPixelInvert == 0) {
           uint8_t curVal = (c->displayFramebuffer[framebufferIdx]) ? 0 : 1;
-          if (bitVal == 0) {
-            bitVal = curVal;
-          }
-          else {
+          if (bitVal == 1) {
             bitVal = !curVal;
           }
         }
