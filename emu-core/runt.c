@@ -556,6 +556,7 @@ void runt_init (runt_t *c) {
   runt_set_log_flags(c, RuntLogInterrupts, 0);
   runt_set_log_flags(c, RuntLogADC, 0);
   runt_set_log_flags(c, RuntLogLCD, 0);
+  runt_set_log_flags(c, RuntLogSound, 0);
   
   c->bootTime = time(NULL);
 }
