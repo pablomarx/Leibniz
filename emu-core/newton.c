@@ -811,7 +811,7 @@ void newton_set_bootmode(newton_t *c, NewtonBootMode bootMode) {
       break;
     case NewtonBootModeDiagnostics:
       c->runt->interrupt = RuntInterruptUnknown4;
-      c->runt->interruptStick = ((c->machineType == kGestalt_MachineType_Lindy) ? 1 : 0);
+      c->runt->interruptStick = 0;
       break;
     case NewtonBootModeNormal:
     default:
