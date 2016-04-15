@@ -314,32 +314,49 @@ int cp15_op_mrc (arm_t *c, arm_copr_t *p)
 
 	switch (arm_ir_rn (c->ir)) {
 	case 0x00: /* ID register */
+		// Register 0 is a read-only identity register that returns the ARM Ltd code for this chip: 0x4156061x.
 		if (cp15_get_reg0 (c, p15, op2, &val)) {
 			return (1);
 		}
 		break;
 
 	case 0x01: /* control register */
+		// Register 1 is write only and contains control bits. All bits in this register are forced LOW by reset.
 		if (cp15_get_reg1 (c, p15, op2, &val)) {
 			return (1);
 		}
 		break;
 
 	case 0x02: /* translation table base */
+		// Register 2 is a write-only register which holds the base of the currently active Level One page table.
 		val = p15->reg[2];
 		break;
 
 	case 0x03: /* domain access control */
+		// Register 3 is a write-only register which holds the current access control for domains 0 to 15.
 		val = p15->reg[2];
+		break;
+		
+	case 0x04:
+		// Register 4 is Reserved. Accessing this register has no effect, but should never be attempted.
 		break;
 
 	case 0x05: /* fault status */
+		// Reading register 5 returns the status of the last data fault. It is not updated for a prefetch fault. 
 		val = p15->reg[5];
 		break;
 
 	case 0x06: /* fault address */
+		// Reading register 6 returns the virtual address of the last data fault.
 		val = p15->reg[6];
 		break;
+		
+	case 0x07:
+		// Register 7 is a write-only register. The data written to this register is discarded and the IDC is flushed.
+		break;
+		
+	// Registers 8 - 15 Reserved
+	// Accessing any of these registers will cause the undefined instruction trap to be taken.
 
 	case 0x0f: /* implementation defined */
 		val = p15->reg[15];
@@ -377,32 +394,41 @@ int cp15_op_mcr (arm_t *c, arm_copr_t *p)
 
 	switch (arm_ir_rn (c->ir)) {
 	case 0x00: /* id register */
+		// Register 0 is a read-only identity register that returns the ARM Ltd code for this chip: 0x4156061x.
 		return (1);
 
 	case 0x01: /* control register */
+		// Register 1 is write only and contains control bits. All bits in this register are forced LOW by reset.
 		return (cp15_set_reg1 (c, p15, op2, val));
 
 	case 0x02: /* translation table base */
+		// Register 2 is a write-only register which holds the base of the currently active Level One page table.
 		p15->reg[2] = val & 0xffffc000;
 		break;
 
 	case 0x03: /* domain access control */
+		// Register 3 is a write-only register which holds the current access control for domains 0 to 15.
 		p15->reg[3] = val & 0xffffffff;
+		break;
+		
+	case 0x04:
+		// Register 4 is Reserved. Accessing this register has no effect, but should never be attempted.
 		break;
 
 	case 0x05: // page fault / tlb flush
-		p15->reg[5] = val & 0xffffffff;
+		// Writing Register 5 flushes the TLB. (The data written is discarded).
 		break;
 
 	case 0x06: // data fault address / tlb purge
-		p15->reg[6] = val & 0xffffffff;
+		// Writing Register 6 purges the TLB
 		break;
       
 	case 0x07: // idc flush?
+		// Register 7 is a write-only register. The data written to this register is discarded and the IDC is flushed.
 		return (cp15_set_reg7 (c, p15));
 
-	case 0x08:
-		return (cp15_set_reg8 (c, p15));
+	// Registers 8 -15 Reserved
+	// Accessing any of these registers will cause the undefined instruction trap to be taken.
 
 	case 0x0f: /* implementation defined */
 		return (cp15_set_reg15 (c, p15, val));
