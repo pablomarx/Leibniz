@@ -59,6 +59,8 @@ int main(int argc, char **argv) {
     newton_load_mapfile(newton, mapname);
   }
   
+  newton_set_log_flags(newton, NewtonLogAll, 1);
+  
   runt_t *runt = newton_get_runt(newton);
   runt_set_log_flags(runt, RuntLogAll, 1);
   

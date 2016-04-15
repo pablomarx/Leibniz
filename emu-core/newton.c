@@ -105,7 +105,10 @@ uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
     if (addr >= 0x14000000 && addr < 0x14100000 ) {
       result = c->flash[(addr - 0x14000000) / 4];
     }
-    fprintf(c->logFile, "[FLASH:READ] 0x%08x => 0x%08x, PC=0x%08x\n", addr, result, arm_get_pc(c->arm));
+    
+    if ((c->logFlags & NewtonLogFlash) == NewtonLogFlash) {
+      fprintf(c->logFile, "[FLASH:READ] 0x%08x => 0x%08x, PC=0x%08x\n", addr, result, arm_get_pc(c->arm));
+    }
     // return iocard_get_mem32(c, addr);
   }
   else if (addr >= 0x70000000 && addr < 0x80000000) { // card control registers
@@ -220,7 +223,10 @@ uint32_t newton_set_mem32 (newton_t *c, uint32_t addr, uint32_t val) {
   }
   else if (addr >= 0x10000000 && addr < 0x20000000) { // "I/O card"
     // return iocard_set_mem32(c, addr, val);
-    fprintf(c->logFile, "[FLASH:WRITE] 0x%08x => 0x%08x, PC=0x%08x\n", addr, val, arm_get_pc(c->arm));
+    if ((c->logFlags & NewtonLogFlash) == NewtonLogFlash) {
+      fprintf(c->logFile, "[FLASH:WRITE] 0x%08x => 0x%08x, PC=0x%08x\n", addr, val, arm_get_pc(c->arm));
+    }
+    
     if (addr >= 0x14000000 && addr < 0x14100000 ) {
       oldval = c->flash[(addr - 0x14000000) / 4];
       c->flash[(addr - 0x14000000) / 4] = val;
@@ -716,68 +722,69 @@ static const char *swiNames[33] = {
 
 void newton_log_exception (void *ext, uint32_t addr) {
   newton_t *c = (newton_t *)ext;
-  fprintf(c->logFile, "%s PC=0x%08x: ", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
   switch(addr) {
     case 0x00:
-      fprintf(c->logFile, "reset_handler");
+    fprintf(c->logFile, "%s PC=0x%08x: reset_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
       break;
     case 0x04:
-      fprintf(c->logFile, "undefined_handler");
+    fprintf(c->logFile, "%s PC=0x%08x: undefined_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
       break;
     case 0x08: {
-      uint32_t swi = newton_get_mem32(c, arm_get_pc(c->arm)) & 0x00ffffff;
-      const char *swiName;
-      if (swi < 33) {
-        swiName = swiNames[swi];
-      }
-      else {
-        swiName = "unknown";
-      }
-      fprintf(c->logFile, "swi_handler 0x%06x: %s", swi, swiName);
-      switch (swi) {
-        case 0x1d: {
-          char *exception = newton_get_cstring(c, c->arm->reg[0]);
-          fprintf(c->logFile, ": %s", exception);
-          free(exception);
-          break;
+      if ((c->logFlags & NewtonLogSWI) == NewtonLogSWI) {
+        uint32_t swi = newton_get_mem32(c, arm_get_pc(c->arm)) & 0x00ffffff;
+        const char *swiName;
+        if (swi < 33) {
+          swiName = swiNames[swi];
         }
-        case 0x01:
-        case 0x02:
-          fprintf(c->logFile, " ObjectId=%i, msgId=%i, msgFilter=%i, flags=%i", c->arm->reg[0], c->arm->reg[1], c->arm->reg[2], c->arm->reg[3]);
-          break;
-        case 0x0d:
-        case 0x0f:
-          fprintf(c->logFile, " ObjectId=%i, buffer=0x%08x, size=%i, permissions=%i", c->arm->reg[0], c->arm->reg[1], c->arm->reg[2], c->arm->reg[3]);
-          break;
-        case 0x0e:
-        case 0x10:
-        case 0x11:
-        case 0x13:
-        case 0x16:
-        case 0x17:
-          fprintf(c->logFile, " ObjectId=%i", c->arm->reg[0]);
-          break;
+        else {
+          swiName = "unknown";
+        }
+        fprintf(c->logFile, "%s PC=0x%08x: swi_handler 0x%06x: %s", __PRETTY_FUNCTION__, arm_get_pc(c->arm), swi, swiName);
+        switch (swi) {
+          case 0x1d: {
+            char *exception = newton_get_cstring(c, c->arm->reg[0]);
+            fprintf(c->logFile, ": %s", exception);
+            free(exception);
+            break;
+          }
+          case 0x01:
+          case 0x02:
+            fprintf(c->logFile, " ObjectId=%i, msgId=%i, msgFilter=%i, flags=%i", c->arm->reg[0], c->arm->reg[1], c->arm->reg[2], c->arm->reg[3]);
+            break;
+          case 0x0d:
+          case 0x0f:
+            fprintf(c->logFile, " ObjectId=%i, buffer=0x%08x, size=%i, permissions=%i", c->arm->reg[0], c->arm->reg[1], c->arm->reg[2], c->arm->reg[3]);
+            break;
+          case 0x0e:
+          case 0x10:
+          case 0x11:
+          case 0x13:
+          case 0x16:
+          case 0x17:
+            fprintf(c->logFile, " ObjectId=%i", c->arm->reg[0]);
+            break;
+        }
+		fprintf(c->logFile, "\n");
       }
       break;
     }
     case 0x0c:
-      fprintf(c->logFile, "prefetch_handler");
+    fprintf(c->logFile, "%s PC=0x%08x: prefetch_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
       break;
     case 0x10:
-      fprintf(c->logFile, "data_handler");
+    fprintf(c->logFile, "%s PC=0x%08x: data_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
       newton_stop((newton_t *)ext);
       break;
     case 0x14:
-      fprintf(c->logFile, "unused_handler");
+    fprintf(c->logFile, "%s PC=0x%08x: unused_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
       break;
     case 0x18:
-      fprintf(c->logFile, "irq_handler");
+    fprintf(c->logFile, "%s PC=0x%08x: irq_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
       break;
     case 0x1c:
-      fprintf(c->logFile, "fiq_handler");
+    fprintf(c->logFile, "%s PC=0x%08x: fiq_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
       break;
   }
-  fprintf(c->logFile, "\n");
   //  newton_stop((newton_t *)ext);
 }
 
@@ -855,6 +862,15 @@ void newton_emulate(newton_t *c, int32_t count) {
 
 runt_t *newton_get_runt (newton_t *c) {
   return c->runt;
+}
+
+void newton_set_log_flags (newton_t *c, unsigned flags, int val) {
+    if (val) {
+      c->logFlags |= flags;
+    }
+    else {
+      c->logFlags &= ~flags;
+    }
 }
 
 #pragma mark -

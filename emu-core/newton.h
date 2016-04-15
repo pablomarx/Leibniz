@@ -44,6 +44,15 @@ struct bp_entry_s {
   bp_entry_t *next;
 };
 
+enum {
+  NewtonLogNone       = 0x00000000,
+  
+  NewtonLogFlash      = (1 << 1),
+  NewtonLogSWI        = (1 << 2),
+
+  NewtonLogAll        = 0xffffffff,
+};
+
 
 typedef struct newton_s {
   arm_t *arm;
@@ -79,6 +88,7 @@ typedef struct newton_s {
   uint32_t lastSp;
   
   FILE *logFile;
+  uint32_t logFlags;
 } newton_t;
 
 typedef enum {
@@ -94,6 +104,8 @@ newton_t *newton_new (void);
 int newton_load_rom(newton_t *c, const char *path);
 void newton_free (newton_t *c);
 void newton_del (newton_t *c);
+
+void newton_set_log_flags (newton_t *c, unsigned flags, int val);
 
 uint32_t newton_get_mem32 (newton_t *c, uint32_t addr);
 uint8_t newton_get_mem8 (newton_t *c, uint32_t addr);
