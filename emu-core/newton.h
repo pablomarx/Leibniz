@@ -23,10 +23,27 @@
 #define kGestalt_MachineType_Lindy			0x00726377
 #define kGestalt_MachineType_Bic			0x10002000
 
-typedef struct symbol_s {
+typedef struct symbol_s symbol_t;
+struct symbol_s {
   const char *name;
   uint32_t address;
-} symbol_t;
+  symbol_t *next;
+};
+
+typedef enum {
+  BP_NONE   = 0,
+  BP_PC     = 1,
+  BP_READ   = 2,
+  BP_WRITE  = 3,
+} bp_type;
+
+typedef struct bp_entry_s bp_entry_t;
+struct bp_entry_s {
+  bp_type    type;
+  uint32_t   addr;
+  bp_entry_t *next;
+};
+
 
 typedef struct newton_s {
   arm_t *arm;
@@ -49,17 +66,8 @@ typedef struct newton_s {
   uint32_t debuggerBits;
   uint32_t newtConfig;
 
-  uint32_t *breakpoints;
-  uint32_t breakpointsCapacity;
-  uint32_t breakpointsTail;
-
-  uint32_t *memwatch;
-  uint32_t memwatchCapacity;
-  uint32_t memwatchTail;
-  
+  bp_entry_t *breakpoints;
   symbol_t *symbols;
-  uint32_t symbolsCapacity;
-  uint32_t numOfSymbols;
   
   bool instructionTrace;
   bool memTrace;
@@ -111,11 +119,8 @@ void newton_load_mapfile(newton_t *c, const char *mapfile);
 void newton_set_logfile(newton_t *c, FILE *file);
 void newton_print_state(newton_t *c);
 
-void newton_breakpoint_add(newton_t *c, uint32_t breakpoint);
-void newton_breakpoint_del(newton_t *c, uint32_t breakpoint);
-
-void newton_memwatch_add(newton_t *c, uint32_t memwatch);
-void newton_memwatch_del(newton_t *c, uint32_t memwatch);
+void newton_breakpoint_add(newton_t *c, uint32_t address, bp_type type);
+void newton_breakpoint_del(newton_t *c, uint32_t address, bp_type type);
 
 void newton_set_break_on_unknown_memory(newton_t *c, bool breakOnUnknownMemory);
 bool newton_get_break_on_unknown_memory(newton_t *c);

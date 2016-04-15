@@ -183,7 +183,7 @@ void monitor_parse_input(monitor_t *c, const char *input) {
     c->instructionsToExecute = INT32_MAX;
   }
   else if (sscanf(input, "break 0x%x", &argValue) == 1 || sscanf(input, "break %x", &argValue) == 1) {
-    newton_breakpoint_add(c->newton, argValue);
+    newton_breakpoint_add(c->newton, argValue, BP_PC);
     printf("Breakpoint added: 0x%08x\n", argValue);
   }
   else if (sscanf(input, "break %s", &strValue) == 1) {
@@ -192,15 +192,16 @@ void monitor_parse_input(monitor_t *c, const char *input) {
       printf("Couldn't find symbol: %s\n", strValue);
     }
     else {
-      newton_breakpoint_add(c->newton, addr);
+      newton_breakpoint_add(c->newton, addr, BP_PC);
       printf("Breakpoint added: 0x%08x => %s\n", addr, strValue);
     }
   }
   else if (sscanf(input, "delete 0x%x", &argValue) == 1 || sscanf(input, "delete %x", &argValue) == 1) {
-    newton_breakpoint_del(c->newton, argValue);
+    newton_breakpoint_del(c->newton, argValue, BP_PC);
   }
   else if (sscanf(input, "memwatch 0x%x", &argValue) == 1 || sscanf(input, "memwatch %x", &argValue) == 1) {
-    newton_memwatch_add(c->newton, argValue);
+    newton_breakpoint_add(c->newton, argValue, BP_READ);
+    newton_breakpoint_add(c->newton, argValue, BP_WRITE);
     printf("Watching memory: 0x%08x\n", argValue);
   }
   else if (sscanf(input, "runt-interrupt %i %i", &argValue, &arg2Value) == 2) {

@@ -19,17 +19,49 @@
 # define dbug(...) {}
 #endif
 
-
-
-uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
-  if (c->memwatchTail > 0) {
-    for (int i=0; i<c->memwatchTail; i++) {
-      if (addr == c->memwatch[i]) {
-        fprintf(c->logFile, "\n\nAddress 0x%08x read from PC 0x%08x\n", addr, arm_get_pc(c->arm));
-        newton_stop(c);
-      }
+#pragma mark - Symbols
+uint32_t newton_address_for_symbol(newton_t *c, const char *symbol) {
+  symbol_t *sym = c->symbols;
+  while(sym != NULL) {
+    if (strcasecmp(sym->name, symbol) == 0) {
+      return sym->address;;
     }
   }
+  return 0;
+}
+
+void newton_add_symbol(newton_t *c, uint32_t address, const char *name) {
+  symbol_t *sym = calloc(sizeof(symbol_t), 1);
+  sym->address = address;
+  sym->name = name;
+  sym->next = c->symbols;
+  c->symbols = sym;
+}
+
+const char *newton_get_symbol_for_address(newton_t *c, uint32_t addr) {
+  symbol_t *sym = c->symbols;
+  while(sym != NULL) {
+    if (sym->address == addr) {
+      return sym->name;
+    }
+    sym = sym->next;
+  }
+
+  return NULL;
+}
+
+#pragma mark - Memory access
+uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
+  bp_entry_t *bp = c->breakpoints;
+  while (bp != NULL) {
+    if (bp->type == BP_READ && bp->addr == addr) {
+      fprintf(c->logFile, "\n\nAddress 0x%08x read from PC 0x%08x\n", addr, arm_get_pc(c->arm));
+      newton_stop(c);
+      break;
+    }
+    bp = bp->next;
+  }
+
   if (addr % 4 != 0) {
     printf("misaligned read access: 0x%08x, PC: 0x%08x\n", addr, arm_get_pc(c->arm));
   }
@@ -94,15 +126,11 @@ uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
   }
   
   if (addr != arm_get_pc(c->arm)) {
-    const char *symbol = "";
-    for (uint32_t i=0; i<c->numOfSymbols; i++) {
-      if (c->symbols[i].address == addr) {
-        symbol = c->symbols[i].name;
-        break;
-      }
+    const char *symName = newton_get_symbol_for_address(c, addr);
+    if (symName == NULL) {
+      symName = "";
     }
-    
-    dbug("GET: 0x%08x %s => 0x%08x, PC=0x%08x\n", addr, symbol, result, arm_get_pc(c->arm));
+    dbug("GET: 0x%08x %s => 0x%08x, PC=0x%08x\n", addr, symName, result, arm_get_pc(c->arm));
   }
   
   return result;
@@ -156,15 +184,17 @@ uint16_t newton_set_mem16 (newton_t *c, uint32_t addr, uint16_t val) {
 
 uint32_t newton_set_mem32 (newton_t *c, uint32_t addr, uint32_t val) {
   uint32_t oldval = 0;
-  
-  if (c->memwatchTail > 0) {
-    for (int i=0; i<c->memwatchTail; i++) {
-      if (addr == c->memwatch[i]) {
-        fprintf(c->logFile, "\n\nAddress 0x%08x changed to 0x%08x from PC 0x%08x\n", addr, val, arm_get_pc(c->arm));
-        newton_stop(c);
-      }
+
+  bp_entry_t *bp = c->breakpoints;
+  while (bp != NULL) {
+    if (bp->type == BP_WRITE && bp->addr == addr) {
+      fprintf(c->logFile, "\n\nAddress 0x%08x changed from:0x%08x to:0x%08x from PC 0x%08x\n", addr, newton_get_mem32(c, addr), val, arm_get_pc(c->arm));
+      newton_stop(c);
+      break;
     }
+    bp = bp->next;
   }
+
   if (addr < 0x01000000) {      // ROM, first 16MB of address space
     fprintf(c->logFile, "bad write to ROM!!!! addr=0x%08x, val=0x%08x\n", addr, val);
     fprintf(c->logFile, "pc: 0x%08x\n", arm_get_pc(c->arm));
@@ -207,15 +237,11 @@ uint32_t newton_set_mem32 (newton_t *c, uint32_t addr, uint32_t val) {
     }
   }
   
-  const char *symbol = "";
-  for (uint32_t i=0; i<c->numOfSymbols; i++) {
-    if (c->symbols[i].address == addr) {
-      symbol = c->symbols[i].name;
-      break;
-    }
+  const char *symName = newton_get_symbol_for_address(c, addr);
+  if (symName == NULL) {
+    symName = "";
   }
-  
-  dbug("SET: 0x%08x %s => 0x%08x (was 0x%08x), PC=0x%08x\n", addr, symbol, val, oldval, arm_get_pc(c->arm));
+  dbug("SET: 0x%08x %s => 0x%08x (was 0x%08x), PC=0x%08x\n", addr, symName, val, oldval, arm_get_pc(c->arm));
   
   return val;
 }
@@ -321,59 +347,36 @@ void newton_print_state(newton_t *newt) {
 
 #pragma mark -
 #pragma mark
-void newton_breakpoint_add(newton_t *c, uint32_t breakpoint) {
-  if (c->breakpointsTail == c->breakpointsCapacity) {
-    if (c->breakpointsCapacity == 0) {
-      c->breakpointsCapacity = 128;
-      c->breakpoints = calloc(sizeof(uint32_t), c->breakpointsCapacity);
+void newton_breakpoint_add(newton_t *c, uint32_t address, bp_type type) {
+  bp_entry_t *bp = calloc(sizeof(bp_entry_t), 1);
+  bp->addr = address;
+  bp->type = type;
+  bp->next = c->breakpoints;
+  
+  c->breakpoints = bp;
+}
+
+void newton_breakpoint_del(newton_t *c, uint32_t address, bp_type type) {
+  bp_entry_t *cur = c->breakpoints;
+  bp_entry_t *last = NULL;
+  
+  while (cur != NULL) {
+    if (cur->addr != address || cur->type != address) {
+      last = cur;
+      cur = cur->next;
+      continue;
+    }
+    
+    if (last == NULL) {
+      c->breakpoints = cur->next;
     }
     else {
-      c->breakpointsCapacity += 128;
-      c->breakpoints = realloc(c->breakpoints, c->breakpointsCapacity);
+      last->next = cur->next;
     }
-  }
-  
-  c->breakpoints[c->breakpointsTail++] = breakpoint;
-}
-
-void newton_breakpoint_del(newton_t *c, uint32_t breakpoint) {
-  for (int i=0; i<c->breakpointsTail; i++) {
-    if (c->breakpoints[i] == breakpoint) {
-      for (int j=i+1; j<c->breakpointsTail; j++) {
-        c->breakpoints[j-1] = c->breakpoints[j];
-      }
-      c->breakpointsTail--;
-      break;
-    }
+    free(cur);
   }
 }
 
-void newton_memwatch_add(newton_t *c, uint32_t memwatch) {
-  if (c->memwatchTail == c->memwatchCapacity) {
-    if (c->memwatchCapacity == 0) {
-      c->memwatchCapacity = 128;
-      c->memwatch = calloc(sizeof(uint32_t), c->memwatchCapacity);
-    }
-    else {
-      c->memwatchCapacity += 128;
-      c->memwatch = realloc(c->memwatch, c->memwatchCapacity);
-    }
-  }
-  
-  c->memwatch[c->memwatchTail++] = memwatch;
-}
-
-void newton_memwatch_del(newton_t *c, uint32_t memwatch) {
-  for (int i=0; i<c->memwatchTail; i++) {
-    if (c->memwatch[i] == memwatch) {
-      for (int j=i+1; j<c->memwatchTail; j++) {
-        c->memwatch[j-1] = c->memwatch[j];
-      }
-      c->memwatchTail--;
-      break;
-    }
-  }
-}
 
 void newton_set_break_on_unknown_memory(newton_t *c, bool breakOnUnknownMemory) {
 	c->breakOnUnknownMemory = breakOnUnknownMemory;
@@ -423,29 +426,6 @@ uint32_t newton_get_newt_config(newton_t *c) {
   return c->newtConfig;
 }
 
-uint32_t newton_address_for_symbol(newton_t *c, const char *symbol) {
-  for (uint32_t i=0; i<c->numOfSymbols; i++) {
-    if (strcasecmp(c->symbols[i].name, symbol) == 0) {
-      return c->symbols[i].address;
-    }
-  }
-  return 0;
-}
-
-void newton_add_symbol(newton_t *c, uint32_t address, const char *name) {
-  if (c->symbolsCapacity == 0) {
-    c->symbolsCapacity = 5000;
-    c->symbols = calloc(c->symbolsCapacity, sizeof(symbol_t));
-  }
-  else if (c->numOfSymbols + 1 == c->symbolsCapacity) {
-    c->symbolsCapacity += 5000;
-    c->symbols = realloc(c->symbols, c->symbolsCapacity * sizeof(symbol_t));
-  }
-  
-  c->symbols[c->numOfSymbols].address = address;
-  c->symbols[c->numOfSymbols].name = strdup(name);
-  c->numOfSymbols++;
-}
 
 void newton_parse_aif_debug_data(newton_t *c, void *debugData, uint32_t length) {
   printf("%s debugData=%p, length=%i\n", __PRETTY_FUNCTION__, debugData, length);
@@ -475,7 +455,7 @@ void newton_parse_aif_debug_data(newton_t *c, void *debugData, uint32_t length) 
     entry++;
   }
   
-  printf("Parsed %i symbols from AIF debug data\n", c->numOfSymbols);
+  printf("Parsed %i symbols from AIF debug data\n", entry);
 }
 
 void newton_load_mapfile(newton_t *c, const char *mapfile) {
@@ -518,6 +498,7 @@ void newton_load_mapfile(newton_t *c, const char *mapfile) {
       
       name[nameIndex] = 0x00;
       newton_add_symbol(c, addr, name);
+      symbolIndex++;
     }
     else {
       while(fgetc(fp) != '\n' && !feof(fp))
@@ -525,7 +506,7 @@ void newton_load_mapfile(newton_t *c, const char *mapfile) {
     }
   }
   
-  printf("Loaded %i symbols\n", c->numOfSymbols);
+  printf("Loaded %i symbols\n", symbolIndex);
   fclose(fp);
 }
 
@@ -845,12 +826,9 @@ void newton_emulate(newton_t *c, int32_t count) {
     uint32_t pc = arm_get_pc (c->arm);
     if (pc != c->lastPc + 4) {
       if (c->pcSpy) {
-        const char *symbol = "";
-        for (uint32_t i=0; i<c->numOfSymbols; i++) {
-          if (c->symbols[i].address == pc) {
-            symbol = c->symbols[i].name;
-            break;
-          }
+        const char *symbol = newton_get_symbol_for_address(c, pc);
+        if (symbol == NULL) {
+          symbol = "";
         }
         
         fprintf(c->logFile, "PC changed to 0x%08x %s (from 0x%08x)\n", pc, symbol, c->lastPc);
@@ -860,11 +838,14 @@ void newton_emulate(newton_t *c, int32_t count) {
       fprintf(c->logFile, "SP changed from 0x%08x to 0x%08x (at PC 0x%08x)\n", c->lastSp, c->arm->reg[13], pc);
       c->lastSp = c->arm->reg[13];
     }
-    for (int i=0; i<c->breakpointsTail; i++) {
-      if (c->breakpoints[i] == pc) {
+    
+    bp_entry_t *bp = c->breakpoints;
+    while(bp != NULL) {
+      if (bp->addr == pc && bp->type == BP_PC) {
         remaining = 0;
         break;
       }
+      bp = bp->next;
     }
     
     c->lastPc = pc;
@@ -1076,12 +1057,16 @@ void newton_free (newton_t *c)
     }
   }
   
-  if (c->symbolsCapacity > 0) {
-    for (uint32_t i=0; i<c->numOfSymbols; i++) {
-      free((void *)(c->symbols[i].name));
-    }
-    free(c->symbols);
-    c->symbolsCapacity = 0;
+  bp_entry_t *bp = c->breakpoints;
+  while (bp != NULL) {
+    free(bp);
+    bp = bp->next;
+  }
+  
+  symbol_t *sym = c->symbols;
+  while(sym != NULL) {
+    free(sym);
+    sym = sym->next;
   }
   
   arm_del(c->arm);
