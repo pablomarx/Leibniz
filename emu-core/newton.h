@@ -69,7 +69,10 @@ typedef struct newton_s {
   
   uint32_t *flash;
   uint32_t flashSize;
-  
+
+  uint32_t *sramCard;
+  uint32_t sramCardSize;
+
   uint32_t machineType;
   uint32_t romManufacturer;
   uint32_t debuggerBits;

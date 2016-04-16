@@ -88,26 +88,42 @@ uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
         break;
     }
   }
-  else if (addr >= 0x01000000 && addr < 0x01400000) { // 4MB address space for RAM
-    uint32_t localAddr = addr - 0x01000000;
-    
-    if (localAddr > c->ramSize) {
-//      fprintf(c->logFile, "RAM request:0x%08x greater than ramSize:0x%08x\n", localAddr, c->ramSize);
+  else if (addr >= 0x01000000 && addr < 0x01400000) { // 4MB address space
+    // Lindy divides the address space. Lower 2MB for RAM.
+    // Upper 2MB for flash.
+    if (c->machineType == kGestalt_MachineType_Lindy && addr >= 0x01200000) {
+      uint32_t localAddr = addr - 0x01200000;
+      localAddr = localAddr % c->flashSize;
+      if (localAddr == 0x04) {
+        // XXX: Check 0x00 to see if it's 0xf0f0f0f0?
+        // result = 0xa4000000; // 29F040, 512KB
+        result = 0xa2000000; // 28F008, 1MB
+      }
+      else {
+        result = c->flash[localAddr/4];
+      }
     }
-    
-    localAddr = localAddr % c->ramSize;
-    result = c->ram[localAddr/4];
+    else {
+      uint32_t localAddr = addr - 0x01000000;
+      if (localAddr > c->ramSize) {
+        fprintf(c->logFile, "RAM request:0x%08x greater than ramSize:0x%08x\n", localAddr, c->ramSize);
+      }
+      
+      localAddr = localAddr % c->ramSize;
+      result = c->ram[localAddr/4];
+    }
   }
   else if (addr >= 0x01400000 && addr < 0x01800000) { // runt, 4MB
     result = runt_get_mem32(c->runt, addr);
   }
   else if (addr >= 0x10000000 && addr < 0x20000000) { // "I/O card"
     if (addr >= 0x14000000 && addr < 0x14100000 ) {
-      result = c->flash[(addr - 0x14000000) / 4];
+      uint32_t localAddr = addr = (addr - 0x14000000);
+      result = c->sramCard[localAddr / 4];
     }
     
     if ((c->logFlags & NewtonLogFlash) == NewtonLogFlash) {
-      fprintf(c->logFile, "[FLASH:READ] 0x%08x => 0x%08x, PC=0x%08x\n", addr, result, arm_get_pc(c->arm));
+      fprintf(c->logFile, "[SRAM:READ] 0x%08x => 0x%08x, PC=0x%08x\n", addr, result, arm_get_pc(c->arm));
     }
     // return iocard_get_mem32(c, addr);
   }
@@ -206,17 +222,23 @@ uint32_t newton_set_mem32 (newton_t *c, uint32_t addr, uint32_t val) {
     //return 0;
     // return rom_set_mem32(c, addr, val);
   }
-  
-  
-  else if (addr >= 0x01000000 && addr < 0x01400000) { // RAM: 4MB of address space
-    uint32_t localAddr = addr - 0x01000000;
-    
-    if (localAddr > c->ramSize) {
-//      fprintf(c->logFile, "RAM request:0x%08x greater than ramSize:0x%08x\n", localAddr, c->ramSize);
+  else if (addr >= 0x01000000 && addr < 0x01400000) { // 4MB address space
+    // Lindy divides the address space. Lower 2MB for RAM.
+    // Upper 2MB for flash.
+    if (c->machineType == kGestalt_MachineType_Lindy && addr >= 0x01200000) {
+      uint32_t localAddr = addr - 0x01200000;
+      localAddr = localAddr % c->flashSize;
+      c->flash[localAddr/4] = val;
     }
-    
-    localAddr = localAddr % c->ramSize;
-    c->ram[localAddr/4] = val;
+    else {
+      uint32_t localAddr = addr - 0x01000000;
+      
+      if (localAddr > c->ramSize) {
+        fprintf(c->logFile, "RAM request:0x%08x greater than ramSize:0x%08x\n", localAddr, c->ramSize);
+      }
+      localAddr = localAddr % c->ramSize;
+      c->ram[localAddr/4] = val;
+    }
   }
   else if (addr >= 0x01400000 && addr < 0x01800000) { // runt, 4MB
     return runt_set_mem32(c->runt, addr, val);
@@ -224,12 +246,12 @@ uint32_t newton_set_mem32 (newton_t *c, uint32_t addr, uint32_t val) {
   else if (addr >= 0x10000000 && addr < 0x20000000) { // "I/O card"
     // return iocard_set_mem32(c, addr, val);
     if ((c->logFlags & NewtonLogFlash) == NewtonLogFlash) {
-      fprintf(c->logFile, "[FLASH:WRITE] 0x%08x => 0x%08x, PC=0x%08x\n", addr, val, arm_get_pc(c->arm));
+      fprintf(c->logFile, "[SRAM:WRITE] 0x%08x => 0x%08x, PC=0x%08x\n", addr, val, arm_get_pc(c->arm));
     }
     
     if (addr >= 0x14000000 && addr < 0x14100000 ) {
-      oldval = c->flash[(addr - 0x14000000) / 4];
-      c->flash[(addr - 0x14000000) / 4] = val;
+      uint32_t localAddr = addr = (addr - 0x14000000);
+      c->sramCard[localAddr / 4] = val;
     }
   }
   else if (addr >= 0x70000000 && addr < 0x80000000) { // card control registers
@@ -910,16 +932,28 @@ void newton_init (newton_t *c)
   //
   // Setup RAM
   //
-  c->ramSize = 4 * 1024 * 1024;
+  //        OMP: 640KB
+  //      Marco: 687KB (?!)
+  //      MP110: 1MB
+  // MP120 v1.x: 1MB
+  // MP120 v2.x: 2MB
+  //      MP130: 2.5MB
+  c->ramSize = 2 * 1024 * 1024;
   c->ram = calloc(c->ramSize, 1);
   
   //
   // Setup flash
   //
-  c->flashSize = 0x14100000 - 0x14000000;
+  c->flashSize = 2 * 1024 * 1024;
   c->flash = calloc(c->flashSize, 1);
-  // c->flash[0] = 'SERD';
-  // c->flash[0] = 'SEWR';
+  
+  //
+  // Setup SRAM card
+  //
+  c->sramCardSize = 0x14100000 - 0x14000000;
+  c->sramCard = calloc(c->sramCardSize, 1);
+  // c->sramCard[0] = 'SERD';
+  // c->sramCard[0] = 'SEWR';
   
   //
   // Setup RUNT
@@ -1089,7 +1123,7 @@ void newton_free (newton_t *c)
   runt_del(c->runt);
   free(c->ram);
   free(c->rom);
-  free(c->flash);
+  free(c->sramCard);
 }
 
 void newton_del (newton_t *c)
