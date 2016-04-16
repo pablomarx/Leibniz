@@ -94,10 +94,12 @@ uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
     if (c->machineType == kGestalt_MachineType_Lindy && addr >= 0x01200000) {
       uint32_t localAddr = addr - 0x01200000;
       localAddr = localAddr % c->flashSize;
+      
       if (localAddr == 0x04) {
-        // XXX: Check 0x00 to see if it's 0xf0f0f0f0?
-        // result = 0xa4000000; // 29F040, 512KB
-        result = 0xa2000000; // 28F008, 1MB
+        // This matches a MP120.
+        // A4: 29F040, 512KB
+        // A2: 28F008, 1MB
+        result = 0x00a4a200;
       }
       else {
         result = c->flash[localAddr/4];
