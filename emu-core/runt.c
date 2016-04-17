@@ -15,6 +15,8 @@
 #include <string.h>
 #include <sys/time.h>
 
+#define countof(__a__) (sizeof(__a__) / sizeof(__a__[0]))
+
 enum {
   RuntGetInterrupt = 0x04,
   RuntClearInterrupt = 0x08,
@@ -67,14 +69,14 @@ static name_index runt_adc_names[] = {
   { .index = 0x38, .name = "BackupBattery" },
 };
 
-static const char *runt_power_names[32] = {
+static const char *runt_power_names[] = {
   "adc", "lcd", "vpp2", "vpp1", "sound", "serial", "trim", NULL,
   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 };
 
-static const char *runt_interrupt_names[32] = {
+static const char *runt_interrupt_names[] = {
   "rtc", "ticks", NULL, NULL, NULL, NULL, NULL, NULL,
   NULL, "adc", NULL, "sound", NULL, "diags", "cardlock", "powerswitch",
   "serial", NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -183,6 +185,21 @@ void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
   }
 }
 
+void runt_print_description_for_interrupts(runt_t *c, uint32_t val) {
+	for (int i=0; i<32; i++) {
+		uint32_t bit = (1 << i);
+		if ((val & bit) == bit) {
+			const char *name = runt_interrupt_names[i-1];
+			if (name != NULL) {
+				fprintf(c->logFile, "%s, ", name);
+			}
+			else {
+				fprintf(c->logFile, "unknown-%i, ", i);
+			}
+		}
+	}
+}	
+
 #pragma mark - Interrupts
 void runt_raise_interrupt(runt_t *c, uint32_t interrupt) {
   if ((c->interrupt & interrupt) != interrupt) {
@@ -190,6 +207,7 @@ void runt_raise_interrupt(runt_t *c, uint32_t interrupt) {
   }
   
   if ((c->memory[0x0c00 / 4] & interrupt) == interrupt) {
+	  fprintf(c->logFile, "[RUNT:ASIC] Raising interrupt 0x%02x\n", interrupt);
     arm_set_irq(c->arm, 1);
   }
 }
@@ -278,6 +296,7 @@ uint32_t runt_get_rtc(runt_t *c) {
 uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val) {
   runt_log_access(c, addr, val, true);
   
+  uint32_t localAddr = (addr - c->base) / 4;
   switch ((addr >> 8) & 0xff) {
 	  case 0x00:
 	  // Observed bit 2 changing depending on gNewtConfig
@@ -332,9 +351,9 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val) {
       
       
       if ((c->logFlags & RuntLogADC) == RuntLogADC) {
-        fprintf(c->logFile, " => ADC sample: 0x%08x -> 0x%08x: ", c->memory[0x1000/4], val);
+        fprintf(c->logFile, " => ADC sample: 0x%08x -> 0x%08x: ", c->memory[localAddr], val);
         bool matched = false;
-        for (int i=0; i<sizeof(runt_adc_names) / sizeof(name_index); i++) {
+        for (int i=0; i<countof(runt_adc_names); i++) {
           if (runt_adc_names[i].index == source) {
             fprintf(c->logFile, "%s", runt_adc_names[i].name);
             matched = true;
@@ -351,8 +370,8 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val) {
     }
     case RuntPower:
       if ((c->logFlags & RuntLogPower) == RuntLogPower) {
-        fprintf(c->logFile, " => power on: 0x%08x -> 0x%08x: ", c->memory[0x1000/4], val);
-        for (int i=1; i<32; i++) {
+        fprintf(c->logFile, " => power on: 0x%08x -> 0x%08x: ", c->memory[localAddr], val);
+        for (int i=0; i<32; i++) {
           uint32_t bit = (1 << i);
           if ((val & bit) == bit) {
             const char *name = runt_power_names[i-1];
@@ -369,20 +388,13 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val) {
       break;
     case RuntEnableInterrupt: {
       if ((c->logFlags & RuntLogInterrupts) == RuntLogInterrupts) {
-        fprintf(c->logFile, " => enable interrupts: 0x%08x -> 0x%08x: ", c->memory[0x1000/4], val);
-        for (int i=1; i<32; i++) {
-          uint32_t bit = (1 << i);
-          if ((val & bit) == bit) {
-            const char *name = runt_interrupt_names[i-1];
-            if (name != NULL) {
-              fprintf(c->logFile, "%s, ", name);
-            }
-            else {
-              fprintf(c->logFile, "unknown-%i, ", i);
-            }
-          }
-        }
-        fprintf(c->logFile, "\n");
+		  if (val != c->memory[localAddr]) {
+	        fprintf(c->logFile, " => enable interrupts was: 0x%08x (", c->memory[localAddr]);
+	  		runt_print_description_for_interrupts(c, c->memory[localAddr]);
+	  		fprintf(c->logFile, "), now: 0x%08x (", val);
+	  		runt_print_description_for_interrupts(c, val);
+	  		fprintf(c->logFile, ")\n");
+		  }
       }
       break;
     }
@@ -399,7 +411,7 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val) {
       break;
   }
   
-  c->memory[(addr - c->base) / 4] = val;
+  c->memory[localAddr] = val;
   return val;
 }
 
