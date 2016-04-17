@@ -59,6 +59,7 @@ typedef struct runt_s {
   uint32_t base;
   uint32_t *memory;
   time_t bootTime;
+  uint32_t ticks;
   
   uint32_t rtcAlarm;
   uint32_t ticksAlarm1;

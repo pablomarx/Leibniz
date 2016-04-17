@@ -284,11 +284,7 @@ void runt_switch_state(runt_t *c, int switchNum, int state) {
 #pragma mark -
 #pragma mark
 uint32_t runt_get_ticks(runt_t *c) {
-  struct timeval now;
-  (void) gettimeofday( &now, NULL );
-  uint32_t theResult = (uint32_t) now.tv_sec * 3686400;
-  theResult += (uint32_t)((((uint64_t)now.tv_usec) * 36864) / 10000);
-  return theResult;
+	return c->ticks;
 }
 
 uint32_t runt_get_rtc(runt_t *c) {
@@ -503,6 +499,8 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr) {
 }
 
 void runt_step(runt_t *c) {
+  c->ticks += 10;
+  
   if (c->rtcAlarm != 0 && runt_get_rtc(c) >= c->rtcAlarm) {
     runt_raise_interrupt(c, RuntInterruptRTC);
     c->rtcAlarm = 0;
