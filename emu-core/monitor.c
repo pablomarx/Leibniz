@@ -220,7 +220,7 @@ void monitor_parse_input(monitor_t *c, const char *input) {
   }
   else if (strcmp(input, "dump") == 0) {
     FILE *fp = fopen("ram.dump", "w");
-    for (uint32_t i=0; i<(0x01100000 - 0x01000000)/4; i++) {
+    for (uint32_t i=0; i<c->newton->ramSize/4; i++) {
       uint32_t word = htonl(*(c->newton->ram + i));
       fwrite(&word, sizeof(word), 1, fp);
     }
