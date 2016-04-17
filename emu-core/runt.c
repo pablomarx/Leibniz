@@ -186,19 +186,19 @@ void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
 }
 
 void runt_print_description_for_interrupts(runt_t *c, uint32_t val) {
-	for (int i=0; i<32; i++) {
-		uint32_t bit = (1 << i);
-		if ((val & bit) == bit) {
-			const char *name = runt_interrupt_names[i-1];
-			if (name != NULL) {
-				fprintf(c->logFile, "%s, ", name);
-			}
-			else {
-				fprintf(c->logFile, "unknown-%i, ", i);
-			}
-		}
-	}
-}	
+  for (int i=0; i<32; i++) {
+    uint32_t bit = (1 << i);
+    if ((val & bit) == bit) {
+      const char *name = runt_interrupt_names[i-1];
+      if (name != NULL) {
+        fprintf(c->logFile, "%s, ", name);
+      }
+      else {
+        fprintf(c->logFile, "unknown-%i, ", i);
+      }
+    }
+  }
+}
 
 #pragma mark - Interrupts
 void runt_raise_interrupt(runt_t *c, uint32_t interrupt) {
@@ -207,7 +207,9 @@ void runt_raise_interrupt(runt_t *c, uint32_t interrupt) {
   }
   
   if ((c->memory[0x0c00 / 4] & interrupt) == interrupt) {
-	  fprintf(c->logFile, "[RUNT:ASIC] Raising interrupt 0x%02x\n", interrupt);
+    if ((c->logFlags & RuntLogInterrupts) == RuntLogInterrupts) {
+      fprintf(c->logFile, "[RUNT:ASIC] Raising interrupt 0x%02x\n", interrupt);
+  		}
     arm_set_irq(c->arm, 1);
   }
 }
@@ -388,13 +390,13 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val) {
       break;
     case RuntEnableInterrupt: {
       if ((c->logFlags & RuntLogInterrupts) == RuntLogInterrupts) {
-		  if (val != c->memory[localAddr]) {
-	        fprintf(c->logFile, " => enable interrupts was: 0x%08x (", c->memory[localAddr]);
-	  		runt_print_description_for_interrupts(c, c->memory[localAddr]);
-	  		fprintf(c->logFile, "), now: 0x%08x (", val);
-	  		runt_print_description_for_interrupts(c, val);
-	  		fprintf(c->logFile, ")\n");
-		  }
+        if (val != c->memory[localAddr]) {
+          fprintf(c->logFile, " => enable interrupts was: 0x%08x (", c->memory[localAddr]);
+          runt_print_description_for_interrupts(c, c->memory[localAddr]);
+          fprintf(c->logFile, "), now: 0x%08x (", val);
+          runt_print_description_for_interrupts(c, val);
+          fprintf(c->logFile, ")\n");
+        }
       }
       break;
     }

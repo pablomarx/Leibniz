@@ -825,7 +825,7 @@ void newton_log_exception (void *ext, uint32_t addr) {
           case 0x02:
             fprintf(c->logFile, " ObjectId=%i, msgId=%i, msgFilter=%i, flags=%i", c->arm->reg[0], c->arm->reg[1], c->arm->reg[2], c->arm->reg[3]);
             break;
-		  case 0x05:
+          case 0x05:
             fprintf(c->logFile, " inSelector=%i", c->arm->reg[0]);
             break;
           case 0x0d:
@@ -841,25 +841,25 @@ void newton_log_exception (void *ext, uint32_t addr) {
             fprintf(c->logFile, " ObjectId=%i", c->arm->reg[0]);
             break;
         }
-		fprintf(c->logFile, "\n");
+        fprintf(c->logFile, "\n");
       }
       break;
     }
     case 0x0c:
-    fprintf(c->logFile, "%s PC=0x%08x: prefetch_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
+      fprintf(c->logFile, "%s PC=0x%08x: prefetch_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
       break;
     case 0x10:
-    fprintf(c->logFile, "%s PC=0x%08x: data_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
+      fprintf(c->logFile, "%s PC=0x%08x: data_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
       newton_stop((newton_t *)ext);
       break;
     case 0x14:
-    fprintf(c->logFile, "%s PC=0x%08x: unused_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
+      fprintf(c->logFile, "%s PC=0x%08x: unused_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
       break;
     case 0x18:
-    fprintf(c->logFile, "%s PC=0x%08x: irq_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
+      fprintf(c->logFile, "%s PC=0x%08x: irq_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
       break;
     case 0x1c:
-    fprintf(c->logFile, "%s PC=0x%08x: fiq_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
+      fprintf(c->logFile, "%s PC=0x%08x: fiq_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
       break;
   }
   //  newton_stop((newton_t *)ext);
@@ -1170,7 +1170,7 @@ void newton_free (newton_t *c)
   
   symbol_t *sym = c->symbols;
   while(sym != NULL) {
-	free(sym->name);
+    free(sym->name);
     free(sym);
     sym = sym->next;
   }
