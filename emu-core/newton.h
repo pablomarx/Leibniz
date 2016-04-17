@@ -25,7 +25,7 @@
 
 typedef struct symbol_s symbol_t;
 struct symbol_s {
-  const char *name;
+  char *name;
   uint32_t address;
   symbol_t *next;
 };

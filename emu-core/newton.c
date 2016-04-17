@@ -24,7 +24,7 @@ uint32_t newton_address_for_symbol(newton_t *c, const char *symbol) {
   symbol_t *sym = c->symbols;
   while(sym != NULL) {
     if (strcasecmp(sym->name, symbol) == 0) {
-      return sym->address;;
+      return sym->address;
     }
   }
   return 0;
@@ -33,7 +33,8 @@ uint32_t newton_address_for_symbol(newton_t *c, const char *symbol) {
 void newton_add_symbol(newton_t *c, uint32_t address, const char *name) {
   symbol_t *sym = calloc(sizeof(symbol_t), 1);
   sym->address = address;
-  sym->name = name;
+  sym->name = calloc(strlen(name)+1, 1);
+  strcpy(sym->name, name);
   sym->next = c->symbols;
   c->symbols = sym;
 }
@@ -1117,6 +1118,7 @@ void newton_free (newton_t *c)
   
   symbol_t *sym = c->symbols;
   while(sym != NULL) {
+	free(sym->name);
     free(sym);
     sym = sym->next;
   }
