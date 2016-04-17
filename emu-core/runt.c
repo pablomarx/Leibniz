@@ -477,7 +477,7 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr) {
       }
       break;
     case RuntRTC:
-      result = runt_get_rtc(c);
+      result = result + runt_get_rtc(c);
       break;
     case RuntRTCAlarm:
       result = c->rtcAlarm;
