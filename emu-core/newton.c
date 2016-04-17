@@ -13,6 +13,8 @@
 #include "lcd_squirt.h"
 #include "HammerConfigBits.h"
 
+#define countof(__a__) (sizeof(__a__) / sizeof(__a__[0]))
+
 #if 1
 # define dbug(...) if (c->memTrace) printf(__VA_ARGS__)
 #else
@@ -709,40 +711,87 @@ void newton_log_undef (void *ext, uint32_t ir) {
   //newton_stop((newton_t *)ext);
 }
 
-static const char *swiNames[33] = {
-  "_GetPortSWI",
-  "PortSendSWI",
-  "PortReceiveSWI",
-  "_EnterAtomicSWI",
-  "_ExitAtomicSWI",
-  "_GenericWithReturnSWI",
-  "_GenerateMessageIRQ",
-  "_PurgeMMUTLBEntry",
-  "_FlushMMU",
-  "_FlushIDC",
-  "_GetCPUVersion",
-  "SemaphoreOpGlue",
-  "_SetDomainRegister",
-  "SMemSetBufferSWI",
-  "SMemGetSizeSWI",
-  "_SMemCopyToSharedSWI",
-  "_SMemCopyFromSharedSWI",
-  "SMemMsgSetTimerParmsSWI",
-  "SMemMsgSetMsgAvailPortSWI",
-  "SMemMsgGetSenderTaskIdSWI",
-  "SMemMsgSetUserRefConSWI",
-  "SMemMsgGetUserRefConSWI",
-  "SMemMsgCheckForDoneSWI",
-  "SMemMsgMsgDoneSWI",
-  "TurnOffCache",
-  "TurnOnCache",
-  "unknown",
-  "_MonitorDispatchSWI",
-  "_MonitorExitSWI",
-  "MonitorThrowSWI",
-  "_EnterFIQAtomicSWI",
-  "_ExitFIQAtomicSWI",
-  "_MonitorFlushSWI"
+static const char *swiNames[] = {
+	"GetPort",
+	"PortSend",
+	"PortReceive",
+	"EnterAtomic",
+	"ExitAtomic",
+	"Generic",
+	"GenerateMessageIRQ",
+	"PurgeMMUTLBEntry",
+	"FlushMMU",
+	"FlushIDC",
+	"GetCPUVersion",
+	"SemaphoreOp",
+	"SetDomainRegister",
+	"SMemSetBuffer",
+	"SMemGetSize",
+	"SMemCopyToShared",
+	"SMemCopyFromShared",
+	"SMemMsgSetTimerParms",
+	"SMemMsgSetMsgAvailPort",
+	"SMemMsgGetSenderTaskId",
+	"SMemMsgSetUserRefCon",
+	"SMemMsgGetUserRefCon",
+	"SMemMsgCheckForDone",
+	"SMemMsgMsgDone",
+	"TurnOffCache",
+	"TurnOnCache",
+	"LowLevelCopyDone",
+	"MonitorDispatch",
+	"MonitorExit",
+	"MonitorThrow",
+	"EnterFIQAtomic",
+	"ExitFIQAtomic",
+	"SetGlobals",
+	"GiveObject",
+	"AcceptObject",
+	"GetGlobalTime",
+	"SetPCSample",
+	"ResetAccountTime",
+	"GetNextTaskId",
+	"ForgetPhysMapping",
+	"ForgetPermMapping",
+	"ForgetBothMappings",
+	"RememberPhysMapping",
+	"RememberPermMapping",
+	"RememberBothMappings",
+	"AddPageTable",
+	"RemovePageTable",
+	"UnmapPhys",
+	"RenamePhys",
+	"ReleasePage",
+	"CopyPage",
+	"InvalidatePhys",
+	"PhysSize",
+	"PhysBase",
+	"PhysAlign",
+	"PhysReadOnly",
+	"QueueTimer",
+	"RemoveTimer",
+	"FreeTasksBlockedOnMemory",
+	"Yield",
+	"Reboot",
+	"Restart",
+	"RegisterTimerFunction",
+	"RemoveTimerFunction",
+	"RememberMappingsUsingPAddr",
+	"SetDomainRange",
+	"ClearDomainRange",
+	"SetEnvironment",
+	"GetEnvironment",
+	"AddDomainToEnvironment",
+	"RemoveDomainFromEnvironment",
+	"HasDomain",
+	"SemGroupSetRefCon",
+	"SemGroupGetRefCon",
+	"VToP",
+	"RealTimeAlarm",
+	"GetMemObjInfo",
+	"GetNetworkPersistentInfo",
+	"BequeathId",
+	"DispatchPatchInfo"
 };
 
 void newton_log_exception (void *ext, uint32_t addr) {
@@ -758,7 +807,7 @@ void newton_log_exception (void *ext, uint32_t addr) {
       if ((c->logFlags & NewtonLogSWI) == NewtonLogSWI) {
         uint32_t swi = newton_get_mem32(c, arm_get_pc(c->arm)) & 0x00ffffff;
         const char *swiName;
-        if (swi < 33) {
+        if (swi < countof(swiNames)) {
           swiName = swiNames[swi];
         }
         else {
@@ -775,6 +824,9 @@ void newton_log_exception (void *ext, uint32_t addr) {
           case 0x01:
           case 0x02:
             fprintf(c->logFile, " ObjectId=%i, msgId=%i, msgFilter=%i, flags=%i", c->arm->reg[0], c->arm->reg[1], c->arm->reg[2], c->arm->reg[3]);
+            break;
+		  case 0x05:
+            fprintf(c->logFile, " inSelector=%i", c->arm->reg[0]);
             break;
           case 0x0d:
           case 0x0f:
