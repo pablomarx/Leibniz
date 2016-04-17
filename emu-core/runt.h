@@ -42,7 +42,7 @@ enum {
   RuntInterruptADC              = (1 << 10),
   RuntInterruptSound            = (1 << 12),
   RuntInterruptUnknown3         = (1 << 13),
-  RuntInterruptUnknown4         = (1 << 14), // the diagnostic jumper pads?
+  RuntInterruptDiagnostics      = (1 << 14), // the diagnostic jumper pads?
   RuntInterruptCardLockSwitch   = (1 << 15),
   RuntInterruptPowerSwitch      = (1 << 16),
   RuntInterruptSerial           = (1 << 17), // questionable

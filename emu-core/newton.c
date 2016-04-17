@@ -875,8 +875,7 @@ void newton_set_bootmode(newton_t *c, NewtonBootMode bootMode) {
       c->runt->interruptStick = 2;
       break;
     case NewtonBootModeDiagnostics:
-      c->runt->interrupt = RuntInterruptUnknown4;
-      c->runt->interruptStick = 0;
+      c->runt->interrupt = RuntInterruptDiagnostics;
       break;
     case NewtonBootModeNormal:
     default:
