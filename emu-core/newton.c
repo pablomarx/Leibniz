@@ -64,21 +64,29 @@ uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
   }
   
   uint32_t result = 0;
-  membank_t *membank = c->membanks;
-  while (membank != NULL) {
-    if (addr >= membank->base && addr < membank->base + membank->length) {
-      result = membank->get_uint32(membank->context, addr - membank->base, arm_get_pc(c->arm));
-      break;
-    }
-    else {
-      membank = membank->next;
-    }
+  if (addr == 0x000013f4) {
+    result = c->debuggerBits;
   }
-  
-  if (membank == NULL) {
-    fprintf(c->logFile, "UNKNOWN MEMORY READ: 0x%08x, PC=0x%08x\n", addr, arm_get_pc(c->arm));
-    if (c->breakOnUnknownMemory) {
-      newton_stop(c);
+  else if (addr == 0x000013fc) {
+    result = c->newtConfig;
+  }
+  else {
+    membank_t *membank = c->membanks;
+    while (membank != NULL) {
+      if (addr >= membank->base && addr < membank->base + membank->length) {
+        result = membank->get_uint32(membank->context, addr - membank->base, arm_get_pc(c->arm));
+        break;
+      }
+      else {
+        membank = membank->next;
+      }
+    }
+    
+    if (membank == NULL) {
+      fprintf(c->logFile, "UNKNOWN MEMORY READ: 0x%08x, PC=0x%08x\n", addr, arm_get_pc(c->arm));
+      if (c->breakOnUnknownMemory) {
+        newton_stop(c);
+      }
     }
   }
   
