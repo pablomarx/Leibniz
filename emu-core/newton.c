@@ -933,13 +933,15 @@ void newton_configure_runt(newton_t *c, memory_t *rom) {
   // Configure 16MB ROM space
   newton_install_memory(c, rom, 0x00000000, 0x01000000);
   
-  // Configure 2MB RAM
-  memory_t *ram = memory_new("RAM", 2 * 1024 * 1024);
   if (c->machineType == kGestalt_MachineType_MessagePad) {
-    // The 2MB will repeat once.
+    // Configure 640KB of RAM
+    memory_t *ram = memory_new("RAM", 640 * 1024);
+
     newton_install_memory(c, ram, 0x01000000, 4 * 1024 * 1024);
   }
   else { // Lindy
+    // Configure 2MB RAM
+    memory_t *ram = memory_new("RAM", 2 * 1024 * 1024);
     newton_install_memory(c, ram, 0x01000000, 2 * 1024 * 1024);
     
     // Configure 2MB flash
