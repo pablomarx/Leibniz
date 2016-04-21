@@ -56,10 +56,10 @@ typedef void (*lcd_step_f)(void *ext);
 
 typedef struct runt_s {
   arm_t *arm;
-  uint32_t base;
   uint32_t *memory;
   time_t bootTime;
   uint32_t ticks;
+  int machineType;
   
   uint32_t rtcAlarm;
   uint32_t ticksAlarm1;
@@ -75,7 +75,7 @@ typedef struct runt_s {
   uint32_t interruptStick;
   
   // Display
-  void               *lcd_ext;
+  void               *lcd_driver;
   lcd_get_uint32_f   lcd_get_uint32;
   lcd_set_uint32_f   lcd_set_uint32;
   lcd_get_address_name_f lcd_get_address_name;
@@ -90,8 +90,8 @@ typedef struct runt_s {
   uint32_t touchY;
 } runt_t;
 
-void runt_init (runt_t *c);
-runt_t *runt_new (void);
+void runt_init (runt_t *c, int machineType);
+runt_t *runt_new (int machineType);
 void runt_free (runt_t *c);
 void runt_del (runt_t *c);
 void runt_set_arm (runt_t *c, arm_t *arm);
@@ -103,8 +103,8 @@ void runt_set_lcd_fct(runt_t *c, void *ext,
 void runt_set_log_flags (runt_t *c, unsigned flags, int val);
 void runt_set_log_file (runt_t *c, FILE *file);
 
-uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val);
-uint32_t runt_get_mem32(runt_t *c, uint32_t addr);
+uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val, uint32_t pc);
+uint32_t runt_get_mem32(runt_t *c, uint32_t addr, uint32_t pc);
 
 void runt_raise_interrupt(runt_t *c, uint32_t interrupt);
 void runt_lower_interrupt(runt_t *c, uint32_t interrupt);

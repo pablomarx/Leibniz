@@ -18,10 +18,13 @@
 
 #define kGestalt_Manufacturer_Apple			0x01000000
 #define kGestalt_Manufacturer_Sharp 		0x10000100
+#define kGestalt_Manufacturer_Motorola	0x01000200
 
-#define kGestalt_MachineType_MessagePad		0x10001000
+#define kGestalt_MachineType_MessagePad 0x10001000
+#define kGestalt_MachineType_Bic        0x10002000
+#define kGestalt_MachineType_Senior     0x10003000
+#define kGestalt_MachineType_Emate      0x10004000
 #define kGestalt_MachineType_Lindy			0x00726377
-#define kGestalt_MachineType_Bic			0x10002000
 
 typedef struct symbol_s symbol_t;
 struct symbol_s {
@@ -53,26 +56,31 @@ enum {
   NewtonLogAll        = 0xffffffff,
 };
 
+typedef uint32_t (*membank_set_uint32_f) (void *ext, uint32_t addr, uint32_t val, uint32_t pc);
+typedef uint32_t (*membank_get_uint32_f) (void *ext, uint32_t addr, uint32_t pc);
+typedef void (*membank_del_f) (void *ext);
+
+typedef struct membank_s membank_t;
+struct membank_s {
+  uint32_t base;
+  uint32_t length;
+
+  void *context;
+  membank_get_uint32_f get_uint32;
+  membank_set_uint32_f set_uint32;
+  membank_del_f del;
+  
+  membank_t *next;
+};
 
 typedef struct newton_s {
   arm_t *arm;
   bool stop;
   
-  void *lcd_driver;
   runt_t *runt;
   
-  uint32_t *ram;
-  uint32_t ramSize;
-
-  uint32_t *rom;
-  uint32_t romSize;
+  membank_t *membanks;
   
-  uint32_t *flash;
-  uint32_t flashSize;
-
-  uint32_t *sramCard;
-  uint32_t sramCardSize;
-
   uint32_t machineType;
   uint32_t romManufacturer;
   uint32_t debuggerBits;

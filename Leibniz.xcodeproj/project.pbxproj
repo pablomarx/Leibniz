@@ -19,6 +19,7 @@
 		F1853F761CBD87B800CFA4F4 /* newton-buttons.png in Resources */ = {isa = PBXBuildFile; fileRef = F1853F751CBD87B800CFA4F4 /* newton-buttons.png */; };
 		F1DB3DD919C60F8B006C7102 /* monitor.c in Sources */ = {isa = PBXBuildFile; fileRef = F1DB3DD719C60F8B006C7102 /* monitor.c */; };
 		F1DB3DDC19C63121006C7102 /* linenoise.c in Sources */ = {isa = PBXBuildFile; fileRef = F1DB3DDA19C63121006C7102 /* linenoise.c */; };
+		F1DD99A71CC818DA00C718CC /* memory.c in Sources */ = {isa = PBXBuildFile; fileRef = F1DD99A51CC818DA00C718CC /* memory.c */; };
 		F1E09AED1B2D2AB000004CC8 /* lcd_sharp.c in Sources */ = {isa = PBXBuildFile; fileRef = F1E09AE91B2D2AB000004CC8 /* lcd_sharp.c */; };
 		F1E09AEE1B2D2AB000004CC8 /* lcd_squirt.c in Sources */ = {isa = PBXBuildFile; fileRef = F1E09AEB1B2D2AB000004CC8 /* lcd_squirt.c */; };
 		F1E4AF1219C1327F00D8EFB4 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = F1E4AF1119C1327F00D8EFB4 /* main.m */; };
@@ -59,6 +60,8 @@
 		F1DB3DD819C60F8B006C7102 /* monitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = monitor.h; sourceTree = "<group>"; };
 		F1DB3DDA19C63121006C7102 /* linenoise.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = linenoise.c; sourceTree = "<group>"; };
 		F1DB3DDB19C63121006C7102 /* linenoise.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = linenoise.h; sourceTree = "<group>"; };
+		F1DD99A51CC818DA00C718CC /* memory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = memory.c; sourceTree = "<group>"; };
+		F1DD99A61CC818DA00C718CC /* memory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = memory.h; sourceTree = "<group>"; };
 		F1E09AE91B2D2AB000004CC8 /* lcd_sharp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lcd_sharp.c; sourceTree = "<group>"; };
 		F1E09AEA1B2D2AB000004CC8 /* lcd_sharp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lcd_sharp.h; sourceTree = "<group>"; };
 		F1E09AEB1B2D2AB000004CC8 /* lcd_squirt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lcd_squirt.c; sourceTree = "<group>"; };
@@ -105,8 +108,14 @@
 				F10F099B19C651A700C8C8FD /* hexdump.c */,
 				F10F099C19C651A700C8C8FD /* hexdump.h */,
 				F123BD5019C4FC8800EC994F /* internal.h */,
+				F1E09AE91B2D2AB000004CC8 /* lcd_sharp.c */,
+				F1E09AEA1B2D2AB000004CC8 /* lcd_sharp.h */,
+				F1E09AEB1B2D2AB000004CC8 /* lcd_squirt.c */,
+				F1E09AEC1B2D2AB000004CC8 /* lcd_squirt.h */,
 				F1DB3DDA19C63121006C7102 /* linenoise.c */,
 				F1DB3DDB19C63121006C7102 /* linenoise.h */,
+				F1DD99A51CC818DA00C718CC /* memory.c */,
+				F1DD99A61CC818DA00C718CC /* memory.h */,
 				F123BD5519C4FC8800EC994F /* mmu.c */,
 				F1DB3DD719C60F8B006C7102 /* monitor.c */,
 				F1DB3DD819C60F8B006C7102 /* monitor.h */,
@@ -115,10 +124,6 @@
 				F123BD5B19C4FC8800EC994F /* opcodes.c */,
 				F123BD7119C508C200EC994F /* runt.c */,
 				F123BD7219C508C200EC994F /* runt.h */,
-				F1E09AE91B2D2AB000004CC8 /* lcd_sharp.c */,
-				F1E09AEA1B2D2AB000004CC8 /* lcd_sharp.h */,
-				F1E09AEB1B2D2AB000004CC8 /* lcd_squirt.c */,
-				F1E09AEC1B2D2AB000004CC8 /* lcd_squirt.h */,
 			);
 			name = "alt-emu";
 			path = "emu-core";
@@ -284,6 +289,7 @@
 			files = (
 				F123BD7319C508C200EC994F /* runt.c in Sources */,
 				F123BD5D19C4FC8800EC994F /* arm.c in Sources */,
+				F1DD99A71CC818DA00C718CC /* memory.c in Sources */,
 				F1E09AED1B2D2AB000004CC8 /* lcd_sharp.c in Sources */,
 				F1E4AF1519C1327F00D8EFB4 /* AppDelegate.m in Sources */,
 				F1E09AEE1B2D2AB000004CC8 /* lcd_squirt.c in Sources */,

@@ -7,19 +7,13 @@
 #include <string.h>
 
 #include "arm.h"
+#include "memory.h"
 #include "newton.h"
 #include "runt.h"
-#include "lcd_sharp.h"
-#include "lcd_squirt.h"
 #include "HammerConfigBits.h"
 
 #define countof(__a__) (sizeof(__a__) / sizeof(__a__[0]))
 
-#if 1
-# define dbug(...) if (c->memTrace) printf(__VA_ARGS__)
-#else
-# define dbug(...) {}
-#endif
 
 #pragma mark - Symbols
 uint32_t newton_address_for_symbol(newton_t *c, const char *symbol) {
@@ -49,7 +43,7 @@ const char *newton_get_symbol_for_address(newton_t *c, uint32_t addr) {
     }
     sym = sym->next;
   }
-
+  
   return NULL;
 }
 
@@ -64,97 +58,38 @@ uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
     }
     bp = bp->next;
   }
-
+  
   if (addr % 4 != 0) {
     printf("misaligned read access: 0x%08x, PC: 0x%08x\n", addr, arm_get_pc(c->arm));
   }
   
   uint32_t result = 0;
-  if (addr < 0x01000000) {      // ROM occupies the first 16MB
-    // ROM is mirrored, so on Junior the 4MB ROM should appear
-    // 4 times: 0x00000000, 0x00400000, 0x00800000, 0x00c00000
-    // MP130 has 8MB ROM, so it should appear twice..
-    addr = addr % c->romSize;
-    result = c->rom[addr / 4];
-    
-    switch (addr) {
-      case 0x000013f4:
-        fprintf(c->logFile, "Read access: gDebuggerBits, PC=0x%08x\n", arm_get_pc(c->arm));
-        result = c->debuggerBits;
-        break;
-      case 0x000013f8:
-        fprintf(c->logFile, "Read access: gNewtTests, PC=0x%08x\n", arm_get_pc(c->arm));
-        break;
-      case 0x000013fc:
-        fprintf(c->logFile, "Read access: gNewtConfig, PC=0x%08x\n", arm_get_pc(c->arm));
-        result = c->newtConfig;
-        break;
-    }
-  }
-  else if (addr >= 0x01000000 && addr < 0x01400000) { // 4MB address space
-    // Lindy divides the address space. Lower 2MB for RAM.
-    // Upper 2MB for flash.
-    if (c->machineType == kGestalt_MachineType_Lindy && addr >= 0x01200000) {
-      uint32_t localAddr = addr - 0x01200000;
-      localAddr = localAddr % c->flashSize;
-      
-      if (localAddr == 0x04) {
-        // This matches a MP120.
-        // A4: 29F040, 512KB
-        // A2: 28F008, 1MB
-        result = 0x00a4a200;
-      }
-      else {
-        result = c->flash[localAddr/4];
-      }
+  membank_t *membank = c->membanks;
+  while (membank != NULL) {
+    if (addr >= membank->base && addr < membank->base + membank->length) {
+      result = membank->get_uint32(membank->context, addr - membank->base, arm_get_pc(c->arm));
+      break;
     }
     else {
-      uint32_t localAddr = addr - 0x01000000;
-      if (localAddr > c->ramSize) {
-        fprintf(c->logFile, "RAM request:0x%08x greater than ramSize:0x%08x\n", localAddr, c->ramSize);
-      }
-      
-      localAddr = localAddr % c->ramSize;
-      result = c->ram[localAddr/4];
+      membank = membank->next;
     }
-  }
-  else if (addr >= 0x01400000 && addr < 0x01800000) { // runt, 4MB
-    result = runt_get_mem32(c->runt, addr);
-  }
-  else if (addr >= 0x10000000 && addr < 0x20000000) { // "I/O card"
-    if (addr >= 0x14000000 && addr < 0x14100000 ) {
-      uint32_t localAddr = addr = (addr - 0x14000000);
-      result = c->sramCard[localAddr / 4];
-    }
-    
-    if ((c->logFlags & NewtonLogFlash) == NewtonLogFlash) {
-      fprintf(c->logFile, "[SRAM:READ] 0x%08x => 0x%08x, PC=0x%08x\n", addr, result, arm_get_pc(c->arm));
-    }
-    // return iocard_get_mem32(c, addr);
-  }
-  else if (addr >= 0x70000000 && addr < 0x80000000) { // card control registers
-    fprintf(c->logFile, "[CARD:READ] 0x%08x, PC=0x%08x\n", addr, arm_get_pc(c->arm));
-    if (addr == 0x70007C00) {
-      // 0x0a with no card & eject
-      // 0x0a with dummy card
-      // 0x1e with 2MB flash card
-      // 0x1a with 1MB SRAM card
-      result = 0x0000000a;
-    }
-  }
-  else {
-    fprintf(c->logFile, "UNKNOWN MEMORY READ: 0x%08x, PC=0x%08x\n", addr, arm_get_pc(c->arm));
-	if (c->breakOnUnknownMemory) {
-		newton_stop(c);
-	}
   }
   
-  if (addr != arm_get_pc(c->arm)) {
-    const char *symName = newton_get_symbol_for_address(c, addr);
-    if (symName == NULL) {
-      symName = "";
+  if (membank == NULL) {
+    fprintf(c->logFile, "UNKNOWN MEMORY READ: 0x%08x, PC=0x%08x\n", addr, arm_get_pc(c->arm));
+    if (c->breakOnUnknownMemory) {
+      newton_stop(c);
     }
-    dbug("GET: 0x%08x %s => 0x%08x, PC=0x%08x\n", addr, symName, result, arm_get_pc(c->arm));
+  }
+  
+  if (c->memTrace == true) {
+    if (addr != arm_get_pc(c->arm)) {
+      const char *symName = newton_get_symbol_for_address(c, addr);
+      if (symName == NULL) {
+        symName = "";
+      }
+      fprintf(c->logFile, "GET: 0x%08x %s => 0x%08x, PC=0x%08x\n", addr, symName, result, arm_get_pc(c->arm));
+    }
   }
   
   return result;
@@ -170,13 +105,7 @@ uint8_t newton_get_mem8 (newton_t *c, uint32_t addr) {
 }
 
 uint16_t newton_get_mem16 (newton_t *c, uint32_t addr) {
-#if 1
   abort();
-#else
-  uint8_t low = newton_get_mem8(c, addr);
-  uint8_t high = newton_get_mem8(c, addr + 1);
-  return (high << 16) | low;
-#endif
 }
 
 uint8_t newton_set_mem8 (newton_t *c, uint32_t addr, uint8_t val) {
@@ -197,18 +126,12 @@ uint8_t newton_set_mem8 (newton_t *c, uint32_t addr, uint8_t val) {
 }
 
 uint16_t newton_set_mem16 (newton_t *c, uint32_t addr, uint16_t val) {
-#if 1
   abort();
-#else
-  newton_set_mem8(c, addr, val & 0xff);
-  newton_set_mem8(c, addr + 1, (val >> 16) & 0xff);
-  return val;
-#endif
 }
 
 uint32_t newton_set_mem32 (newton_t *c, uint32_t addr, uint32_t val) {
   uint32_t oldval = 0;
-
+  
   bp_entry_t *bp = c->breakpoints;
   while (bp != NULL) {
     if (bp->type == BP_WRITE && bp->addr == addr) {
@@ -218,63 +141,32 @@ uint32_t newton_set_mem32 (newton_t *c, uint32_t addr, uint32_t val) {
     }
     bp = bp->next;
   }
-
-  if (addr < 0x01000000) {      // ROM, first 16MB of address space
-    fprintf(c->logFile, "bad write to ROM!!!! addr=0x%08x, val=0x%08x\n", addr, val);
-    fprintf(c->logFile, "pc: 0x%08x\n", arm_get_pc(c->arm));
-    newton_stop(c);
-    //arm_exception_data_abort(c);
-    //return 0;
-    // return rom_set_mem32(c, addr, val);
-  }
-  else if (addr >= 0x01000000 && addr < 0x01400000) { // 4MB address space
-    // Lindy divides the address space. Lower 2MB for RAM.
-    // Upper 2MB for flash.
-    if (c->machineType == kGestalt_MachineType_Lindy && addr >= 0x01200000) {
-      uint32_t localAddr = addr - 0x01200000;
-      localAddr = localAddr % c->flashSize;
-      c->flash[localAddr/4] = val;
+  
+  membank_t *membank = c->membanks;
+  while (membank != NULL) {
+    if (addr >= membank->base && addr < membank->base + membank->length) {
+      val = membank->set_uint32(membank->context, addr - membank->base, val, arm_get_pc(c->arm));
+      break;
     }
     else {
-      uint32_t localAddr = addr - 0x01000000;
-      
-      if (localAddr > c->ramSize) {
-        fprintf(c->logFile, "RAM request:0x%08x greater than ramSize:0x%08x\n", localAddr, c->ramSize);
-      }
-      localAddr = localAddr % c->ramSize;
-      c->ram[localAddr/4] = val;
+      membank = membank->next;
     }
   }
-  else if (addr >= 0x01400000 && addr < 0x01800000) { // runt, 4MB
-    return runt_set_mem32(c->runt, addr, val);
-  }
-  else if (addr >= 0x10000000 && addr < 0x20000000) { // "I/O card"
-    // return iocard_set_mem32(c, addr, val);
-    if ((c->logFlags & NewtonLogFlash) == NewtonLogFlash) {
-      fprintf(c->logFile, "[SRAM:WRITE] 0x%08x => 0x%08x, PC=0x%08x\n", addr, val, arm_get_pc(c->arm));
-    }
-    
-    if (addr >= 0x14000000 && addr < 0x14100000 ) {
-      uint32_t localAddr = addr = (addr - 0x14000000);
-      c->sramCard[localAddr / 4] = val;
-    }
-  }
-  else if (addr >= 0x70000000 && addr < 0x80000000) { // card control registers
-    fprintf(c->logFile, "[CARD:WRITE] 0x%08x => 0x%08x, PC=0x%08x\n", addr, val, arm_get_pc(c->arm));
-    // return cardcont_set_mem32(c, addr, val);
-  }
-  else {
+
+  if (membank == NULL) {
     fprintf(c->logFile, "UNKNOWN MEMORY SET: 0x%08x => 0x%08x, PC=0x%08x\n", addr, val, arm_get_pc(c->arm));
     if (c->breakOnUnknownMemory) {
       newton_stop(c);
     }
   }
-  
-  const char *symName = newton_get_symbol_for_address(c, addr);
-  if (symName == NULL) {
-    symName = "";
+
+  if (c->memTrace == true) {
+    const char *symName = newton_get_symbol_for_address(c, addr);
+    if (symName == NULL) {
+      symName = "";
+    }
+    fprintf(c->logFile, "SET: 0x%08x %s => 0x%08x (was 0x%08x), PC=0x%08x\n", addr, symName, val, oldval, arm_get_pc(c->arm));
   }
-  dbug("SET: 0x%08x %s => 0x%08x (was 0x%08x), PC=0x%08x\n", addr, symName, val, oldval, arm_get_pc(c->arm));
   
   return val;
 }
@@ -288,7 +180,7 @@ static const char *arm_modes[32] = {
   "0x0c", "0x0d", "0x0e", "0x0f",
   "usr",  "fiq",  "irq",  "svc",
   "0x14", "0x15", "0x16", "abt",
-  "0x18", "0x19", "und",  "0x1b",
+  "0x18", "0x19", "0x1a", "und",
   "0x1c", "0x1d", "0x1e", "sys"
 };
 
@@ -412,11 +304,11 @@ void newton_breakpoint_del(newton_t *c, uint32_t address, bp_type type) {
 
 
 void newton_set_break_on_unknown_memory(newton_t *c, bool breakOnUnknownMemory) {
-	c->breakOnUnknownMemory = breakOnUnknownMemory;
+  c->breakOnUnknownMemory = breakOnUnknownMemory;
 }
 
 bool newton_get_break_on_unknown_memory(newton_t *c) {
-	return c->breakOnUnknownMemory;
+  return c->breakOnUnknownMemory;
 }
 
 void newton_set_instruction_trace(newton_t *c, bool instructionTrace) {
@@ -475,13 +367,13 @@ void newton_parse_aif_debug_data(newton_t *c, void *debugData, uint32_t length) 
   while (entry < numOfEntries) {
     uint32_t symbol = htonl(*bytes);
     bytes++;
-    uint8_t type = ((symbol >> 24) & 0xff);
+    //uint8_t type = ((symbol >> 24) & 0xff);
     uint32_t tableIndex = (symbol & 0x00ffffff);
     uint32_t address = htonl(*bytes);
     bytes++;
     
     const char *name = nameTable+tableIndex;
-    uint8_t nameLen = name[0];
+    //uint8_t nameLen = name[0];
     name++;
     
     newton_add_symbol(c, address, name);
@@ -545,7 +437,9 @@ void newton_load_mapfile(newton_t *c, const char *mapfile) {
 
 void newton_set_logfile(newton_t *c, FILE *file) {
   c->logFile = file;
-  runt_set_log_file(c->runt, file);
+  if (c->runt != NULL) {
+    runt_set_log_file(c->runt, file);
+  }
 }
 
 int newton_log_opcode (void *ext, uint32_t ir) {
@@ -556,25 +450,25 @@ int newton_log_opcode (void *ext, uint32_t ir) {
 }
 
 char *newton_get_cstring(newton_t *c, uint32_t address) {
-    uint32_t translated = address;
-    arm_translate_extern(c->arm, &translated, 0, NULL, NULL);
-
-    char *msg = calloc(1024, 1);
-    uint32_t value;
-    int index = 0;
-    while (1) {
-      value = newton_get_mem32(c, translated);
-      msg[index+0] = (value >> 24) & 0xff;
-      msg[index+1] = (value >> 16) & 0xff;
-      msg[index+2] = (value >>  8) & 0xff;
-      msg[index+3] = (value      ) & 0xff;
-      if (msg[index+3] == 0x00 || msg[index+2] == 0x00 || msg[index+1] == 0x00 || msg[index+0] == 0x00) {
-        break;
-      }
-      index += 4;
-      translated += 4;
+  uint32_t translated = address;
+  arm_translate_extern(c->arm, &translated, 0, NULL, NULL);
+  
+  char *msg = calloc(1024, 1);
+  uint32_t value;
+  int index = 0;
+  while (1) {
+    value = newton_get_mem32(c, translated);
+    msg[index+0] = (value >> 24) & 0xff;
+    msg[index+1] = (value >> 16) & 0xff;
+    msg[index+2] = (value >>  8) & 0xff;
+    msg[index+3] = (value      ) & 0xff;
+    if (msg[index+3] == 0x00 || msg[index+2] == 0x00 || msg[index+1] == 0x00 || msg[index+0] == 0x00) {
+      break;
     }
-	return msg;
+    index += 4;
+    translated += 4;
+  }
+  return msg;
 }
 
 void newton_log_undef (void *ext, uint32_t ir) {
@@ -594,19 +488,19 @@ void newton_log_undef (void *ext, uint32_t ir) {
     newton_stop((newton_t *)ext);
   }
   else if (ir == 0xE6000310) {
-	  char *msg = newton_get_cstring((newton_t *)ext, c->arm->reg[0]);
+    char *msg = newton_get_cstring((newton_t *)ext, c->arm->reg[0]);
     fprintf(c->logFile, "DebugStr: %s", msg);
-	free(msg);
+    free(msg);
     newton_stop((newton_t *)ext);
   }
   else if (ir == 0xE6000410) {
     fprintf(c->logFile, "PublicFiller");
   }
   else if (ir == 0xE6000510) {
-	  uint32_t address = arm_get_pc(c->arm) + 4;
-	char *msg = newton_get_cstring((newton_t *)ext, address);
+    uint32_t address = arm_get_pc(c->arm) + 4;
+    char *msg = newton_get_cstring((newton_t *)ext, address);
     fprintf(c->logFile, "SystemPanic: %s", msg);
-	free(msg);
+    free(msg);
     newton_stop((newton_t *)ext);
   }
   else if (ir == 0xE6000710) {
@@ -621,9 +515,9 @@ void newton_log_undef (void *ext, uint32_t ir) {
       do_sys_write = 0x14,
       do_sys_set_input_notify = 0x15,
     };
-
+    
     fprintf(c->logFile, "TapFileCntl: ");
-
+    
     static int lastFp = 1;
     switch (c->arm->reg[0]) {
       case do_sys_open: { // 0x0018c0cc
@@ -712,96 +606,96 @@ void newton_log_undef (void *ext, uint32_t ir) {
 }
 
 static const char *swiNames[] = {
-	"GetPort",
-	"PortSend",
-	"PortReceive",
-	"EnterAtomic",
-	"ExitAtomic",
-	"Generic",
-	"GenerateMessageIRQ",
-	"PurgeMMUTLBEntry",
-	"FlushMMU",
-	"FlushIDC",
-	"GetCPUVersion",
-	"SemaphoreOp",
-	"SetDomainRegister",
-	"SMemSetBuffer",
-	"SMemGetSize",
-	"SMemCopyToShared",
-	"SMemCopyFromShared",
-	"SMemMsgSetTimerParms",
-	"SMemMsgSetMsgAvailPort",
-	"SMemMsgGetSenderTaskId",
-	"SMemMsgSetUserRefCon",
-	"SMemMsgGetUserRefCon",
-	"SMemMsgCheckForDone",
-	"SMemMsgMsgDone",
-	"TurnOffCache",
-	"TurnOnCache",
-	"LowLevelCopyDone",
-	"MonitorDispatch",
-	"MonitorExit",
-	"MonitorThrow",
-	"EnterFIQAtomic",
-	"ExitFIQAtomic",
-	"SetGlobals",
-	"GiveObject",
-	"AcceptObject",
-	"GetGlobalTime",
-	"SetPCSample",
-	"ResetAccountTime",
-	"GetNextTaskId",
-	"ForgetPhysMapping",
-	"ForgetPermMapping",
-	"ForgetBothMappings",
-	"RememberPhysMapping",
-	"RememberPermMapping",
-	"RememberBothMappings",
-	"AddPageTable",
-	"RemovePageTable",
-	"UnmapPhys",
-	"RenamePhys",
-	"ReleasePage",
-	"CopyPage",
-	"InvalidatePhys",
-	"PhysSize",
-	"PhysBase",
-	"PhysAlign",
-	"PhysReadOnly",
-	"QueueTimer",
-	"RemoveTimer",
-	"FreeTasksBlockedOnMemory",
-	"Yield",
-	"Reboot",
-	"Restart",
-	"RegisterTimerFunction",
-	"RemoveTimerFunction",
-	"RememberMappingsUsingPAddr",
-	"SetDomainRange",
-	"ClearDomainRange",
-	"SetEnvironment",
-	"GetEnvironment",
-	"AddDomainToEnvironment",
-	"RemoveDomainFromEnvironment",
-	"HasDomain",
-	"SemGroupSetRefCon",
-	"SemGroupGetRefCon",
-	"VToP",
-	"RealTimeAlarm",
-	"GetMemObjInfo",
-	"GetNetworkPersistentInfo",
-	"BequeathId",
-	"DispatchPatchInfo"
+  "GetPort",
+  "PortSend",
+  "PortReceive",
+  "EnterAtomic",
+  "ExitAtomic",
+  "Generic",
+  "GenerateMessageIRQ",
+  "PurgeMMUTLBEntry",
+  "FlushMMU",
+  "FlushIDC",
+  "GetCPUVersion",
+  "SemaphoreOp",
+  "SetDomainRegister",
+  "SMemSetBuffer",
+  "SMemGetSize",
+  "SMemCopyToShared",
+  "SMemCopyFromShared",
+  "SMemMsgSetTimerParms",
+  "SMemMsgSetMsgAvailPort",
+  "SMemMsgGetSenderTaskId",
+  "SMemMsgSetUserRefCon",
+  "SMemMsgGetUserRefCon",
+  "SMemMsgCheckForDone",
+  "SMemMsgMsgDone",
+  "TurnOffCache",
+  "TurnOnCache",
+  "LowLevelCopyDone",
+  "MonitorDispatch",
+  "MonitorExit",
+  "MonitorThrow",
+  "EnterFIQAtomic",
+  "ExitFIQAtomic",
+  "SetGlobals",
+  "GiveObject",
+  "AcceptObject",
+  "GetGlobalTime",
+  "SetPCSample",
+  "ResetAccountTime",
+  "GetNextTaskId",
+  "ForgetPhysMapping",
+  "ForgetPermMapping",
+  "ForgetBothMappings",
+  "RememberPhysMapping",
+  "RememberPermMapping",
+  "RememberBothMappings",
+  "AddPageTable",
+  "RemovePageTable",
+  "UnmapPhys",
+  "RenamePhys",
+  "ReleasePage",
+  "CopyPage",
+  "InvalidatePhys",
+  "PhysSize",
+  "PhysBase",
+  "PhysAlign",
+  "PhysReadOnly",
+  "QueueTimer",
+  "RemoveTimer",
+  "FreeTasksBlockedOnMemory",
+  "Yield",
+  "Reboot",
+  "Restart",
+  "RegisterTimerFunction",
+  "RemoveTimerFunction",
+  "RememberMappingsUsingPAddr",
+  "SetDomainRange",
+  "ClearDomainRange",
+  "SetEnvironment",
+  "GetEnvironment",
+  "AddDomainToEnvironment",
+  "RemoveDomainFromEnvironment",
+  "HasDomain",
+  "SemGroupSetRefCon",
+  "SemGroupGetRefCon",
+  "VToP",
+  "RealTimeAlarm",
+  "GetMemObjInfo",
+  "GetNetworkPersistentInfo",
+  "BequeathId",
+  "DispatchPatchInfo"
 };
 
 void newton_log_exception (void *ext, uint32_t addr) {
   newton_t *c = (newton_t *)ext;
   switch(addr) {
     case 0x00:
-    fprintf(c->logFile, "%s PC=0x%08x: reset_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
+      fprintf(c->logFile, "%s PC=0x%08x: reset_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
       break;
     case 0x04:
-    fprintf(c->logFile, "%s PC=0x%08x: undefined_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
+      fprintf(c->logFile, "%s PC=0x%08x: undefined_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
       break;
     case 0x08: {
       if ((c->logFlags & NewtonLogSWI) == NewtonLogSWI) {
@@ -941,12 +835,12 @@ runt_t *newton_get_runt (newton_t *c) {
 }
 
 void newton_set_log_flags (newton_t *c, unsigned flags, int val) {
-    if (val) {
-      c->logFlags |= flags;
-    }
-    else {
-      c->logFlags &= ~flags;
-    }
+  if (val) {
+    c->logFlags |= flags;
+  }
+  else {
+    c->logFlags &= ~flags;
+  }
 }
 
 #pragma mark -
@@ -972,8 +866,7 @@ void newton_init (newton_t *c)
   //
   c->arm = arm_new();
   arm_set_flags(c->arm, ARM_FLAG_BIGENDIAN, 1);
-  arm_set_id(c->arm, 0x41560610);
-
+  
   c->arm->log_ext = c;
   c->arm->log_exception = newton_log_exception;
   c->arm->log_opcode = newton_log_opcode;
@@ -983,45 +876,6 @@ void newton_init (newton_t *c)
                   newton_set_mem8, newton_set_mem16, newton_set_mem32);
   arm_reset(c->arm);
   
-  //
-  // Setup RAM
-  //
-  //        OMP: 640KB
-  //      Marco: 687KB (?!)
-  //      MP110: 1MB
-  // MP120 v1.x: 1MB
-  // MP120 v2.x: 2MB
-  //      MP130: 2.5MB
-  c->ramSize = 2 * 1024 * 1024;
-  c->ram = calloc(c->ramSize, 1);
-  
-  //
-  // Setup flash
-  //
-  c->flashSize = 2 * 1024 * 1024;
-  c->flash = calloc(c->flashSize, 1);
-  
-  //
-  // Setup SRAM card
-  //
-  c->sramCardSize = 0x14100000 - 0x14000000;
-  c->sramCard = calloc(c->sramCardSize, 1);
-  // c->sramCard[0] = 'SERD';
-  // c->sramCard[0] = 'SEWR';
-  
-  //
-  // Setup RUNT
-  //
-  c->runt = runt_new();
-  runt_set_arm(c->runt, c->arm);
-  
-  //
-  //
-  //
-  c->lcd_driver = NULL;
-  
-  c->newtConfig = 0;
-  c->debuggerBits = 0;
   
   //
   // Logging
@@ -1035,6 +889,100 @@ void newton_init (newton_t *c)
   c->lastSp = 0;
 }
 
+void newton_install_memory_handler(newton_t *c,
+                                   uint32_t base,
+                                   uint32_t length,
+                                   void *context,
+                                   void *getuint32,
+                                   void *setuint32,
+                                   void *del)
+{
+  membank_t *bank = calloc(sizeof(membank_t), 1);
+  bank->context = context;
+  bank->set_uint32 = setuint32;
+  bank->get_uint32 = getuint32;
+  bank->del = del;
+  
+  bank->base = base;
+  bank->length = length;
+
+  bank->next = c->membanks;
+  c->membanks = bank;
+}
+
+void newton_install_memory(newton_t *c, memory_t *memory, uint32_t base, uint32_t length) {
+  newton_install_memory_handler(c, base, length, memory, memory_get_uint32, memory_set_uint32, memory_delete);
+}
+
+
+void newton_configure_voyager(newton_t *c, memory_t *rom) {
+  if (c->machineType == kGestalt_MachineType_Emate) {
+    arm_set_id(c->arm, ARM_C15_ID_710);
+  }
+  else {
+    arm_set_id(c->arm, ARM_C15_ID_STRONGARM);
+  }
+  
+  fprintf(stderr, "Voyager platform isn't supported yet...\n");
+  exit(EXIT_FAILURE);
+}
+
+void newton_configure_runt(newton_t *c, memory_t *rom) {
+  arm_set_id(c->arm, ARM_C15_ID_610);
+
+  // Configure 16MB ROM space
+  newton_install_memory(c, rom, 0x00000000, 0x01000000);
+  
+  // Configure 2MB RAM
+  memory_t *ram = memory_new("RAM", 2 * 1024 * 1024);
+  if (c->machineType == kGestalt_MachineType_MessagePad) {
+    // The 2MB will repeat once.
+    newton_install_memory(c, ram, 0x01000000, 4 * 1024 * 1024);
+  }
+  else { // Lindy
+    newton_install_memory(c, ram, 0x01000000, 2 * 1024 * 1024);
+    
+    // Configure 2MB flash
+    memory_t *flash = memory_new("FLASH", 2 * 1024 * 1024);
+    memory_set_uint32(flash, 0x04, 0x00a4a200, 0);
+    //memory_set_logs_reads(flash, true);
+    //memory_set_logs_writes(flash, true);
+    newton_install_memory(c, flash, 0x01200000, 2 * 1024 * 1024);
+  }
+  
+  // Configure 1MB SRAM
+  memory_t *sram = memory_new("SRAM", 0x00100000);
+  newton_install_memory(c, sram, 0x14000000, 0x00100000);
+  memory_set_logs_reads(sram, true);
+  memory_set_logs_writes(sram, true);
+  
+  // This will cause diagnostics to copy the first 128KB
+  // of the SRAM card into the start of RAM
+  //memory_set_uint32(sram, 0x00, 'SERD', 0);
+  
+  // This seems to do some sort of SRAM card diagnostics
+  // This will change the first word from 'SEWR' to 'SERD'
+  // Then it fills the rest of SRAM with 0s
+  // Then it reads back the SRAM
+  //memory_set_uint32(sram, 0x00, 'SEWR', 0);
+  
+  
+  // XXX: What about the rest of I/O card space? 0x10000000 - 0x20000000
+  
+  // Configure some dummy memory for PCMCIA
+  memory_t *pcmcia = memory_new("PCMCIA", 0x00100000);
+  memory_set_logs_reads(pcmcia, true);
+  memory_set_logs_writes(pcmcia, true);
+  newton_install_memory(c, pcmcia, 0x70000000, 0x10000000);
+  
+  
+  // Configure the Runt ASIC
+  c->runt = runt_new(c->machineType);
+  runt_set_arm(c->runt, c->arm);
+  runt_set_log_file(c->runt, c->logFile);
+  newton_install_memory_handler(c, 0x01400000, 0x00400000, c->runt, runt_get_mem32, runt_set_mem32, runt_del);
+}
+
 int newton_load_rom(newton_t *c, const char *path) {
   FILE *romFP = fopen(path, "r");
   if (romFP == NULL) {
@@ -1045,11 +993,6 @@ int newton_load_rom(newton_t *c, const char *path) {
   fseek(romFP, 0l, SEEK_END);
   uint32_t romSize = (uint32_t)ftell(romFP);
   fseek(romFP, 0l, SEEK_SET);
-  
-  if (c->rom != NULL) {
-    free(c->rom);
-    c->rom = NULL;
-  }
   
   uint32_t romWord = 0;
   if (fread(&romWord, 1, sizeof(romWord), romFP) == sizeof(romWord)) {
@@ -1087,21 +1030,20 @@ int newton_load_rom(newton_t *c, const char *path) {
     }
   }
   
-  
-  c->rom = calloc(romSize, 1);
-  c->romSize = romSize;
+  memory_t *rom = memory_new("ROM", romSize);
+  memory_set_readonly(rom, true);
   uint32_t i=0;
   while (fread(&romWord, 1, sizeof(romWord), romFP) == sizeof(romWord)) {
-    c->rom[i++] = (((romWord      ) & 0xff) << 24) |
-    (((romWord >>  8) & 0xff) << 16) |
-    (((romWord >> 16) & 0xff) << 8 ) |
-    (((romWord >> 24) & 0xff));
+    rom->contents[i++] = (((romWord      ) & 0xff) << 24) |
+                         (((romWord >>  8) & 0xff) << 16) |
+                         (((romWord >> 16) & 0xff) << 8 ) |
+                         (((romWord >> 24) & 0xff));
   }
   fclose(romFP);
   
-  printf("Loaded ROM: %s => %i bytes\n", path, c->romSize);
+  printf("Loaded ROM: %s => %i bytes\n", path, romSize);
   
-  c->machineType = c->rom[0x000013ec / 4];
+  c->machineType = memory_get_uint32(rom, 0x000013ec, 0);
   printf("Machine Type    : 0x%08x => ", c->machineType);
   switch (c->machineType) {
     case kGestalt_MachineType_MessagePad:
@@ -1113,14 +1055,20 @@ int newton_load_rom(newton_t *c, const char *path) {
     case kGestalt_MachineType_Bic:
       printf("Bic");
       break;
+    case kGestalt_MachineType_Senior:
+      printf("Senior");
+      break;
+    case kGestalt_MachineType_Emate:
+      printf("eMate");
+      break;
     default:
       printf("UNKNOWN - Defaulting to Junior");
       c->machineType = kGestalt_MachineType_MessagePad;
       break;
   }
   printf("\n");
-
-  c->romManufacturer = c->rom[0x000013f0 / 4];
+  
+  c->romManufacturer = memory_get_uint32(rom, 0x000013f0, 0);
   printf("ROM Manufacturer: 0x%08x => ", c->romManufacturer);
   switch (c->romManufacturer) {
     case kGestalt_Manufacturer_Apple:
@@ -1129,6 +1077,9 @@ int newton_load_rom(newton_t *c, const char *path) {
     case kGestalt_Manufacturer_Sharp:
       printf("Sharp");
       break;
+    case kGestalt_Manufacturer_Motorola:
+      printf("Motorola");
+      break;
     default:
       printf("UNKNOWN - Defaulting to Apple");
       c->romManufacturer = kGestalt_Manufacturer_Apple;
@@ -1136,15 +1087,11 @@ int newton_load_rom(newton_t *c, const char *path) {
   }
   printf("\n");
   
-  if (c->machineType == kGestalt_MachineType_Lindy) {
-    lcd_squirt_t *squirt = lcd_squirt_new();
-    runt_set_lcd_fct(c->runt, squirt, lcd_squirt_get_mem32, lcd_squirt_set_mem32, lcd_squirt_get_address_name, lcd_squirt_step);
-    c->lcd_driver = squirt;
+  if (c->machineType == kGestalt_MachineType_Senior || c->machineType == kGestalt_MachineType_Emate) {
+    newton_configure_voyager(c, rom);
   }
   else {
-    lcd_sharp_t *sharp = lcd_sharp_new();
-    runt_set_lcd_fct(c->runt, sharp, lcd_sharp_get_mem32, lcd_sharp_set_mem32, lcd_sharp_get_address_name, NULL);
-    c->lcd_driver = sharp;
+    newton_configure_runt(c, rom);
   }
   
   return 0;
@@ -1152,15 +1099,6 @@ int newton_load_rom(newton_t *c, const char *path) {
 
 void newton_free (newton_t *c)
 {
-  if (c->lcd_driver != NULL) {
-    if (c->machineType == kGestalt_MachineType_Lindy) {
-      lcd_squirt_del((lcd_squirt_t *)c->lcd_driver);
-    }
-    else {
-      lcd_sharp_del((lcd_sharp_t *)c->lcd_driver);
-    }
-  }
-  
   bp_entry_t *bp = c->breakpoints;
   while (bp != NULL) {
     free(bp);
@@ -1174,11 +1112,14 @@ void newton_free (newton_t *c)
     sym = sym->next;
   }
   
+  membank_t *membank = c->membanks;
+  while(membank != NULL) {
+    membank->del(membank->context);
+    free(membank);
+    membank = membank->next;
+  }
+
   arm_del(c->arm);
-  runt_del(c->runt);
-  free(c->ram);
-  free(c->rom);
-  free(c->sramCard);
 }
 
 void newton_del (newton_t *c)

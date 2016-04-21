@@ -66,10 +66,13 @@
 #define ARM_FLAG_E         8		/* enhanced dsp instructions */
 #define ARM_FLAG_CPAR      16		/* coprocessor access register */
 #define ARM_FLAG_XSCALE    (ARM_FLAG_T | ARM_FLAG_M | ARM_FLAG_E | ARM_FLAG_CPAR)
+#define ARM_FLAG_610       (ARM_FLAG_M)
 #define ARM_FLAG_ALL       0xffff
 
 
 #define ARM_C15_ID_610         0x41560610UL
+#define ARM_C15_ID_710         0x41047101UL
+#define ARM_C15_ID_STRONGARM   0x41047102UL
 #define ARM_C15_ID_XSCALE_V5TE 0x69052000UL
 #define ARM_C15_ID_IXP2400     0x69054190UL
 

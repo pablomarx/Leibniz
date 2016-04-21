@@ -82,7 +82,11 @@ uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
     case SquirtLCDData:
     {
       uint32_t framebufferIdx = (c->displayCursor) * 8;
-      
+      if (framebufferIdx >= (SCREEN_WIDTH * SCREEN_HEIGHT) - 8) {
+        printf("Bad frame buffer index: %i >= %i\n", framebufferIdx, (SCREEN_WIDTH * SCREEN_HEIGHT) - 8);
+        framebufferIdx = (SCREEN_WIDTH * SCREEN_HEIGHT) - 8;
+      }
+        
       // Splat the pixels
       uint8_t pixels = ((uint8_t)(val >> 24));
       for (int bitIdx=7; bitIdx>=0; bitIdx--) {

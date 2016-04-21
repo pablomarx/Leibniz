@@ -219,12 +219,15 @@ void monitor_parse_input(monitor_t *c, const char *input) {
     c->instructionsToExecute = argValue;
   }
   else if (strcmp(input, "dump") == 0) {
+#warning fixme
+#if 0
     FILE *fp = fopen("ram.dump", "w");
     for (uint32_t i=0; i<c->newton->ramSize/4; i++) {
       uint32_t word = htonl(*(c->newton->ram + i));
       fwrite(&word, sizeof(word), 1, fp);
     }
     fclose(fp);
+#endif
   }
   else if (strcmp(input, "step") == 0 || strcmp(input, "s") == 0) {
     c->instructionsToExecute = 1;

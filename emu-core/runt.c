@@ -15,6 +15,10 @@
 #include <string.h>
 #include <sys/time.h>
 
+#include "newton.h"
+#include "lcd_sharp.h"
+#include "lcd_squirt.h"
+
 #define countof(__a__) (sizeof(__a__) / sizeof(__a__[0]))
 
 enum {
@@ -126,7 +130,7 @@ void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
       break;
     case RuntLCD: {
       flag = RuntLogLCD;
-      prefix = c->lcd_get_address_name(c->lcd_ext, (addr & 0xff));
+      prefix = c->lcd_get_address_name(c->lcd_driver, (addr & 0xff));
       break;
     }
     case RuntIR:
@@ -209,7 +213,7 @@ void runt_raise_interrupt(runt_t *c, uint32_t interrupt) {
   if ((c->memory[0x0c00 / 4] & interrupt) == interrupt) {
     if ((c->logFlags & RuntLogInterrupts) == RuntLogInterrupts) {
       fprintf(c->logFile, "[RUNT:ASIC] Raising interrupt 0x%02x\n", interrupt);
-  		}
+    }
     arm_set_irq(c->arm, 1);
   }
 }
@@ -291,10 +295,10 @@ uint32_t runt_get_rtc(runt_t *c) {
   return (uint32_t)(time(NULL) - c->bootTime);
 }
 
-uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val) {
+uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val, uint32_t pc) {
   runt_log_access(c, addr, val, true);
   
-  uint32_t localAddr = (addr - c->base) / 4;
+  uint32_t localAddr = (addr / 4);
   switch ((addr >> 8) & 0xff) {
 	  case 0x00:
 	  // Observed bit 2 changing depending on gNewtConfig
@@ -307,7 +311,7 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val) {
 	  }
 	  break;
     case RuntLCD:
-      c->lcd_set_uint32(c->lcd_ext, (addr & 0xff), val);
+      c->lcd_set_uint32(c->lcd_driver, (addr & 0xff), val);
       break;
     case RuntClearInterrupt:
       if (c->interruptStick > 0) {
@@ -372,7 +376,7 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val) {
         for (int i=0; i<32; i++) {
           uint32_t bit = (1 << i);
           if ((val & bit) == bit) {
-            const char *name = runt_power_names[i-1];
+            const char *name = runt_power_names[i];
             if (name != NULL) {
               fprintf(c->logFile, "%s, ", name);
             }
@@ -414,12 +418,12 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val) {
 }
 
 
-uint32_t runt_get_mem32(runt_t *c, uint32_t addr) {
-  uint32_t result = c->memory[(addr - c->base) / 4];
+uint32_t runt_get_mem32(runt_t *c, uint32_t addr, uint32_t pc) {
+  uint32_t result = c->memory[addr / 4];
   
   switch ((addr >> 8) & 0xff) {
     case RuntLCD:
-      result = c->lcd_get_uint32(c->lcd_ext, (addr & 0xff));
+      result = c->lcd_get_uint32(c->lcd_driver, (addr & 0xff));
       break;
     case RuntTicks:
       result = runt_get_ticks(c);
@@ -489,10 +493,6 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr) {
       break;
   }
   
-  if (result == addr) {
-    result = 0;
-  }
-  
   runt_log_access(c, addr, result, false);
   
   return result;
@@ -517,7 +517,7 @@ void runt_step(runt_t *c) {
   }
   
   if (c->lcd_step != NULL) {
-    c->lcd_step(c->lcd_ext);
+    c->lcd_step(c->lcd_driver);
   }
 }
 
@@ -541,16 +541,16 @@ void runt_set_log_file (runt_t *c, FILE *file) {
 void runt_set_lcd_fct(runt_t *c, void *ext,
                       void *get32, void *set32, void *getname, void *step)
 {
-  c->lcd_ext = ext;
+  c->lcd_driver = ext;
   c->lcd_get_uint32 = get32;
   c->lcd_set_uint32 = set32;
   c->lcd_get_address_name = getname;
   c->lcd_step = step;
 }
 
-void runt_init (runt_t *c) {
-  c->base = 0x01400000;
+void runt_init (runt_t *c, int machineType) {
   c->memory = calloc(0x8fff, 1);
+  c->machineType = machineType;
   
   //
   // Tablet
@@ -558,6 +558,21 @@ void runt_init (runt_t *c) {
   c->touchActive = false;
   c->touchX = 0;
   c->touchY = 0;
+  
+  //
+  // LCD
+  //
+  if (machineType == kGestalt_MachineType_Lindy) {
+    lcd_squirt_t *squirt = lcd_squirt_new();
+    runt_set_lcd_fct(c, squirt, lcd_squirt_get_mem32, lcd_squirt_set_mem32, lcd_squirt_get_address_name, lcd_squirt_step);
+    c->lcd_driver = squirt;
+  }
+  else {
+    lcd_sharp_t *sharp = lcd_sharp_new();
+    runt_set_lcd_fct(c, sharp, lcd_sharp_get_mem32, lcd_sharp_set_mem32, lcd_sharp_get_address_name, NULL);
+    c->lcd_driver = sharp;
+  }
+
   
   //
   // Logging
@@ -573,7 +588,7 @@ void runt_init (runt_t *c) {
   c->bootTime = time(NULL);
 }
 
-runt_t *runt_new (void) {
+runt_t *runt_new (int machineType) {
   runt_t *c;
   
   c = calloc(1, sizeof (runt_t));
@@ -581,7 +596,7 @@ runt_t *runt_new (void) {
     return (NULL);
   }
   
-  runt_init (c);
+  runt_init (c, machineType);
   
   return (c);
 }
@@ -593,6 +608,14 @@ void runt_set_arm(runt_t *c, arm_t *arm) {
 void runt_free (runt_t *c) {
   free(c->memory);
   
+  if (c->lcd_driver != NULL) {
+    if (c->machineType == kGestalt_MachineType_Lindy) {
+      lcd_squirt_del((lcd_squirt_t *)c->lcd_driver);
+    }
+    else {
+      lcd_sharp_del((lcd_sharp_t *)c->lcd_driver);
+    }
+  }
 }
 
 void runt_del (runt_t *c) {
