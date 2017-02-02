@@ -43,15 +43,15 @@ enum {
   RuntInterruptADC              = (1 << 10),
     RuntInterruptUnknown2       = (1 << 11), // Notepad 1.0b1: RegisterInterrupt(0x800, 0x0, 0x747c4); -- nop
   RuntInterruptSound            = (1 << 12),
-    RuntInterruptUnknown3         = (1 << 13), // Notepad 1.0b1: RegisterInterrupt(0x2000, 0x0, 0x747e0) -- something with 0x01500000, which in MMU world, 0x01500000 maps to 0x70000000, so PCMCIA interrupt?
-  RuntInterruptDiagnostics      = (1 << 14), // the diagnostic jumper pads?
+    RuntInterruptPCMCIA         = (1 << 13), // Notepad 1.0b1: RegisterInterrupt(0x2000, 0x0, 0x747e0) -- something with 0x01500000, which in MMU world, 0x01500000 maps to 0x70000000, so PCMCIA interrupt?
+  RuntInterruptDiagnostics      = (1 << 14), // the diagnostic jumper pads? creates a reg dump on screen...
   RuntInterruptCardLockSwitch   = (1 << 15),
   RuntInterruptPowerSwitch      = (1 << 16),
   RuntInterruptSerial           = (1 << 17), // questionable
     RuntInterruptUnknown4       = (1 << 18), // Notepad 1.0b1: RegisterInterrupt(0x40000, 0x0, 0x74790); -- looks at ticks??
     RuntInterruptUnknown5       = (1 << 24), // Notepad 1.0b1: RegisterInterrupt(0x1000000, 0x0, 0x7435c); -- nop -- raises FIQ?
-  RuntInterruptUnknown6         = (1 << 25), // debug card?
-    RuntInterruptUnknown7       = (1 << 26), // Notepad 1.0b1: RegisterInterrupt(0x4000000, 0x0, 0x74294); -- more debug card?
+  RuntInterruptDebugCard1         = (1 << 25), // debug card?
+    RuntInterruptDebugCard2       = (1 << 26), // Notepad 1.0b1: RegisterInterrupt(0x4000000, 0x0, 0x74294); -- more debug card?
 };
 
 typedef uint32_t (*lcd_get_uint32_f) (void *ext, uint32_t addr);
