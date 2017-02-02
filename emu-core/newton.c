@@ -753,10 +753,11 @@ void newton_log_exception (void *ext, uint32_t addr) {
     }
     case 0x0c:
       fprintf(c->logFile, "%s PC=0x%08x: prefetch_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
+	  newton_stop((newton_t *)ext);
       break;
     case 0x10:
       fprintf(c->logFile, "%s PC=0x%08x: data_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
-      newton_stop((newton_t *)ext);
+	  //newton_stop((newton_t *)ext);
       break;
     case 0x14:
       fprintf(c->logFile, "%s PC=0x%08x: unused_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
