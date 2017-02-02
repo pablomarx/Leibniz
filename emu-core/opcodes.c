@@ -2519,6 +2519,7 @@ void op80 (arm_t *c)
 	unsigned mode;
 	uint32_t addr, base, writeback;
 	uint32_t val;
+	int aborted;
 
 	p = arm_get_bit (c->ir, 24);
 	u = arm_get_bit (c->ir, 23);
@@ -2529,7 +2530,8 @@ void op80 (arm_t *c)
 	regn = arm_bitcnt32 (regs);
 	mode = arm_get_cpsr_m (c);
 	base = arm_get_rn (c, c->ir);
-
+	aborted = 0;
+	
 	if (u) {
 		writeback = base + 4 * regn;
 
@@ -2565,22 +2567,31 @@ void op80 (arm_t *c)
 			val = arm_get_reg_pc (c, i, 8);
 
 			if (arm_dstore32 (c, addr & 0xfffffffc, val)) {
-				return;
+				aborted = 1;
+				break;
 			}
 
 			addr += 4;
 		}
 	}
 
-	if (s) {
+	if (s && !aborted) {
 		arm_set_reg_map (c, mode);
 	}
 
 	if (w) {
+		if (aborted) {
+			arm_set_reg_map (c, mode);
+		}
 		arm_set_rn (c, c->ir, writeback);
+		if (aborted) {
+			arm_set_reg_map (c, ARM_MODE_ABT);
+		}
 	}
 
-	arm_set_clk (c, 4, 1);
+	if (!aborted) {
+		arm_set_clk (c, 4, 1);
+	}
 }
 
 /* 81: ldm[cond][mode] rn[!], registers[^] */
