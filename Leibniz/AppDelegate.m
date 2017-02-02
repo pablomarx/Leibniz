@@ -103,15 +103,15 @@
 @implementation BlahView
 
 - (void) mouseDown:(NSEvent *)theEvent {
-  [[NSApp delegate] mouseDown:theEvent];
+  [(AppDelegate *)[NSApp delegate] mouseDown:theEvent];
 }
 
 -(void)mouseDragged:(NSEvent *)theEvent {
-  [[NSApp delegate] mouseDragged:theEvent];
+  [(AppDelegate *)[NSApp delegate] mouseDragged:theEvent];
 }
 
 - (void) mouseUp:(NSEvent *)theEvent {
-  [[NSApp delegate] mouseUp:theEvent];
+  [(AppDelegate *)[NSApp delegate] mouseUp:theEvent];
 }
 
 @end
@@ -146,6 +146,6 @@
 
 void FlushDisplay(const char *display, int width, int height) {
   NSData *data = [[NSData alloc] initWithBytes:display length:width*height];
-  [[NSApp delegate] updateEmulatorViewWithData:data size:NSMakeSize(width, height)];
+  [(AppDelegate *)[NSApp delegate] updateEmulatorViewWithData:data size:NSMakeSize(width, height)];
   data = nil;
 }
