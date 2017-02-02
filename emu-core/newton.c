@@ -10,6 +10,7 @@
 #include "memory.h"
 #include "newton.h"
 #include "runt.h"
+#include "pcmcia.h"
 #include "HammerConfigBits.h"
 
 #define countof(__a__) (sizeof(__a__) / sizeof(__a__[0]))
@@ -447,6 +448,9 @@ void newton_set_logfile(newton_t *c, FILE *file) {
   c->logFile = file;
   if (c->runt != NULL) {
     runt_set_log_file(c->runt, file);
+  }
+  if (c->pcmcia != NULL) {
+	pcmcia_set_log_file(c->pcmcia, file);
   }
 }
 
@@ -979,12 +983,11 @@ void newton_configure_runt(newton_t *c, memory_t *rom) {
   
   // XXX: What about the rest of I/O card space? 0x10000000 - 0x20000000
   
-  // Configure some dummy memory for PCMCIA
-  memory_t *pcmcia = memory_new("PCMCIA", 0x00100000);
-  memory_set_logs_reads(pcmcia, true);
-  memory_set_logs_writes(pcmcia, true);
-  newton_install_memory(c, pcmcia, 0x70000000, 0x10000000);
-  
+  // Configure pcmcia handler
+  pcmcia_t *pcmcia = pcmcia_new();
+  pcmcia_set_log_file(pcmcia, c->logFile);
+  c->pcmcia = pcmcia;
+  newton_install_memory_handler(c, 0x70000000, 0x10000000, pcmcia, pcmcia_get_mem32, pcmcia_set_mem32, pcmcia_del);
   
   // Configure the Runt ASIC
   c->runt = runt_new(c->machineType);

@@ -11,6 +11,7 @@
 
 #include "arm.h"
 #include "runt.h"
+#include "pcmcia.h"
 
 #include <stdio.h>
 
@@ -78,6 +79,7 @@ typedef struct newton_s {
   bool stop;
   
   runt_t *runt;
+  pcmcia_t *pcmcia;
   
   membank_t *membanks;
   
