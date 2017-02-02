@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
   newton_set_break_on_unknown_memory(newton, true);
   if (debugmode) {
     newton_set_debugger_bits(newton, 1);
-    newton_set_newt_config(newton, kConfigBit3 | kDontPauseCPU | kHeapChecking | kStopOnThrows | kEnableStdout | kDefaultStdioOn | kEnableListener);
+    newton_set_newt_config(newton, kConfigBit3 | kDontPauseCPU | kStopOnThrows | kEnableStdout | kDefaultStdioOn | kEnableListener);
   }
   
   monitor_t *monitor = monitor_new();
