@@ -33,6 +33,7 @@ enum {
     RuntPowerVPP2 = 0x04,
     RuntPowerLCD = 0x02,
     RuntPowerADC = 0x01,
+  RuntCPUControl = 0x14,
   RuntADCSource = 0x1c,
     RuntADCSourceTabletA = 0x30,
     RuntADCSourceTabletB = 0x31,
@@ -127,6 +128,10 @@ void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
     case RuntADC:
       flag = RuntLogADC;
       prefix = "adc";
+      break;
+    case RuntCPUControl:
+      flag = RuntLogCPUControl;
+      prefix = "cpu-control";
       break;
     case RuntLCD: {
       flag = RuntLogLCD;
