@@ -83,7 +83,7 @@ static const char *runt_power_names[] = {
 
 static const char *runt_interrupt_names[] = {
   "rtc", "ticks", NULL, NULL, NULL, NULL, NULL, NULL,
-  NULL, "adc", NULL, "sound", "pcmcia", "diags", "cardlock", "powerswitch",
+  NULL, "adc", "serialA", "sound", "pcmcia", "diags", "cardlock", "powerswitch",
   "serial", NULL, NULL, NULL, NULL, NULL, NULL, NULL,
   "debugcard1", "debugcard2", NULL, NULL, NULL, NULL, NULL, NULL,
 };
@@ -219,7 +219,7 @@ void runt_raise_interrupt(runt_t *c, uint32_t interrupt) {
     if ((c->logFlags & RuntLogInterrupts) == RuntLogInterrupts) {
       fprintf(c->logFile, "[RUNT:ASIC] Raising interrupt 0x%02x\n", interrupt);
     }
-	if (interrupt == RuntInterruptDebugCard1 || interrupt == RuntInterruptDebugCard2) {
+	if (interrupt == RuntInterruptDebugCard1 || interrupt == RuntInterruptDebugCard2 || interrupt == RuntInterruptUnknown2) {
 	    arm_set_fiq(c->arm, 1);
 	}
 	else {
@@ -251,7 +251,7 @@ void runt_lower_interrupt(runt_t *c, uint32_t interrupt) {
     c->interrupt ^= interrupt;
   }
   
-  if ((c->interrupt & RuntInterruptDebugCard1) == 0 && (c->interrupt & RuntInterruptDebugCard2) == 0) {
+  if ((c->interrupt & RuntInterruptDebugCard1) == 0 && (c->interrupt & RuntInterruptDebugCard2) == 0 && (c->interrupt & RuntInterruptUnknown2) == 0) {
     arm_set_fiq(c->arm, 0);
   }
 
