@@ -219,7 +219,7 @@ void runt_raise_interrupt(runt_t *c, uint32_t interrupt) {
     if ((c->logFlags & RuntLogInterrupts) == RuntLogInterrupts) {
       fprintf(c->logFile, "[RUNT:ASIC] Raising interrupt 0x%02x\n", interrupt);
     }
-	if (interrupt == RuntInterruptDebugCard1 || interrupt == RuntInterruptDebugCard2 || interrupt == RuntInterruptUnknown2) {
+	if (interrupt == RuntInterruptDebugCard1 || interrupt == RuntInterruptDebugCard2 || interrupt == RuntInterruptSerialA) {
 	    arm_set_fiq(c->arm, 1);
 	}
 	else {
@@ -251,7 +251,7 @@ void runt_lower_interrupt(runt_t *c, uint32_t interrupt) {
     c->interrupt ^= interrupt;
   }
   
-  if ((c->interrupt & RuntInterruptDebugCard1) == 0 && (c->interrupt & RuntInterruptDebugCard2) == 0 && (c->interrupt & RuntInterruptUnknown2) == 0) {
+  if ((c->interrupt & RuntInterruptDebugCard1) == 0 && (c->interrupt & RuntInterruptDebugCard2) == 0 && (c->interrupt & RuntInterruptSerialA) == 0) {
     arm_set_fiq(c->arm, 0);
   }
 
@@ -342,14 +342,19 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val, uint32_t pc) {
       break;
       
     case RuntSerial:
+    case RuntIR:
       if ((addr & 0xff) == RuntSerialData) {
         //fprintf(c->logFile, "serial_putc: 0x%02x '%c'\n", val & 0xff, val & 0xff);
       }
-      break;
-    case RuntIR:
-      if ((addr & 0xff) == RuntIRData) {
-        //fprintf(c->logFile, "ir_putc: 0x%02x '%c'\n", val & 0xff, val & 0xff);
-      }
+	  else if ((addr & 0xff) == RuntSerialConfig) {
+	  	
+	  }
+	  else if ((addr & 0xff) == 0) {
+		  if (val == 0x05) {
+			  val = 0x03;
+	          runt_raise_interrupt(c, RuntInterruptSerialA);
+		  }
+	  }
       break;
     case RuntADCSource: {
       uint8_t source = ((val >> 8) & 0xff);
@@ -486,7 +491,16 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr, uint32_t pc) {
       break;
     case RuntIR:
     case RuntSerial:
-      if ((result & 0xff) == 0x00) {
+      if ((addr & 0xff) == RuntSerialData) {
+
+      }
+      else if ((addr & 0xff) == RuntSerialConfig) {
+		  
+      }
+      else {
+		  result = 3;
+      }
+	  if ((result & 0xff) == 0x00) {
         result = 0xffffffff;
       }
       break;
