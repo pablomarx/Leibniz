@@ -153,6 +153,8 @@ bool newton_get_break_on_unknown_memory(newton_t *c);
 void newton_set_instruction_trace(newton_t *c, bool instructionTrace);
 bool newton_get_instruction_trace(newton_t *c);
 
+void newton_mem_hexdump(newton_t *c, uint32_t addr, uint32_t length);
+
 void newton_set_pc_spy(newton_t *c, bool pcSpy);
 bool newton_get_pc_spy(newton_t *c);
 

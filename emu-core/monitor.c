@@ -274,21 +274,7 @@ void monitor_parse_input(monitor_t *c, const char *input) {
       arg2Value = 4;
     }
     
-    uint32_t translated = argValue;
-    arm_translate_extern(c->newton->arm, &translated, 0, NULL, NULL);
-    
-    
-    char *data = malloc(arg2Value);
-    for (int i=0; i<arg2Value; ) {
-      uint32_t word = newton_get_mem32(c->newton, translated + i);
-      
-      data[i++] = word & 0xff;
-      if (i < arg2Value) data[i++] = (word >>  8) & 0xff;
-      if (i < arg2Value) data[i++] = (word >> 16) & 0xff;
-      if (i < arg2Value) data[i++] = (word >> 24) & 0xff;
-    }
-    hexdump(c->newton->logFile, data, translated, arg2Value);
-    free(data);
+	newton_mem_hexdump(c->newton, argValue, arg2Value);
   }
   else if (sscanf(input, "set r%i 0x%x", &argValue, &arg2Value) == 2) {
     printf("Setting r%i to 0x%08x\n", argValue, arg2Value);

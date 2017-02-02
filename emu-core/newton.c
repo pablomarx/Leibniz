@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "arm.h"
+#include "hexdump.h"
 #include "memory.h"
 #include "newton.h"
 #include "runt.h"
@@ -46,6 +47,23 @@ const char *newton_get_symbol_for_address(newton_t *c, uint32_t addr) {
   }
   
   return NULL;
+}
+
+void newton_mem_hexdump(newton_t *c, uint32_t addr, uint32_t length) {
+	uint32_t translated = addr;
+	arm_translate_extern(c->arm, &translated, 0, NULL, NULL);
+
+	char *data = malloc(length);
+	for (int i=0; i<length; ) {
+	  uint32_t word = newton_get_mem32(c, translated + i);
+  
+	  data[i++] = word & 0xff;
+	  if (i < length) data[i++] = (word >>  8) & 0xff;
+	  if (i < length) data[i++] = (word >> 16) & 0xff;
+	  if (i < length) data[i++] = (word >> 24) & 0xff;
+	}
+	hexdump(c->logFile, data, translated, length);
+	free(data);
 }
 
 #pragma mark - Memory access
