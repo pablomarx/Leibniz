@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		F10F099D19C651A700C8C8FD /* hexdump.c in Sources */ = {isa = PBXBuildFile; fileRef = F10F099B19C651A700C8C8FD /* hexdump.c */; };
+		F11F0DE31E43CB4800B963C2 /* pcmcia.c in Sources */ = {isa = PBXBuildFile; fileRef = F11F0DE11E43CB4800B963C2 /* pcmcia.c */; };
 		F123BD5D19C4FC8800EC994F /* arm.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD4719C4FC8800EC994F /* arm.c */; };
 		F123BD5F19C4FC8800EC994F /* copr14.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD4A19C4FC8800EC994F /* copr14.c */; };
 		F123BD6119C4FC8800EC994F /* copr15.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD4C19C4FC8800EC994F /* copr15.c */; };
@@ -42,6 +43,8 @@
 /* Begin PBXFileReference section */
 		F10F099B19C651A700C8C8FD /* hexdump.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = hexdump.c; sourceTree = "<group>"; };
 		F10F099C19C651A700C8C8FD /* hexdump.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = hexdump.h; sourceTree = "<group>"; };
+		F11F0DE11E43CB4800B963C2 /* pcmcia.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pcmcia.c; sourceTree = "<group>"; };
+		F11F0DE21E43CB4800B963C2 /* pcmcia.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pcmcia.h; sourceTree = "<group>"; };
 		F123BD4719C4FC8800EC994F /* arm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = arm.c; sourceTree = "<group>"; };
 		F123BD4819C4FC8800EC994F /* arm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = arm.h; sourceTree = "<group>"; };
 		F123BD4A19C4FC8800EC994F /* copr14.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = copr14.c; sourceTree = "<group>"; };
@@ -122,6 +125,8 @@
 				F123BD5819C4FC8800EC994F /* newton.c */,
 				F123BD7019C4FCF500EC994F /* newton.h */,
 				F123BD5B19C4FC8800EC994F /* opcodes.c */,
+				F11F0DE11E43CB4800B963C2 /* pcmcia.c */,
+				F11F0DE21E43CB4800B963C2 /* pcmcia.h */,
 				F123BD7119C508C200EC994F /* runt.c */,
 				F123BD7219C508C200EC994F /* runt.h */,
 			);
@@ -287,6 +292,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F11F0DE31E43CB4800B963C2 /* pcmcia.c in Sources */,
 				F123BD7319C508C200EC994F /* runt.c in Sources */,
 				F123BD5D19C4FC8800EC994F /* arm.c in Sources */,
 				F1DD99A71CC818DA00C718CC /* memory.c in Sources */,
