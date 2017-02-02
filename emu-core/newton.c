@@ -489,7 +489,7 @@ void newton_log_undef (void *ext, uint32_t ir) {
   
   if (ir == 0xE6000010) {
     fprintf(c->logFile, "SystemBoot");
-    c->arm->reg[15] = c->arm->reg[14] + 4;
+    c->arm->reg[15] = c->arm->reg[15] + 4;
   }
   else if (ir == 0xE6000110) {
     fprintf(c->logFile, "ExitToShell");
