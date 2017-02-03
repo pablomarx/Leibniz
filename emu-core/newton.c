@@ -66,6 +66,49 @@ void newton_mem_hexdump(newton_t *c, uint32_t addr, uint32_t length) {
 	free(data);
 }
 
+#pragma mark -
+void newton_dump_task(newton_t *c, uint32_t taskAddr) {
+	uint32_t name = newton_get_mem32(c, taskAddr + 132);
+	char *pcSymbol = newton_get_symbol_for_address(c, taskAddr);
+	
+    fprintf(c->logFile, "Name: %c%c%c%c\n", (name >> 24) & 0xff, (name >> 16) & 0xff, (name >> 8) & 0xff, name & 0xff);
+    fprintf(c->logFile, "Current Task: 0x%08x\n", newton_get_mem32(c, taskAddr + 124));
+    fprintf(c->logFile, "Priority: %i\n", newton_get_mem32(c, taskAddr + 128));
+    fprintf(c->logFile, "Stack Base: 0x%08x\n", newton_get_mem32(c, taskAddr + 136));
+    fprintf(c->logFile, "Fault Address: 0x%08x\n", newton_get_mem32(c, taskAddr + 84));
+    fprintf(c->logFile, "Fault Status: 0x%08x\n", newton_get_mem32(c, taskAddr + 88));
+
+    fprintf(c->logFile, "r00=%08X  r04=%08X  r08=%08X  r12=%08X  \n",
+            newton_get_mem32(c, taskAddr + 16),
+            newton_get_mem32(c, taskAddr + 32),
+            newton_get_mem32(c, taskAddr + 48),
+            newton_get_mem32(c, taskAddr + 64)
+            );
+  
+    fprintf(c->logFile, "r01=%08X  r05=%08X  r09=%08X   SP=%08X  SPSR=%08X\n",
+    newton_get_mem32(c, taskAddr + 20),
+    newton_get_mem32(c, taskAddr + 36),
+    newton_get_mem32(c, taskAddr + 52),
+    newton_get_mem32(c, taskAddr + 68),
+    newton_get_mem32(c, taskAddr + 80)
+            );
+  
+    fprintf(c->logFile, "r02=%08X  r06=%08X  r10=%08X   LR=%08X    \n",
+    newton_get_mem32(c, taskAddr + 24),
+    newton_get_mem32(c, taskAddr + 40),
+    newton_get_mem32(c, taskAddr + 56),
+    newton_get_mem32(c, taskAddr + 72)
+            );
+  
+    fprintf(c->logFile, "r03=%08X  r07=%08X  r11=%08X   PC=%08X %s    \n",
+    newton_get_mem32(c, taskAddr + 28),
+    newton_get_mem32(c, taskAddr + 44),
+    newton_get_mem32(c, taskAddr + 60),
+    newton_get_mem32(c, taskAddr + 76),
+	pcSymbol ? pcSymbol : ""
+            );    
+}
+
 #pragma mark - Memory access
 uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
   bp_entry_t *bp = c->breakpoints;
@@ -754,7 +797,8 @@ void newton_log_exception (void *ext, uint32_t addr) {
             break;
           case 0x0d:
           case 0x0f:
-            fprintf(c->logFile, " ObjectId=%i, buffer=0x%08x, size=%i, permissions=%i", c->arm->reg[0], c->arm->reg[1], c->arm->reg[2], c->arm->reg[3]);
+            fprintf(c->logFile, " ObjectId=%i, buffer=0x%08x, size=%i, permissions=%i\n", c->arm->reg[0], c->arm->reg[1], c->arm->reg[2], c->arm->reg[3]);
+            newton_mem_hexdump((newton_t *)ext, c->arm->reg[1], c->arm->reg[2]);
             break;
           case 0x0e:
           case 0x10:
