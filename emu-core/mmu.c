@@ -410,6 +410,7 @@ int arm_translate_write (arm_t *c, uint32_t *addr, int priv)
 
 	vaddr = *addr;
 
+#if 0
 	if (mmu->tbuf_write.valid) {
 		arm_tbuf_t *tb = &mmu->tbuf_write;
 
@@ -418,7 +419,8 @@ int arm_translate_write (arm_t *c, uint32_t *addr, int priv)
 			return (0);
 		}
 	}
-
+#endif
+	
 	if (arm_translate (c, addr, &mask, &domn, &perm, &sect)) {
 		arm_mmu_translation_fault (c, vaddr, domn, sect);
 		return (1);
