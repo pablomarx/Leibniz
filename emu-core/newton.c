@@ -1045,18 +1045,19 @@ void newton_configure_runt(newton_t *c, memory_t *rom) {
   
   
   // XXX: What about the rest of I/O card space? 0x10000000 - 0x20000000
-  
-  // Configure pcmcia handler
-  pcmcia_t *pcmcia = pcmcia_new();
-  pcmcia_set_log_file(pcmcia, c->logFile);
-  c->pcmcia = pcmcia;
-  newton_install_memory_handler(c, 0x70000000, 0x10000000, pcmcia, pcmcia_get_mem32, pcmcia_set_mem32, pcmcia_del);
-  
+   
   // Configure the Runt ASIC
   c->runt = runt_new(c->machineType);
   runt_set_arm(c->runt, c->arm);
   runt_set_log_file(c->runt, c->logFile);
   newton_install_memory_handler(c, 0x01400000, 0x00400000, c->runt, runt_get_mem32, runt_set_mem32, runt_del);
+
+  // Configure pcmcia handler
+  pcmcia_t *pcmcia = pcmcia_new();
+  pcmcia_set_log_file(pcmcia, c->logFile);
+  pcmcia_set_runt(pcmcia, c->runt);
+  c->pcmcia = pcmcia;
+  newton_install_memory_handler(c, 0x70000000, 0x10000000, pcmcia, pcmcia_get_mem32, pcmcia_set_mem32, pcmcia_del);
 }
 
 int newton_load_rom(newton_t *c, const char *path) {

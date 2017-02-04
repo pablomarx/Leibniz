@@ -34,6 +34,16 @@ enum {
   RuntLogAll        = 0xffffffff,
 };
 
+enum {
+  RuntPowerTrim = 0x40,       // X5VTRIM_ON - enable card +5V supply
+  RuntPowerSerial = 0x20,     // X5VSERIAL_ON - enable scc, driver and IR supply
+  RuntPowerSound = 0x10,      // X5VSOUND_ON - enable sound out supply
+  RuntPowerVPP1 = 0x08,       // X12V_CONT_1 - enable voltage vpp1, from +5VTRM to +12V
+  RuntPowerVPP2 = 0x04,       // X12V_CONT_2 - enable voltage vpp2, from +5VTRM to +12V
+  RuntPowerLCD = 0x02,
+  RuntPowerADC = 0x01,
+};
+
 // Unknown interrupts were observed being registered
 // via RegisterInterrupt() in a MP130 v2.0 ROM.
 enum {
@@ -114,6 +124,8 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr, uint32_t pc);
 
 void runt_raise_interrupt(runt_t *c, uint32_t interrupt);
 void runt_lower_interrupt(runt_t *c, uint32_t interrupt);
+
+uint8_t runt_get_power_state(runt_t *c, uint32_t subsystem);
 
 void runt_switch_state(runt_t *c, int switchNum, int state);
 

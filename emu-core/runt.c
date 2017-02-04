@@ -26,13 +26,6 @@ enum {
   RuntClearInterrupt = 0x08,
   RuntEnableInterrupt = 0x0c,
   RuntPower = 0x10,
-    RuntPowerTrim = 0x40,
-    RuntPowerSerial = 0x20,
-    RuntPowerSound = 0x10,
-    RuntPowerVPP1 = 0x08,
-    RuntPowerVPP2 = 0x04,
-    RuntPowerLCD = 0x02,
-    RuntPowerADC = 0x01,
   RuntCPUControl = 0x14,
   RuntADCSource = 0x1c,
     RuntADCSourceTabletA = 0x30,
@@ -75,7 +68,7 @@ static name_index runt_adc_names[] = {
 };
 
 static const char *runt_power_names[] = {
-  "adc", "lcd", "vpp2", "vpp1", "sound", "serial", "trim", NULL,
+  "adc", "lcd", "vpp2", "vpp1", "sound", "serial", "trim", "pcmcia",
   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -297,6 +290,10 @@ void runt_switch_state(runt_t *c, int switchNum, int state) {
     runt_lower_interrupt(c, interrupt);
   }
   c->switches[switchNum] = state;
+}
+
+uint8_t runt_get_power_state(runt_t *c, uint32_t subsystem) {
+    return ((c->memory[(RuntPower<<8)/4] & subsystem) == subsystem);
 }
 
 #pragma mark -
