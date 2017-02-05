@@ -204,11 +204,10 @@ void runt_print_description_for_interrupts(runt_t *c, uint32_t val) {
 
 #pragma mark - Interrupts
 void runt_raise_interrupt(runt_t *c, uint32_t interrupt) {
-  if ((c->interrupt & interrupt) != interrupt) {
-    c->interrupt |= interrupt;
-  }
-  
   if ((c->memory[0x0c00 / 4] & interrupt) == interrupt) {
+    if ((c->interrupt & interrupt) != interrupt) {
+      c->interrupt |= interrupt;
+    }
     if ((c->logFlags & RuntLogInterrupts) == RuntLogInterrupts) {
       fprintf(c->logFile, "[RUNT:ASIC] Raising interrupt 0x%02x\n", interrupt);
     }
