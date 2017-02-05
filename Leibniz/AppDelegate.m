@@ -11,6 +11,7 @@
 #include "newton.h"
 #include "runt.h"
 #include "monitor.h"
+#include "HammerConfigBits.h"
 
 #define DegreesToRadians(r)      ((r) * M_PI / 180.0)
 
@@ -48,6 +49,7 @@
   dispatch_async(_emulatorQueue, ^{
     _newton = newton_new();
     newton_load_rom(_newton, [romFile fileSystemRepresentation]);
+    newton_set_newt_config(_newton, kConfigBit3 | kDontPauseCPU | kStopOnThrows | kEnableStdout | kDefaultStdioOn | kEnableListener);
     newton_set_bootmode(_newton, NewtonBootModeDiagnostics);
     newton_emulate(_newton, INT32_MAX);
   });
