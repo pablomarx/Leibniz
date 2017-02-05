@@ -2768,6 +2768,31 @@ void opc5 (arm_t *c)
 	}
 }
 
+/* D0: Coprocessor data transfers (LDC, STC) */
+static
+void opd0 (arm_t *c)
+{
+	int      r;
+	unsigned cop;
+
+	cop = arm_get_bits (c->ir, 8, 4);
+	
+	if (arm_copr_check (c, cop) == 0) {
+		r = c->copr[cop]->exec (c, c->copr[cop]);
+	}
+	else {
+		r = 1;
+	}
+
+	if (r) {
+		arm_set_clk (c, 0, 1);
+		arm_exception_undefined (c);
+		return;
+	}
+
+	arm_set_clk (c, 4, 1);
+}
+
 /* E0 00: cdp[cond] coproc, opcode1, crd, crn, crm, opcode2 */
 static
 void ope0_00 (arm_t *c)
@@ -2907,8 +2932,8 @@ arm_opcode_f arm_opcodes[256] = {
 	opb0, opb0, opb0, opb0, opb0, opb0, opb0, opb0,
 	NULL, NULL, NULL, NULL, opc4, opc5, NULL, NULL,  /* c0 */
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,  /* d0 */
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, opd0, opd0, NULL,  /* d0 */
+	NULL, opd0, NULL, NULL, NULL, NULL, NULL, NULL,
 	ope0, ope0, ope0, ope0, ope0, ope0, ope0, ope0,  /* e0 */
 	ope0, ope0, ope0, ope0, ope0, ope0, ope0, ope0,
 	opf0, opf0, opf0, opf0, opf0, opf0, opf0, opf0,  /* f0 */
