@@ -574,7 +574,7 @@ void runt_set_lcd_fct(runt_t *c, void *ext,
 }
 
 void runt_init (runt_t *c, int machineType) {
-  c->memory = calloc(0x8fff, 1);
+  c->memory = calloc(0xffff, 1);
   c->machineType = machineType;
   
   //
