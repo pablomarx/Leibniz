@@ -87,6 +87,7 @@ typedef struct newton_s {
   uint32_t romManufacturer;
   uint32_t debuggerBits;
   uint32_t newtConfig;
+  uint32_t newtTests;
 
   bp_entry_t *breakpoints;
   symbol_t *symbols;
@@ -138,6 +139,9 @@ uint32_t newton_get_debugger_bits(newton_t *c);
 
 void newton_set_newt_config(newton_t *c, uint32_t newt_config);
 uint32_t newton_get_newt_config(newton_t *c);
+
+void newton_set_newt_tests(newton_t *c, uint32_t newt_tests);
+uint32_t newton_get_newt_tests(newton_t *c);
 
 uint32_t newton_address_for_symbol(newton_t *c, const char *symbol);
 void newton_load_mapfile(newton_t *c, const char *mapfile);

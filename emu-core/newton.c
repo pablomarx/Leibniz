@@ -129,6 +129,9 @@ uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
   if (addr == 0x000013f4) {
     result = c->debuggerBits;
   }
+  else if (addr == 0x000013f8) {
+    result = c->newtTests;
+  }
   else if (addr == 0x000013fc) {
     result = c->newtConfig;
   }
@@ -419,6 +422,14 @@ void newton_set_newt_config(newton_t *c, uint32_t newt_config) {
 
 uint32_t newton_get_newt_config(newton_t *c) {
   return c->newtConfig;
+}
+
+void newton_set_newt_tests(newton_t *c, uint32_t newt_tests) {
+  c->newtTests = newt_tests;
+}
+
+uint32_t newton_get_newt_tests(newton_t *c) {
+  return c->newtTests;
 }
 
 
