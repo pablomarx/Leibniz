@@ -27,6 +27,9 @@ int fpa_exec(arm_t *arm, arm_copr_t *copro)
 {
 	int r;
 	r = EmulateAll(arm->ir);
+	if (r) {
+		arm_set_clk (arm, 4, 1);
+	}
 	return !r;
 }
 

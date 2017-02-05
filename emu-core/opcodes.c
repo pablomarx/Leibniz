@@ -2790,7 +2790,7 @@ void opd0 (arm_t *c)
 		return;
 	}
 
-	arm_set_clk (c, 4, 1);
+//	arm_set_clk (c, 4, 1);
 }
 
 /* E0 00: cdp[cond] coproc, opcode1, crd, crn, crm, opcode2 */
@@ -2815,7 +2815,7 @@ void ope0_00 (arm_t *c)
 		return;
 	}
 
-	arm_set_clk (c, 4, 1);
+//	arm_set_clk (c, 4, 1);
 }
 
 /* E0 01: mcr[cond] coproc, opcode1, rd, crn, crm, opcode2 */
