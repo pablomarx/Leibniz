@@ -15,6 +15,7 @@
 #include <string.h>
 
 #include "arm.h"
+#include "fpa.h"
 #include "hexdump.h"
 #include "memory.h"
 #include "newton.h"
@@ -984,6 +985,10 @@ void newton_init (newton_t *c)
                   newton_set_mem8, newton_set_mem16, newton_set_mem32);
   arm_reset(c->arm);
   
+  //
+  // Setup floating point coprocessor
+  //
+  fpa_init(c->arm);
   
   //
   // Logging
@@ -1230,6 +1235,7 @@ void newton_free (newton_t *c)
   }
 
   arm_del(c->arm);
+  fpa_delete();
 }
 
 void newton_del (newton_t *c)
