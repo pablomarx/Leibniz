@@ -21,7 +21,7 @@ enum {
   SharpLCDPixelData = 0x88,
   SharpLCDUnknown2 = 0x8c, // 13692 calls
   
-  SharpLCDUnknown3 = 0x94, // 12956 calls
+  SharpLCDDirection = 0x94, // 12956 calls
   
   SharpLCDFillMode = 0xa0,
   SharpLCDUnknown4 = 0xa4, // 2 calls
@@ -98,6 +98,9 @@ const char *lcd_sharp_get_address_name(lcd_sharp_t *c, uint32_t addr) {
     case SharpLCDScreenWidthMSB:
       prefix = "lcd-screen-width-msb";
       break;
+    case SharpLCDDirection:
+      prefix = "direction";
+      break;
     case SharpLCDFlush:
       prefix = "lcd-flush";
       break;
@@ -112,6 +115,9 @@ uint32_t lcd_sharp_set_mem32(lcd_sharp_t *c, uint32_t addr, uint32_t val) {
   c->memory[addr/4] = val;
   val = val >> 24;
   switch (addr) {
+    case SharpLCDDirection:
+      c->displayDirection = val;
+      break;
     case SharpLCDCursorXLSB:
       c->displayCursorX = (val & 0xff);
       if (c->displayCursorX < 0) {
@@ -160,6 +166,10 @@ uint32_t lcd_sharp_set_mem32(lcd_sharp_t *c, uint32_t addr, uint32_t val) {
         y -= SCREEN_HEIGHT;
       }
       
+      if (c->displayDirection == 0x00000006) {
+        y = SCREEN_HEIGHT - y;
+      }
+      
       int i=(c->displayInverse && x >= c->displayInverse ? 4 : 7);
       for (; i>=0; i--) {
         int offset = (y * SCREEN_WIDTH) + (x);
@@ -177,7 +187,8 @@ uint32_t lcd_sharp_set_mem32(lcd_sharp_t *c, uint32_t addr, uint32_t val) {
             }
           }
         }
-        x++;
+        
+        x += 1;
       }
       
       if (c->displayInverse) c->displayCursorX+=5;

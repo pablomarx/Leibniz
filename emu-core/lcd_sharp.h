@@ -15,7 +15,7 @@
 #include <stdio.h>
 
 typedef struct lcd_sharp_s {
-    FILE *logFile;
+  FILE *logFile;
   uint32_t *memory;
 
   int displayFillMode;
@@ -25,6 +25,7 @@ typedef struct lcd_sharp_s {
   int displayCursorY;
   int displayBusy;
   int displayDirty;
+  int displayDirection;
   unsigned char *displayFramebuffer;
 } lcd_sharp_t;
 
