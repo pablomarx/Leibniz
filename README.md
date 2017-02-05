@@ -3,7 +3,9 @@ Work in progress emulator for RUNT based Newtons (OMP, Expert Pad, etc)
 
 ### Status
 
-Currently able to boot into diagnostics mode. LCD and tablet work, so one can navigate through diagnostics menus. 
+Currently able to boot into diagnostics mode on all RUNT devices. LCD and tablet work, so one can navigate through diagnostics menus. 
+
+The Notepad v1.0b1 ROM is able to boot into NewtonOS, however the tablet is not working inside NewtonOS.
 
 Known to work with the following ROM images:
 
@@ -17,6 +19,10 @@ Known to work with the following ROM images:
 8. [MessagePad 120 v1.3](http://www.unna.org/incoming/MessagePad%20120%20v1.3%20(444217).rom)
 
 ### Screenshots
+
+Notepad 1.0b1 NewtonOS:
+
+![image](http://i.imgur.com/H4TvlJB.png)
 
 Junior diagnostics:
 
@@ -35,8 +41,9 @@ Junior diagnostics:
 Lindy diagnostics:
 
 MessagePad 110 v1.2:
+
 ![image](http://i.imgur.com/wlYEm8U.png)
 
-
 MessagePad 120 v1.3:
+
 ![image](http://i.imgur.com/phUfF1w.png)
