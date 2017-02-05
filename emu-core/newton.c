@@ -1,3 +1,11 @@
+//
+//  newton.c
+//  Leibniz
+//
+//  Created by Steve White on 9/13/14.
+//  Copyright (c) 2014 Steve White. All rights reserved.
+//
+
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
