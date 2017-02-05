@@ -785,10 +785,14 @@ void newton_log_exception (void *ext, uint32_t addr) {
   newton_t *c = (newton_t *)ext;
   switch(addr) {
     case 0x00:
-      fprintf(c->logFile, "%s PC=0x%08x: reset_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
+      if ((c->logFlags & NewtonLogVectorTable) == NewtonLogVectorTable) {
+        fprintf(c->logFile, "%s PC=0x%08x: reset_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
+      }
       break;
     case 0x04:
-      fprintf(c->logFile, "%s PC=0x%08x: undefined_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
+      if ((c->logFlags & NewtonLogVectorTable) == NewtonLogVectorTable) {
+        fprintf(c->logFile, "%s PC=0x%08x: undefined_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
+      }
       break;
     case 0x08: {
       if ((c->logFlags & NewtonLogSWI) == NewtonLogSWI) {
@@ -834,21 +838,30 @@ void newton_log_exception (void *ext, uint32_t addr) {
       break;
     }
     case 0x0c:
-      fprintf(c->logFile, "%s PC=0x%08x: prefetch_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
-	  newton_stop((newton_t *)ext);
+	  if ((c->logFlags & NewtonLogVectorTable) == NewtonLogVectorTable) {
+        fprintf(c->logFile, "%s PC=0x%08x: prefetch_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
+	    newton_stop((newton_t *)ext);
+      }
       break;
     case 0x10:
-      fprintf(c->logFile, "%s PC=0x%08x: data_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
-	  //newton_stop((newton_t *)ext);
+	  if ((c->logFlags & NewtonLogVectorTable) == NewtonLogVectorTable) {
+        fprintf(c->logFile, "%s PC=0x%08x: data_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
+      }
       break;
     case 0x14:
-      fprintf(c->logFile, "%s PC=0x%08x: unused_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
+	  if ((c->logFlags & NewtonLogVectorTable) == NewtonLogVectorTable) {
+        fprintf(c->logFile, "%s PC=0x%08x: unused_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
+      }
       break;
     case 0x18:
-      fprintf(c->logFile, "%s PC=0x%08x: irq_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
+	  if ((c->logFlags & NewtonLogVectorTable) == NewtonLogVectorTable) {
+        fprintf(c->logFile, "%s PC=0x%08x: irq_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
+      }
       break;
     case 0x1c:
-      fprintf(c->logFile, "%s PC=0x%08x: fiq_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
+	  if ((c->logFlags & NewtonLogVectorTable) == NewtonLogVectorTable) {
+        fprintf(c->logFile, "%s PC=0x%08x: fiq_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
+      }
       break;
   }
   //  newton_stop((newton_t *)ext);

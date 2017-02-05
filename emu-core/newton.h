@@ -49,12 +49,13 @@ struct bp_entry_s {
 };
 
 enum {
-  NewtonLogNone       = 0x00000000,
+  NewtonLogNone        = 0x00000000,
   
-  NewtonLogFlash      = (1 << 1),
-  NewtonLogSWI        = (1 << 2),
+  NewtonLogFlash       = (1 << 1),
+  NewtonLogSWI         = (1 << 2),
+  NewtonLogVectorTable = (1 << 3),
 
-  NewtonLogAll        = 0xffffffff,
+  NewtonLogAll         = 0xffffffff,
 };
 
 typedef uint32_t (*membank_set_uint32_f) (void *ext, uint32_t addr, uint32_t val, uint32_t pc);
