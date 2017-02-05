@@ -599,6 +599,7 @@ void newton_log_undef (void *ext, uint32_t ir) {
         
         uint32_t arg1 = 0;
         arm_get_mem32(c->arm, c->arm->reg[1], 0, &arg1);
+        arm_translate_extern(c->arm, &arg1, 0, NULL, NULL);
         
         int index = 0;
         char name[255];
