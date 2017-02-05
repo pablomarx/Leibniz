@@ -24,6 +24,7 @@
 #include "HammerConfigBits.h"
 
 #define countof(__a__) (sizeof(__a__) / sizeof(__a__[0]))
+#define MAX(a, b)      (((a) > (b)) ? (a) : (b))
 
 
 #pragma mark - Symbols
@@ -542,6 +543,28 @@ int newton_log_opcode (void *ext, uint32_t ir) {
   return 0;
 }
 
+char *newton_get_string(newton_t *c, uint32_t address, uint32_t length) {
+    uint32_t translated = address;
+    arm_translate_extern(c->arm, &translated, 0, NULL, NULL);
+    
+    char *msg = calloc(1024, 1);
+    uint32_t value;
+    int index = 0;
+    while (1) {
+        value = newton_get_mem32(c, translated);
+        if (index < length) msg[index++] = (value >> 24) & 0xff;
+        if (index < length) msg[index++] = (value >> 16) & 0xff;
+        if (index < length) msg[index++] = (value >>  8) & 0xff;
+        if (index < length) msg[index++] = (value      ) & 0xff;
+        if (index >= length) {
+            break;
+        }
+        translated += 4;
+    }
+    return msg;
+}
+
+
 char *newton_get_cstring(newton_t *c, uint32_t address) {
   uint32_t translated = address;
   arm_translate_extern(c->arm, &translated, 0, NULL, NULL);
@@ -562,6 +585,182 @@ char *newton_get_cstring(newton_t *c, uint32_t address) {
     translated += 4;
   }
   return msg;
+}
+
+newton_file_t *newton_tap_file_for_fp(newton_t *c, uint32_t fp)
+{
+    newton_file_t *file = c->files;
+    while (file != NULL) {
+        if (file->fp == fp) {
+            return file;
+        }
+        file = file->next;
+    }
+    return NULL;
+}
+
+void newton_tap_file_delete(newton_t *c, newton_file_t *file)
+{
+    newton_file_t *aFile = c->files;
+    newton_file_t *last = NULL;
+    while (aFile != NULL) {
+        if (aFile == file) {
+            if (last == NULL) {
+                c->files = file->next;
+            }
+            else {
+                last->next = file->next;
+            }
+            break;
+        }
+        last = aFile;
+        aFile = aFile->next;
+    }
+
+    free(file->name);
+    free(file);
+}
+
+void newton_tap_file_control(newton_t *c)
+{
+    enum {
+        do_sys_open = 0x10,
+        do_sys_close = 0x11,
+        do_sys_istty = 0x12,
+        do_sys_read = 0x13,
+        do_sys_write = 0x14,
+        do_sys_set_input_notify = 0x15,
+    };
+    
+    fprintf(c->logFile, "TapFileCntl: ");
+    
+    switch (c->arm->reg[0]) {
+        case do_sys_open: { // 0x0018c0cc
+            bool memTrace = c->memTrace;
+            c->memTrace = false;
+            
+            uint32_t arg1 = 0;
+            arm_get_mem32(c->arm, c->arm->reg[1], 0, &arg1);
+            arm_translate_extern(c->arm, &arg1, 0, NULL, NULL);
+            
+            int index = 0;
+            char *name = calloc(255, sizeof(char));
+            char letter;
+            while((letter = newton_get_mem8(c, arg1)) != 0x00) {
+                name[index++] = letter;
+                arg1++;
+            }
+            name[index] = 0;
+            
+            uint32_t mode = 0;
+            arm_get_mem32(c->arm, c->arm->reg[1] + 4, 0, &mode);
+            
+            fprintf(c->logFile, "Open: name='%s', mode=", name);
+            switch(mode) {
+                case 4:
+                    fprintf(c->logFile, "write");
+                    break;
+                case 0:
+                    fprintf(c->logFile, "read");
+                    break;
+                default:
+                    fprintf(c->logFile, "unknown %i", mode);
+                    break;
+            }
+            
+            uint32_t fp = 0;
+            newton_file_t *file = c->files;
+            while(file != NULL) {
+                fp = MAX(fp, file->fp);
+                file = file->next;
+            }
+            fp = fp + 1;
+            fprintf(c->logFile, ", fp=%i", fp);
+            
+            file = calloc(1, sizeof(newton_file_t));
+            file->fp = fp;
+            file->istty = (name[0] == '%');
+            file->mode = mode;
+            file->name = name;
+            file->next = c->files;
+            c->files = file;
+            
+            c->memTrace = memTrace;
+            c->arm->reg[0] = fp; // fp
+            c->arm->reg[7] = 8;
+            break;
+        }
+        case do_sys_close: {// 0x0018c120
+            uint32_t fp = 0;
+            arm_get_mem32(c->arm, c->arm->reg[1], 0, &fp);
+            fprintf(c->logFile, "close fp=%i", fp);
+            
+            newton_file_t *file = newton_tap_file_for_fp(c, fp);
+            if (file != NULL) {
+                fprintf(c->logFile, ", name=%s", file->name);
+                newton_tap_file_delete(c, file);
+            }
+            
+            c->arm->reg[0] = 0x01;
+            break;
+        }
+        case do_sys_istty: { // 0x0018c170
+            uint32_t fp = 0;
+            uint32_t result = 0;
+
+            arm_get_mem32(c->arm, c->arm->reg[1], 0, &fp);
+            
+            newton_file_t *file = newton_tap_file_for_fp(c, fp);
+            if (file != NULL) {
+                result = file->istty;
+            }
+            fprintf(c->logFile, "istty, fp=%i, result=%i", fp, result);
+            
+            c->arm->reg[0] = result;
+            break;
+        }
+        case do_sys_read: {// 0x0018c1a0
+            uint32_t fp = 0;
+            arm_get_mem32(c->arm, c->arm->reg[1], 0, &fp);
+            fprintf(c->logFile, "read fp=%i", fp);
+            c->arm->reg[0] = 0x00;
+            break;
+        }
+        case do_sys_write: // 0x0018c2b4
+        {
+            uint32_t fp = 0;
+            uint32_t len = 0;
+            uint32_t buf = 0;
+            
+            arm_get_mem32(c->arm, c->arm->reg[1], 0, &fp);
+            arm_get_mem32(c->arm, c->arm->reg[1] + 4, 0, &buf);
+            arm_get_mem32(c->arm, c->arm->reg[1] + 8, 0, &len);
+            
+            arm_translate_extern(c->arm, &buf, 0, NULL, NULL);
+
+            char *msg = newton_get_string(c, buf, len);
+            
+            fprintf(c->logFile, "write(fp=%i, len=0x%08x, buf=0x%08x)\n", fp, len, buf);
+            fprintf(c->logFile, "msg: %s\n", msg);
+            free(msg);
+            c->arm->reg[0] = 0x00;
+            break;
+        }
+        case do_sys_set_input_notify: {// 0x0018c06c
+            uint32_t fp, input_notify;
+            arm_get_mem32(c->arm, c->arm->reg[1], 0, &fp);
+            arm_get_mem32(c->arm, c->arm->reg[1] + 4, 0, &input_notify);
+            fprintf(c->logFile, "set_input_notify: fp=%i, addr=%08x", fp, input_notify);
+
+            newton_file_t *file = newton_tap_file_for_fp(c, fp);
+            if (file != NULL) {
+                file->input_notify = input_notify;
+            }
+            
+            c->arm->reg[0] = 0x01;
+            break;
+        }
+    }
 }
 
 void newton_log_undef (void *ext, uint32_t ir) {
@@ -600,95 +799,7 @@ void newton_log_undef (void *ext, uint32_t ir) {
     fprintf(c->logFile, "SendTestResults");
   }
   else if (ir == 0xE6000810) {
-    enum {
-      do_sys_open = 0x10,
-      do_sys_close = 0x11,
-      do_sys_istty = 0x12,
-      do_sys_read = 0x13,
-      do_sys_write = 0x14,
-      do_sys_set_input_notify = 0x15,
-    };
-    
-    fprintf(c->logFile, "TapFileCntl: ");
-    
-    static int lastFp = 1;
-    switch (c->arm->reg[0]) {
-      case do_sys_open: { // 0x0018c0cc
-        bool memTrace = c->memTrace;
-        c->memTrace = false;
-        
-        uint32_t arg1 = 0;
-        arm_get_mem32(c->arm, c->arm->reg[1], 0, &arg1);
-        arm_translate_extern(c->arm, &arg1, 0, NULL, NULL);
-        
-        int index = 0;
-        char name[255];
-        char letter;
-        while((letter = newton_get_mem8(c, arg1)) != 0x00) {
-          name[index++] = letter;
-          arg1++;
-        }
-        name[index] = 0;
-        
-        uint32_t arg2 = 0;
-        arm_get_mem32(c->arm, c->arm->reg[1] + 4, 0, &arg2);
-        
-        fprintf(c->logFile, "Open: name='%s', mode=", name);
-        switch(arg2) {
-          case 4:
-            fprintf(c->logFile, "write");
-            break;
-          case 0:
-            fprintf(c->logFile, "read");
-            break;
-          default:
-            fprintf(c->logFile, "unknown %i", arg2);
-            break;
-        }
-        fprintf(c->logFile, ", fp=%i", lastFp);
-        c->memTrace = memTrace;
-        c->arm->reg[0] = lastFp++; // fp
-        c->arm->reg[7] = 8;
-        break;
-      }
-      case do_sys_close: // 0x0018c120
-        fprintf(c->logFile, "close");
-        c->arm->reg[0] = 0x01;
-        break;
-      case do_sys_istty: { // 0x0018c170
-        uint32_t arg1 = 0;
-        arm_get_mem32(c->arm, c->arm->reg[1], 0, &arg1);
-        fprintf(c->logFile, "istty, fp=%i", arg1);
-        c->arm->reg[0] = 0x01; // 1, yes, is tty.
-      }
-        break;
-      case do_sys_read: // 0x0018c1a0
-        fprintf(c->logFile, "read");
-        c->arm->reg[0] = 0x00;
-        break;
-      case do_sys_write: // 0x0018c2b4
-      {
-        uint32_t fp = 0;
-        uint32_t len = 0;
-        uint32_t buf = 0;
-        
-        arm_get_mem32(c->arm, c->arm->reg[1], 0, &fp);
-        arm_get_mem32(c->arm, c->arm->reg[1] + 4, 0, &buf);
-        arm_get_mem32(c->arm, c->arm->reg[1] + 8, 0, &len);
-        
-        char *msg = newton_get_cstring(c, buf);
-        
-        fprintf(c->logFile, "write(fp=%i, len=0x%08x, buf=0x%08x)\n", fp, len, buf);
-        fprintf(c->logFile, "msg: %s\n", msg);
-        free(msg);
-        c->arm->reg[0] = 0x00;
-        break;
-      }
-      case do_sys_set_input_notify: // 0x0018c06c
-        fprintf(c->logFile, "set_input_notify");
-        c->arm->reg[0] = 0x01;
-        break;
-    }
+    newton_tap_file_control(c);
     c->arm->reg[15] = c->arm->reg[14];
   }
   else {
@@ -1234,6 +1345,10 @@ void newton_free (newton_t *c)
     membank = membank->next;
   }
 
+    while(c->files != NULL) {
+        newton_tap_file_delete(c, c->files);
+    }
+    
   arm_del(c->arm);
   fpa_delete();
 }

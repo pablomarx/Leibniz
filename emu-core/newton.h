@@ -75,6 +75,16 @@ struct membank_s {
   membank_t *next;
 };
 
+typedef struct newton_file_s newton_file_t;
+struct newton_file_s {
+    char *name;
+    int mode;
+    int fp;
+    int istty;
+    uint32_t input_notify;
+    newton_file_t *next;
+};
+
 typedef struct newton_s {
   arm_t *arm;
   bool stop;
@@ -83,6 +93,7 @@ typedef struct newton_s {
   pcmcia_t *pcmcia;
   
   membank_t *membanks;
+  newton_file_t *files;
   
   uint32_t machineType;
   uint32_t romManufacturer;
