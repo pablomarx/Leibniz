@@ -215,6 +215,7 @@ void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
   }
 }
 
+#pragma mark - Interrupts
 void runt_print_description_for_interrupts(runt_t *c, uint32_t val) {
   for (int i=0; i<32; i++) {
     uint32_t bit = (1 << i);
@@ -230,7 +231,13 @@ void runt_print_description_for_interrupts(runt_t *c, uint32_t val) {
   }
 }
 
-#pragma mark - Interrupts
+void runt_print_enabled_interrupts(runt_t *c) {
+    uint32_t val = c->memory[(RuntEnableInterrupt << 8)/4];
+    fprintf(c->logFile, "Enabled interrupts: ");
+    runt_print_description_for_interrupts(c, val);
+    fprintf(c->logFile, "\n");
+}
+
 void runt_raise_interrupt(runt_t *c, uint32_t interrupt) {
   if ((c->memory[0x0c00 / 4] & interrupt) == interrupt) {
     if ((c->interrupt & interrupt) != interrupt) {
