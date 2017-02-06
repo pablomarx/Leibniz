@@ -668,23 +668,29 @@ void newton_tap_file_control(newton_t *c)
                     break;
             }
             
-            uint32_t fp = 0;
-            newton_file_t *file = c->files;
-            while(file != NULL) {
-                fp = MAX(fp, file->fp);
-                file = file->next;
-            }
-            fp = fp + 1;
+            int32_t fp = 0;
+			if (name[0] != '%') {
+				fp = -1;
+				free(name);
+			}
+			else {
+	            newton_file_t *file = c->files;
+	            while(file != NULL) {
+	                fp = MAX(fp, file->fp);
+	                file = file->next;
+	            }
+	            fp = fp + 1;
+            
+	            file = calloc(1, sizeof(newton_file_t));
+	            file->fp = fp;
+	            file->istty = (name[0] == '%');
+	            file->mode = mode;
+	            file->name = name;
+	            file->next = c->files;
+	            c->files = file;
+			}
+            
             fprintf(c->logFile, ", fp=%i", fp);
-            
-            file = calloc(1, sizeof(newton_file_t));
-            file->fp = fp;
-            file->istty = (name[0] == '%');
-            file->mode = mode;
-            file->name = name;
-            file->next = c->files;
-            c->files = file;
-            
             c->memTrace = memTrace;
             c->arm->reg[0] = fp; // fp
             c->arm->reg[7] = 8;
