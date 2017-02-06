@@ -41,6 +41,7 @@ enum {
   RuntTicks = 0x34,
   RuntTicksAlarm1 = 0x38,
   RuntTicksAlarm2 = 0x40,
+  RuntTicksAlarm3 = 0x48,
   // 0x50: 14 reads
   // 0x54: 14 writes [these two are accessed during data aborts]
   RuntADC = 0x58,
@@ -98,7 +99,7 @@ static const char *runt_power_names[] = {
 };
 
 static const char *runt_interrupt_names[] = {
-  "rtc", "ticks", NULL, NULL, NULL, NULL, NULL, NULL,
+  "rtc", "ticks", "ticks2", NULL, NULL, NULL, NULL, NULL,
   NULL, "adc", "serialA", "sound", "pcmcia", "diags", "cardlock", "powerswitch",
   "serial", NULL, NULL, NULL, NULL, NULL, NULL, NULL,
   "debugcard1", "debugcard2", NULL, NULL, NULL, NULL, NULL, NULL,
@@ -140,6 +141,10 @@ void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
     case RuntTicksAlarm2:
       flag = RuntLogTicks;
       prefix = "set-ticks-alarm2";
+      break;
+    case RuntTicksAlarm3:
+      flag = RuntLogTicks;
+      prefix = "set-ticks-alarm3";
       break;
     case RuntADC:
       flag = RuntLogADC;
@@ -378,15 +383,11 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val, uint32_t pc) {
     case RuntADCSource: {
       uint8_t source = ((val >> 8) & 0xff);
       c->adcSource = source;
-      c->adcPeriodic = false;
 
-      if (source == RuntADCSourceBackupBattery || source == RuntADCSourceMainBattery || source == RuntADCSourceThermistor) {
+      if (source == RuntADCSourceBackupBattery || source == RuntADCSourceMainBattery ||
+          source == RuntADCSourceThermistor || source == RuntADCSourceNicad)
+      {
         runt_raise_interrupt(c, RuntInterruptADC);
-      }
-      else if (source == RuntADCSourceNicad) {
-          c->adcPeriodic = true;
-          c->adcLastFire = c->ticks;
-          runt_raise_interrupt(c, RuntInterruptADCPeriodic);
       }
       else if ((source == RuntADCSourceTabletA || source == RuntADCSourceTabletB) && c->touchActive == true) {
         runt_raise_interrupt(c, RuntInterruptADC);
@@ -452,6 +453,9 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val, uint32_t pc) {
       break;
     case RuntTicksAlarm2:
       c->ticksAlarm2 = val;
+      break;
+    case RuntTicksAlarm3:
+      c->ticksAlarm3 = val;
       break;
     default:
       break;
@@ -543,6 +547,9 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr, uint32_t pc) {
     case RuntTicksAlarm2:
       result = c->ticksAlarm2;
       break;
+    case RuntTicksAlarm3:
+      result = c->ticksAlarm3;
+      break;
   }
   
   runt_log_access(c, addr, result, false);
@@ -552,12 +559,6 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr, uint32_t pc) {
 
 void runt_step(runt_t *c) {
   c->ticks += 10;
-  if (c->adcPeriodic == true) {
-    if (c->ticks - c->adcLastFire > 100) {
-      runt_raise_interrupt(c, RuntInterruptADCPeriodic);
-      c->adcLastFire = c->ticks;
-    }
-  }
   
   if (c->rtcAlarm != 0 && runt_get_rtc(c) >= c->rtcAlarm) {
     runt_raise_interrupt(c, RuntInterruptRTC);
@@ -573,7 +574,12 @@ void runt_step(runt_t *c) {
     runt_raise_interrupt(c, RuntInterruptTicks);
     c->ticksAlarm2 = 0;
   }
-  
+
+  if (c->ticksAlarm3 != 0 && runt_get_ticks(c) >= c->ticksAlarm3) {
+    runt_raise_interrupt(c, RuntInterruptTicks2);
+    c->ticksAlarm3 = 0;
+  }
+
   if (c->lcd_step != NULL) {
     c->lcd_step(c->lcd_driver);
   }

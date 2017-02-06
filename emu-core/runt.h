@@ -49,7 +49,7 @@ enum {
 enum {
   RuntInterruptRTC              = (1 << 1),
   RuntInterruptTicks            = (1 << 2),
-  RuntInterruptADCPeriodic      = (1 << 3), // Notepad 1.0b1: RegisterInterrupt(0x8, 0x0, 0x74344); -- tablet?
+  RuntInterruptTicks2           = (1 << 3), // Notepad 1.0b1: RegisterInterrupt(0x8, 0x0, 0x74344); -- tablet?
   RuntInterruptUnknown1         = (1 << 4),
   RuntInterruptADC              = (1 << 10),
   RuntInterruptSerialA          = (1 << 11), // FIQ - Notepad 1.0b1: RegisterInterrupt(0x800, 0x0, 0x747c4); -- nop
@@ -80,8 +80,8 @@ typedef struct runt_s {
   uint32_t rtcAlarm;
   uint32_t ticksAlarm1;
   uint32_t ticksAlarm2;
+  uint32_t ticksAlarm3;
   uint32_t adcSource;
-  bool adcPeriodic;
   uint32_t adcLastFire;
   
   // Logging
