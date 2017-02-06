@@ -28,7 +28,7 @@ enum {
   RuntPower = 0x10,
   RuntCPUControl = 0x14,
   RuntADCSource = 0x1c,
-    RuntADCSourceNicad = 0x04,
+    RuntADCSourceNicad = 0x14,
     RuntADCSourceTabletA = 0x30,
     RuntADCSourceTabletB = 0x31,
     RuntADCSourceThermistor = 0x32,
@@ -82,7 +82,7 @@ typedef struct {
 } name_index;
 
 static name_index runt_adc_names[] = {
-  { .index = 0x04, .name = "Nicad" },
+  { .index = 0x14, .name = "Nicad" },
   { .index = 0x30, .name = "TabletA" },
   { .index = 0x31, .name = "TabletB" },
   { .index = 0x32, .name = "Thermistor" },
@@ -407,7 +407,7 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val, uint32_t pc) {
           }
         }
         if (matched == false) {
-          fprintf(c->logFile, "**unknown: %i**", source);
+          fprintf(c->logFile, "**unknown: 0x%02x**", source);
         }
         fprintf(c->logFile, "\n");
       }
@@ -471,9 +471,6 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr, uint32_t pc) {
       break;
     case RuntTicks:
       result = runt_get_ticks(c);
-      break;
-    case RuntADCSource:
-      result = c->adcSource;
       break;
     case RuntADC: {
       uint32_t sampleSource = c->adcSource;
@@ -545,9 +542,6 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr, uint32_t pc) {
       break;
     case RuntTicksAlarm2:
       result = c->ticksAlarm2;
-      break;
-    default:
-      fprintf(c->logFile, "unknown read: addr=0x%08x, PC=0x%08x...\n", addr, arm_get_pc(c->arm));
       break;
   }
   
