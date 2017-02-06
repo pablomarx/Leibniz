@@ -28,6 +28,7 @@ enum {
   RuntPower = 0x10,
   RuntCPUControl = 0x14,
   RuntADCSource = 0x1c,
+    RuntADCSourceNicad = 0x04,
     RuntADCSourceTabletA = 0x30,
     RuntADCSourceTabletB = 0x31,
     RuntADCSourceThermistor = 0x32,
@@ -81,6 +82,7 @@ typedef struct {
 } name_index;
 
 static name_index runt_adc_names[] = {
+  { .index = 0x04, .name = "Nicad" },
   { .index = 0x30, .name = "TabletA" },
   { .index = 0x31, .name = "TabletB" },
   { .index = 0x32, .name = "Thermistor" },
@@ -376,9 +378,15 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val, uint32_t pc) {
     case RuntADCSource: {
       uint8_t source = ((val >> 8) & 0xff);
       c->adcSource = source;
-      
+      c->adcPeriodic = false;
+
       if (source == RuntADCSourceBackupBattery || source == RuntADCSourceMainBattery || source == RuntADCSourceThermistor) {
         runt_raise_interrupt(c, RuntInterruptADC);
+      }
+      else if (source == RuntADCSourceNicad) {
+          c->adcPeriodic = true;
+          c->adcLastFire = c->ticks;
+          runt_raise_interrupt(c, RuntInterruptADCPeriodic);
       }
       else if ((source == RuntADCSourceTabletA || source == RuntADCSourceTabletB) && c->touchActive == true) {
         runt_raise_interrupt(c, RuntInterruptADC);
@@ -492,6 +500,11 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr, uint32_t pc) {
         case RuntADCSourceThermistor:
           result = 0x765; // 19.0
           break;
+        case RuntADCSourceNicad:
+          // the voltage =   4.83 . ADC = 888
+          // Nicad Battery Level =  60%.
+          result = 0x888;
+          break;
         default:
           result = 0;
           break;
@@ -545,6 +558,12 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr, uint32_t pc) {
 
 void runt_step(runt_t *c) {
   c->ticks += 10;
+  if (c->adcPeriodic == true) {
+    if (c->ticks - c->adcLastFire > 100) {
+      runt_raise_interrupt(c, RuntInterruptADCPeriodic);
+      c->adcLastFire = c->ticks;
+    }
+  }
   
   if (c->rtcAlarm != 0 && runt_get_rtc(c) >= c->rtcAlarm) {
     runt_raise_interrupt(c, RuntInterruptRTC);
