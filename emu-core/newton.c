@@ -1157,19 +1157,25 @@ void newton_configure_runt(newton_t *c, memory_t *rom) {
   // Configure 16MB ROM space
   newton_install_memory(c, rom, 0x00000000, 0x01000000);
   
+  uint32_t ramSize = 0;
+  uint32_t flashSize = 0;
+  
   if (c->machineType == kGestalt_MachineType_MessagePad) {
-    // Configure 640KB of RAM
-    memory_t *ram = memory_new("RAM", 640 * 1024);
-
-    newton_install_memory(c, ram, 0x01000000, 4 * 1024 * 1024);
+    ramSize = 640 * 1024;
+    flashSize = 1 * 1024 * 1024;
   }
   else { // Lindy
-    // Configure 2MB RAM
-    memory_t *ram = memory_new("RAM", 2 * 1024 * 1024);
-    newton_install_memory(c, ram, 0x01000000, 2 * 1024 * 1024);
+    ramSize = 2 * 1024 * 1024;
+    flashSize = 2 * 1024 * 1024;
+  }
+  
+  // Configure 2MB RAM
+  memory_t *ram = memory_new("RAM", ramSize);
+  newton_install_memory(c, ram, 0x01000000, 2 * 1024 * 1024);
     
+  if (flashSize > 0) {
     // Configure 2MB flash
-    memory_t *flash = memory_new("FLASH", 2 * 1024 * 1024);
+    memory_t *flash = memory_new("FLASH", flashSize);
     memory_set_uint32(flash, 0x04, 0x00a4a200, 0);
     //memory_set_logs_reads(flash, true);
     //memory_set_logs_writes(flash, true);
