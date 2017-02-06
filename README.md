@@ -3,9 +3,20 @@ Work in progress emulator for RUNT based Newtons (OMP, Expert Pad, etc)
 
 ### Status
 
-Currently able to boot into diagnostics mode on all RUNT devices. LCD and tablet work, so one can navigate through diagnostics menus. 
+Currently able to boot into diagnostics mode on all RUNT devices. The LCD and tablet work, so one can navigate through diagnostics menus. 
 
-The Notepad v1.0b1 ROM is able to boot into NewtonOS, however the tablet is not working inside NewtonOS.
+For NewtonOS, the tablet is not yet working.
+
+For Junior devices:
+
+Notepad v1.0b1, OMP 1.0 and Sharp ExpertPad 1.10 can boot all the way (by bypassing calibration).  
+
+The J1 ARMistice image can't bypass calibration, so it is stuck at the tablet calibration screen.
+
+For Lindy devices (MessagePad 110, 120, 130):
+
+The Squirt LCD driver is a complete hack that barely works for diagnostics.  It certainly does not work for NewtonOS.  Judging from debugging information, these have booted into NewtonOS, however the LCD is a garbled mess. 
+
 
 Known to work with the following ROM images:
 
@@ -22,7 +33,25 @@ Known to work with the following ROM images:
 
 Notepad 1.0b1 NewtonOS:
 
-![image](http://i.imgur.com/H4TvlJB.png)
+![image](http://i.imgur.com/fyBncBI.png)
+
+OMP 1.00 NewtonOS:
+
+![image](http://i.imgur.com/QgiderV.png)
+
+![image](http://i.imgur.com/NpQsruJ.png)
+
+J1 ARMistice NewtonOS:
+
+![image](http://i.imgur.com/UC7q4TL.png)
+
+![image](http://i.imgur.com/S5TSzpS.png)
+
+Sharp ExpertPad 1.10:
+
+![image](http://i.imgur.com/ZhyCQii.png)
+
+![image](http://i.imgur.com/zhCFSJG.png)
 
 Junior diagnostics:
 
@@ -47,3 +76,7 @@ MessagePad 110 v1.2:
 MessagePad 120 v1.3:
 
 ![image](http://i.imgur.com/phUfF1w.png)
+
+Lindy NewtonOS boot, bad LCD code:
+
+![image](http://i.imgur.com/pxx1dDQ.png)
