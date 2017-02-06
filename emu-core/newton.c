@@ -669,7 +669,7 @@ void newton_tap_file_control(newton_t *c)
             }
             
             int32_t fp = 0;
-			if (name[0] != '%') {
+			if (c->supportsRegularFiles == false && name[0] != '%') {
 				fp = -1;
 				free(name);
 			}
@@ -1324,7 +1324,15 @@ int newton_load_rom(newton_t *c, const char *path) {
       break;
   }
   printf("\n");
-  
+
+  uint32_t romVersion = memory_get_uint32(rom, 0x13dc, 0);
+  if (romVersion == 0x06290000) {
+    c->supportsRegularFiles = false;
+  }
+  else {
+    c->supportsRegularFiles = true;
+  }
+    
   if (c->machineType == kGestalt_MachineType_Senior || c->machineType == kGestalt_MachineType_Emate) {
     newton_configure_voyager(c, rom);
   }

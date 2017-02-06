@@ -100,6 +100,7 @@ typedef struct newton_s {
   uint32_t debuggerBits;
   uint32_t newtConfig;
   uint32_t newtTests;
+  bool supportsRegularFiles;
 
   bp_entry_t *breakpoints;
   symbol_t *symbols;
