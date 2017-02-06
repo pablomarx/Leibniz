@@ -40,8 +40,11 @@ enum {
   RuntTicks = 0x34,
   RuntTicksAlarm1 = 0x38,
   RuntTicksAlarm2 = 0x40,
-  RuntSound1 = 0x5c, // probably not sound, but frequently seen together.
+  // 0x50: 14 reads
+  // 0x54: 14 writes [these two are accessed during data aborts]
   RuntADC = 0x58,
+  RuntSound1 = 0x5c, // probably not sound, but frequently seen together.
+                     // 6 writes during notepad boot. vals: 0x08[2], 0x09[3], 0x0b
   RuntLCD = 0x60,
   RuntSound = 0x64,
   
@@ -52,7 +55,25 @@ enum {
   RuntSerial = 0x81,
     RuntSerialConfig = 0x08,
     RuntSerialData   = 0x04,
+  // a8: two writes, vals: 0x00, 0x22
+  // b0: one write, val: 0x0106f030 (looks like a RAM address)
+  // b4: four writes, vals: 0x00[3], 0x113
+  // c0: one write, val = 0x0106f030 (looks like a RAM address)
+  // c4: one read, two writes, vals: 0x00, 0x113
+  // c8: two writes, vals: 0x100, 0x10f 
 };
+
+/* Per 0xb0 + 0xc0 above, reading the RAM address at the time of the reg write:
+newton> read 0x0106F030 128
+0x0106f030: 00000000 00000000 00000000 00000000 |................|
+0x0106f040: 00000000 00000000 00000000 00000000 |................|
+0x0106f050: 00000000 00000000 00000000 00000000 |................|
+0x0106f060: 00000000 00000000 00000000 00000000 |................|
+0x0106f070: 00000000 00000000 00000000 00000000 |................|
+0x0106f080: 00000000 00000000 01010101 01010101 |................|
+0x0106f090: 01010101 01010101 01010101 01010101 |................|
+0x0106f0a0: 01010101 01010101 01010101 02020202 |................|
+*/
 
 typedef struct {
   uint32_t index;
