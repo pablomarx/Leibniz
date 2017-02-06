@@ -50,6 +50,7 @@
     _newton = newton_new();
     newton_load_rom(_newton, [romFile fileSystemRepresentation]);
     newton_set_newt_config(_newton, kConfigBit3 | kDontPauseCPU | kStopOnThrows | kEnableStdout | kDefaultStdioOn | kEnableListener);
+    newton_set_debugger_bits(_newton, 1);
     newton_set_bootmode(_newton, NewtonBootModeDiagnostics);
     newton_emulate(_newton, INT32_MAX);
   });
