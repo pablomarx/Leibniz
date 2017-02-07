@@ -101,7 +101,7 @@ static const char *runt_power_names[] = {
 static const char *runt_interrupt_names[] = {
   "rtc", "ticks", "ticks2", NULL, NULL, NULL, NULL, NULL,
   NULL, "adc", "serialA", "sound", "pcmcia", "diags", "cardlock", "powerswitch",
-  "serial", NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+  "serial", "tablet", NULL, NULL, NULL, NULL, NULL, NULL,
   "debugcard1", "debugcard2", NULL, NULL, NULL, NULL, NULL, NULL,
 };
 
@@ -293,7 +293,11 @@ void runt_touch_down(runt_t *c, int x, int y) {
   c->touchY = y;
   c->touchActive = true;
   
-  runt_raise_interrupt(c, RuntInterruptADC);
+  uint32_t sampleSource = c->adcSource;
+  if (sampleSource == RuntADCSourceTabletA || sampleSource == RuntADCSourceTabletB) {
+    runt_raise_interrupt(c, RuntInterruptADC);
+  }
+  runt_raise_interrupt(c, RuntInterruptTablet);
 }
 
 void runt_touch_up(runt_t *c) {
@@ -301,7 +305,11 @@ void runt_touch_up(runt_t *c) {
   c->touchY = 0;
   c->touchActive = false;
   
-  runt_lower_interrupt(c, RuntInterruptADC);
+  uint32_t sampleSource = c->adcSource;
+  if (sampleSource == RuntADCSourceTabletA || sampleSource == RuntADCSourceTabletB) {
+    runt_lower_interrupt(c, RuntInterruptADC);
+  }
+  runt_lower_interrupt(c, RuntInterruptTablet);
 }
 
 void runt_switch_state(runt_t *c, int switchNum, int state) {
