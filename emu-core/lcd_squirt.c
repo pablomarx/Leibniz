@@ -101,7 +101,6 @@ uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
       int32_t framebufferIdx = (displayCursor) * 8;
       
       if (framebufferIdx < 0 || framebufferIdx >= (SCREEN_WIDTH * SCREEN_HEIGHT) - 8) {
-        fprintf(c->logFile, "Squirt LCD Data Write: Bad frame buffer index: %i.  Cursor high:0x%02x, cursor low:0x%02x\n", framebufferIdx, c->cursorHigh, c->cursorLow);
         framebufferIdx = 0;
       }
       
@@ -135,7 +134,7 @@ uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
     case SquirtLCDMCount:
       break;
     default:
-      printf("unknown %02x => %08x\n", addr, val);
+      fprintf(c->logFile, "[SQUIRT LCD] unknown read %02x => %08x\n", addr, val);
       break;
   }
   return val;
@@ -173,7 +172,6 @@ uint32_t lcd_squirt_get_mem32(lcd_squirt_t *c, uint32_t addr) {
       int32_t displayCursor = (c->cursorHigh << 8) | c->cursorLow;
       int32_t framebufferIdx = (displayCursor) * 8;
       if (framebufferIdx < 0 || framebufferIdx >= (SCREEN_WIDTH * SCREEN_HEIGHT) - 8) {
-        fprintf(c->logFile, "Squirt LCD Data Read: Bad frame buffer index: %i.  Cursor high:0x%02x, cursor low:0x%02x\n", framebufferIdx, c->cursorHigh, c->cursorLow);
         framebufferIdx = 0;
       }
       result = 0;
