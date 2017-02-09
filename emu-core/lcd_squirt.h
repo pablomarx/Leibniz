@@ -15,16 +15,19 @@
 #include <stdio.h>
 
 typedef struct lcd_squirt_s {
-    FILE *logFile;
+  FILE *logFile;
   uint32_t *memory;
-
+  
   int displayFillMode;
   int displayOrientation;
   int displayInverse;
-
+  
+  uint8_t orientation;
+  uint8_t cursorLow;
+  uint8_t cursorHigh;
+  
   int displayDirty;
   int stepsSinceLastFlush;
-  uint16_t displayCursor;
   uint8_t displayPixelInvert;
   unsigned char *displayFramebuffer;
 } lcd_squirt_t;
