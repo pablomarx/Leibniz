@@ -100,7 +100,7 @@ uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
       int32_t displayCursor = (c->cursorHigh << 8) | c->cursorLow;
       int32_t framebufferIdx = (displayCursor) * 8;
       
-      if (framebufferIdx < 0 || framebufferIdx >= (SCREEN_WIDTH * SCREEN_HEIGHT) - 8) {
+      if (framebufferIdx < 0 || framebufferIdx >= (SCREEN_WIDTH * SCREEN_HEIGHT)) {
         framebufferIdx = 0;
       }
       
@@ -171,7 +171,7 @@ uint32_t lcd_squirt_get_mem32(lcd_squirt_t *c, uint32_t addr) {
     case SquirtLCDDataRead: {
       int32_t displayCursor = (c->cursorHigh << 8) | c->cursorLow;
       int32_t framebufferIdx = (displayCursor) * 8;
-      if (framebufferIdx < 0 || framebufferIdx >= (SCREEN_WIDTH * SCREEN_HEIGHT) - 8) {
+      if (framebufferIdx < 0 || framebufferIdx >= (SCREEN_WIDTH * SCREEN_HEIGHT)) {
         framebufferIdx = 0;
       }
       result = 0;
