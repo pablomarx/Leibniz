@@ -35,13 +35,16 @@ enum {
 };
 
 enum {
-  RuntPowerTrim = 0x40,       // X5VTRIM_ON - enable card +5V supply
-  RuntPowerSerial = 0x20,     // X5VSERIAL_ON - enable scc, driver and IR supply
-  RuntPowerSound = 0x10,      // X5VSOUND_ON - enable sound out supply
-  RuntPowerVPP1 = 0x08,       // X12V_CONT_1 - enable voltage vpp1, from +5VTRM to +12V
-  RuntPowerVPP2 = 0x04,       // X12V_CONT_2 - enable voltage vpp2, from +5VTRM to +12V
-  RuntPowerLCD = 0x02,
-  RuntPowerADC = 0x01,
+  RuntPowerADC    = (1 << 0),
+  RuntPowerLCD    = (1 << 1),
+  RuntPowerVPP2   = (1 << 2),    // X12V_CONT_2 - enable voltage vpp2, from +5VTRM to +12V
+  RuntPowerVPP1   = (1 << 3),    // X12V_CONT_1 - enable voltage vpp1, from +5VTRM to +12V
+  RuntPowerSound  = (1 << 4),    // X5VSOUND_ON - enable sound out supply
+  RuntPowerSerial = (1 << 5),    // X5VSERIAL_ON - enable scc, driver and IR supply
+  RuntPowerTrim   = (1 << 6),    // X5VTRIM_ON - enable card +5V supply
+  RuntPowerTablet = (1 << 7),
+  RuntPowerSleep  = (1 << 8),    // Power is set to this before the Newton tries to sleep
+                                 // Can verify in Lindy Diags: Manufacturing -> Main Board Test -> Current Test
 };
 
 // Unknown interrupts were observed being registered
