@@ -94,9 +94,6 @@ uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
     }
     case SquirtLCDDataWrite:
     {
-      int8_t horizontal = (c->orientation & 0xf) != 0;
-      int8_t vertical   = (c->orientation >> 4) != 0;
-      
       int32_t displayCursor = (c->cursorHigh << 8) | c->cursorLow;
       int32_t framebufferIdx = (displayCursor) * 8;
       
@@ -109,13 +106,12 @@ uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
       for (int bitIdx=7; bitIdx>=0; bitIdx--) {
         uint8_t bitVal = ((pixels>>bitIdx) & 1);
         c->displayFramebuffer[framebufferIdx] = (bitVal ? 0x00 : 0xff);
-        
-        if (horizontal == 1) {
-          framebufferIdx++;
-        }
+        framebufferIdx++;
       }
       
       // Advance the cursor
+      int8_t horizontal = (c->orientation & 0xf) != 0;
+      int8_t vertical   = (c->orientation >> 4) != 0;
       if (vertical == 0) {
         displayCursor -= SCREEN_WIDTH/8;
       }
