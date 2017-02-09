@@ -25,10 +25,10 @@ typedef struct lcd_squirt_s {
   uint8_t orientation;
   uint8_t cursorLow;
   uint8_t cursorHigh;
-  
+  uint8_t displayMode;
+
   int displayDirty;
   int stepsSinceLastFlush;
-  uint8_t displayPixelInvert;
   unsigned char *displayFramebuffer;
 } lcd_squirt_t;
 

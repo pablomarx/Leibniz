@@ -12,11 +12,12 @@
 
 enum {
   SquirtLCDNotBusy = 0x00,
+  SquirtLCDDataRead = 0x08,
   SquirtLCDBacklight = 0x30,
-  SquirtLCDData = 0x48,
+  SquirtLCDDataWrite = 0x48,
   SquirtLCDCursorHigh = 0x4c,
   SquirtLCDCursorLow = 0x50,
-  SquirtLCDPixelInvert = 0x54,
+  SquirtLCDDisplayMode = 0x54,
   
   SquirtLCDOrientation = 0x70,
   
@@ -49,11 +50,14 @@ const char *lcd_squirt_get_address_name(lcd_squirt_t *c, uint32_t addr) {
     case SquirtLCDCursorHigh:
       prefix = "lcd-cursor-high";
       break;
-    case SquirtLCDData:
-      prefix = "lcd-data";
+    case SquirtLCDDataWrite:
+      prefix = "lcd-data-write";
       break;
-    case SquirtLCDPixelInvert:
-      prefix = "lcd-pixel-invert";
+    case SquirtLCDDataRead:
+      prefix = "lcd-data-read";
+      break;
+    case SquirtLCDDisplayMode:
+      prefix = "lcd-display-mode";
       break;
     case SquirtLCDBlanking:
       prefix = "lcd-blanking";
@@ -81,14 +85,14 @@ uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
     case SquirtLCDCursorHigh: // Values written are 0x00 through 0x24
       c->cursorHigh = (val >> 24);
       break;
-    case SquirtLCDPixelInvert:
-      c->displayPixelInvert = (val >> 24);
+    case SquirtLCDDisplayMode:
+      c->displayMode = (val >> 24);
       break;
     case SquirtLCDOrientation: {
       c->orientation = (val >> 24);
       break;
     }
-    case SquirtLCDData:
+    case SquirtLCDDataWrite:
     {
       int8_t horizontal = (c->orientation & 0xf) != 0;
       int8_t vertical   = (c->orientation >> 4) != 0;
@@ -97,7 +101,7 @@ uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
       int32_t framebufferIdx = (displayCursor) * 8;
       
       if (framebufferIdx < 0 || framebufferIdx >= (SCREEN_WIDTH * SCREEN_HEIGHT) - 8) {
-        printf("Bad frame buffer index: %i >= %i\n", framebufferIdx, (SCREEN_WIDTH * SCREEN_HEIGHT) - 8);
+        fprintf(c->logFile, "Squirt LCD Data Write: Bad frame buffer index: %i.  Cursor high:0x%02x, cursor low:0x%02x\n", framebufferIdx, c->cursorHigh, c->cursorLow);
         framebufferIdx = 0;
       }
       
@@ -105,14 +109,6 @@ uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
       uint8_t pixels = ((uint8_t)(val >> 24));
       for (int bitIdx=7; bitIdx>=0; bitIdx--) {
         uint8_t bitVal = ((pixels>>bitIdx) & 1);
-        
-        if (c->displayPixelInvert == 0) {
-          uint8_t curVal = (c->displayFramebuffer[framebufferIdx]) ? 0 : 1;
-          if (bitVal == 1) {
-            bitVal = !curVal;
-          }
-        }
-        
         c->displayFramebuffer[framebufferIdx] = (bitVal ? 0x00 : 0xff);
         
         if (horizontal == 1) {
@@ -167,12 +163,28 @@ uint32_t lcd_squirt_get_mem32(lcd_squirt_t *c, uint32_t addr) {
     case SquirtLCDCursorLow:
       result = (c->cursorLow << 24);
       break;
-    case SquirtLCDPixelInvert:
-      result = (c->displayPixelInvert << 24);
+    case SquirtLCDDisplayMode:
+      result = (c->displayMode << 24);
       break;
     case SquirtLCDOrientation:
       result = (c->orientation << 24);
       break;
+    case SquirtLCDDataRead: {
+      int32_t displayCursor = (c->cursorHigh << 8) | c->cursorLow;
+      int32_t framebufferIdx = (displayCursor) * 8;
+      if (framebufferIdx < 0 || framebufferIdx >= (SCREEN_WIDTH * SCREEN_HEIGHT) - 8) {
+        fprintf(c->logFile, "Squirt LCD Data Read: Bad frame buffer index: %i.  Cursor high:0x%02x, cursor low:0x%02x\n", framebufferIdx, c->cursorHigh, c->cursorLow);
+        framebufferIdx = 0;
+      }
+      result = 0;
+      for (int j=7; j>=0; j--) {
+        int pixel = (c->displayFramebuffer[framebufferIdx] != 0x00) ? 0 : 1;
+        result |= (pixel << j);
+        framebufferIdx++;
+      }
+      result = result << 24;
+      break;
+    }
     case SquirtLCDNotBusy:
       // We're never busy...
       result = (0x20 << 24);
