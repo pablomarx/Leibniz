@@ -60,6 +60,7 @@ enum {
   RuntInterruptPowerSwitch      = (1 << 16),
   RuntInterruptSerial           = (1 << 17), // questionable
   RuntInterruptTablet           = (1 << 18), // FIQ - Notepad 1.0b1: RegisterInterrupt(0x40000, 0x0, 0x74790); -- looks at ticks??
+  RuntInterruptSoundDMA         = (1 << 19),
   RuntInterruptUnknown5         = (1 << 24), // FIQ - Notepad 1.0b1: RegisterInterrupt(0x1000000, 0x0, 0x7435c); -- nop -- raises FIQ?
   RuntInterruptDebugCard1       = (1 << 25), // debug card?
   RuntInterruptDebugCard2       = (1 << 26), // Notepad 1.0b1: RegisterInterrupt(0x4000000, 0x0, 0x74294); -- more debug card?
