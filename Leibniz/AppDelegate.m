@@ -140,7 +140,7 @@ int32_t leibniz_sys_set_input_notify(void *ext, uint32_t fildes, uint32_t addr);
 
 - (int32_t) openFileNamed:(NSString *)name mode:(int)mode {
   BOOL isTTY = [name hasPrefix:@"%"];
-  if (isTTY == NO && [name isEqualToString:@"bootNoCalibrate"] == NO) {
+  if (isTTY == NO) {
     return -1;
   }
   NSLog(@"%s %@ %i", __PRETTY_FUNCTION__, name, mode);
