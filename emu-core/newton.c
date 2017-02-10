@@ -635,6 +635,9 @@ void newton_tap_file_control(newton_t *c)
     fprintf(c->logFile, "TapFileCntl: ");
     
     switch (c->arm->reg[0]) {
+        default:
+            fprintf(c->logFile, "unknown command: 0x%02x", c->arm->reg[0]);
+            break;
         case do_sys_open: { // 0x0018c0cc
             bool memTrace = c->memTrace;
             c->memTrace = false;
