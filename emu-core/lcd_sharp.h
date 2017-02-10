@@ -10,6 +10,7 @@
 #define __Leibniz__lcd_sharp__
 
 #include "arm.h"
+#include "lcd.h"
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -40,7 +41,5 @@ uint32_t lcd_sharp_set_mem32(lcd_sharp_t *c, uint32_t addr, uint32_t val);
 uint32_t lcd_sharp_get_mem32(lcd_sharp_t *c, uint32_t addr);
 
 const char *lcd_sharp_get_address_name(lcd_sharp_t *c, uint32_t addr);
-
-extern void FlushDisplay(const char *display, int width, int height);
 
 #endif

@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="10116" systemVersion="15D21" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="11762" systemVersion="15G1217" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="10116"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="11762"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="NSApplication">
@@ -14,6 +15,7 @@
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <customObject id="Voe-Tx-rLC" customClass="AppDelegate">
             <connections>
+                <outlet property="buttonBarView" destination="AcT-3R-JWZ" id="ewz-2K-gxo"/>
                 <outlet property="screenView" destination="iUE-7Q-swE" id="cgH-uq-vo6"/>
                 <outlet property="window" destination="QvC-M9-y7g" id="gIp-Ho-8D9"/>
             </connections>
@@ -423,20 +425,23 @@
                 <rect key="frame" x="0.0" y="0.0" width="240" height="384"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
-                    <customView id="R1G-N5-KIC" customClass="BlahView">
+                    <customView id="R1G-N5-KIC" customClass="TouchView">
                         <rect key="frame" x="0.0" y="0.0" width="240" height="384"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <customView id="iUE-7Q-swE" customClass="EmulatorView">
                                 <rect key="frame" x="0.0" y="48" width="240" height="336"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </customView>
                             <imageView id="AcT-3R-JWZ">
                                 <rect key="frame" x="0.0" y="0.0" width="240" height="48"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                 <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="newton-buttons" id="NF1-b7-rdd"/>
                             </imageView>
                         </subviews>
+                        <connections>
+                            <outlet property="delegate" destination="Voe-Tx-rLC" id="dI2-L7-u11"/>
+                        </connections>
                     </customView>
                 </subviews>
             </view>

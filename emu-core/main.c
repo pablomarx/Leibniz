@@ -109,8 +109,8 @@ int32_t leibniz_sys_set_input_notify(void *ext, uint32_t fildes, uint32_t addr) 
 }
 
 #pragma mark -
-void FlushDisplay(const char *display, int width, int height) {
-}
+void newton_display_open(int width, int height) {}
+void newton_display_set_framebuffer(const char *display, int width, int height) {}
 
 #pragma mark -
 

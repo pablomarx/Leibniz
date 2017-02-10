@@ -200,7 +200,7 @@ uint32_t lcd_sharp_set_mem32(lcd_sharp_t *c, uint32_t addr, uint32_t val) {
     }
     case SharpLCDFlush:
       if (c->displayDirty) {
-        FlushDisplay((const char *)c->displayFramebuffer, SCREEN_WIDTH, SCREEN_HEIGHT);
+        newton_display_set_framebuffer((const char *)c->displayFramebuffer, SCREEN_WIDTH, SCREEN_HEIGHT);
         c->displayDirty = 0;
       }
       break;
@@ -242,6 +242,8 @@ void lcd_sharp_init (lcd_sharp_t *c) {
   memset(c->displayFramebuffer, 0xff, SCREEN_WIDTH * SCREEN_HEIGHT);
   
   c->logFile = stdout;
+    
+  newton_display_open(SCREEN_HEIGHT, SCREEN_WIDTH);
 }
 
 lcd_sharp_t *lcd_sharp_new () {

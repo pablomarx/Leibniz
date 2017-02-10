@@ -31,6 +31,8 @@
 		F19548A61E4E52C6001772E8 /* ListenerWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = F19548A41E4E52C5001772E8 /* ListenerWindowController.m */; };
 		F19548A71E4E52C6001772E8 /* ListenerWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = F19548A51E4E52C5001772E8 /* ListenerWindowController.xib */; };
 		F19548AA1E4E5922001772E8 /* AMR_ANSIEscapeHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = F19548A91E4E5922001772E8 /* AMR_ANSIEscapeHelper.m */; };
+		F19548AF1E4E7E59001772E8 /* EmulatorView.m in Sources */ = {isa = PBXBuildFile; fileRef = F19548AE1E4E7E59001772E8 /* EmulatorView.m */; };
+		F19548B21E4E7EE9001772E8 /* TouchView.m in Sources */ = {isa = PBXBuildFile; fileRef = F19548B11E4E7EE9001772E8 /* TouchView.m */; };
 		F1DB3DD919C60F8B006C7102 /* monitor.c in Sources */ = {isa = PBXBuildFile; fileRef = F1DB3DD719C60F8B006C7102 /* monitor.c */; };
 		F1DB3DDC19C63121006C7102 /* linenoise.c in Sources */ = {isa = PBXBuildFile; fileRef = F1DB3DDA19C63121006C7102 /* linenoise.c */; };
 		F1DD99A71CC818DA00C718CC /* memory.c in Sources */ = {isa = PBXBuildFile; fileRef = F1DD99A51CC818DA00C718CC /* memory.c */; };
@@ -94,6 +96,11 @@
 		F19548A51E4E52C5001772E8 /* ListenerWindowController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ListenerWindowController.xib; sourceTree = "<group>"; };
 		F19548A81E4E5922001772E8 /* AMR_ANSIEscapeHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AMR_ANSIEscapeHelper.h; sourceTree = "<group>"; };
 		F19548A91E4E5922001772E8 /* AMR_ANSIEscapeHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AMR_ANSIEscapeHelper.m; sourceTree = "<group>"; };
+		F19548AC1E4E7D1C001772E8 /* lcd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lcd.h; sourceTree = "<group>"; };
+		F19548AD1E4E7E59001772E8 /* EmulatorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EmulatorView.h; sourceTree = "<group>"; };
+		F19548AE1E4E7E59001772E8 /* EmulatorView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EmulatorView.m; sourceTree = "<group>"; };
+		F19548B01E4E7EE9001772E8 /* TouchView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TouchView.h; sourceTree = "<group>"; };
+		F19548B11E4E7EE9001772E8 /* TouchView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TouchView.m; sourceTree = "<group>"; };
 		F1DB3DD719C60F8B006C7102 /* monitor.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = monitor.c; sourceTree = "<group>"; };
 		F1DB3DD819C60F8B006C7102 /* monitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = monitor.h; sourceTree = "<group>"; };
 		F1DB3DDA19C63121006C7102 /* linenoise.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = linenoise.c; sourceTree = "<group>"; };
@@ -163,6 +170,7 @@
 				F1E09AEA1B2D2AB000004CC8 /* lcd_sharp.h */,
 				F1E09AEB1B2D2AB000004CC8 /* lcd_squirt.c */,
 				F1E09AEC1B2D2AB000004CC8 /* lcd_squirt.h */,
+				F19548AC1E4E7D1C001772E8 /* lcd.h */,
 				F1DB3DDA19C63121006C7102 /* linenoise.c */,
 				F1DB3DDB19C63121006C7102 /* linenoise.h */,
 				F1DD99A51CC818DA00C718CC /* memory.c */,
@@ -212,6 +220,10 @@
 				F19548A91E4E5922001772E8 /* AMR_ANSIEscapeHelper.m */,
 				F1E4AF1319C1327F00D8EFB4 /* AppDelegate.h */,
 				F1E4AF1419C1327F00D8EFB4 /* AppDelegate.m */,
+				F19548AD1E4E7E59001772E8 /* EmulatorView.h */,
+				F19548AE1E4E7E59001772E8 /* EmulatorView.m */,
+				F19548B01E4E7EE9001772E8 /* TouchView.h */,
+				F19548B11E4E7EE9001772E8 /* TouchView.m */,
 				F19548A31E4E52C5001772E8 /* ListenerWindowController.h */,
 				F19548A41E4E52C5001772E8 /* ListenerWindowController.m */,
 				F19548A51E4E52C5001772E8 /* ListenerWindowController.xib */,
@@ -361,12 +373,14 @@
 				F1E4AF1519C1327F00D8EFB4 /* AppDelegate.m in Sources */,
 				F19548991E47B170001772E8 /* double_cpdo.c in Sources */,
 				F19548A21E47B170001772E8 /* softfloat.c in Sources */,
+				F19548B21E4E7EE9001772E8 /* TouchView.m in Sources */,
 				F195489F1E47B170001772E8 /* fpa11.c in Sources */,
 				F1E09AEE1B2D2AB000004CC8 /* lcd_squirt.c in Sources */,
 				F19548A11E47B170001772E8 /* single_cpdo.c in Sources */,
 				F123BD6319C4FC8800EC994F /* disasm.c in Sources */,
 				F10F099D19C651A700C8C8FD /* hexdump.c in Sources */,
 				F195489C1E47B170001772E8 /* fpa11_cpdo.c in Sources */,
+				F19548AF1E4E7E59001772E8 /* EmulatorView.m in Sources */,
 				F123BD6819C4FC8800EC994F /* mmu.c in Sources */,
 				F123BD5F19C4FC8800EC994F /* copr14.c in Sources */,
 				F195489A1E47B170001772E8 /* extended_cpdo.c in Sources */,

@@ -1,5 +1,5 @@
 //
-//  AppDelegate.h
+//  TouchView.h
 //  Leibniz
 //
 //  Created by Steve White on 9/10/14.
@@ -8,5 +8,8 @@
 
 #import <Cocoa/Cocoa.h>
 
-@interface AppDelegate : NSObject <NSApplicationDelegate>
+@interface TouchView : NSView
+
+@property (weak) IBOutlet id delegate;
+
 @end

@@ -7,14 +7,13 @@
 //
 
 #import "AppDelegate.h"
+#import "EmulatorView.h"
 #import "ListenerWindowController.h"
 
 #include "newton.h"
 #include "runt.h"
 #include "monitor.h"
 #include "HammerConfigBits.h"
-
-#define DegreesToRadians(r)    ((r) * M_PI / 180.0)
 
 int32_t leibniz_sys_open(void *ext, const char *cStrName, int mode);
 int32_t leibniz_sys_close(void *ext, uint32_t fildes);
@@ -39,6 +38,7 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
 
 @property (weak) IBOutlet NSWindow *window;
 @property (weak) IBOutlet EmulatorView *screenView;
+@property (weak) IBOutlet NSView *buttonBarView;
 @property (strong) NSArray *files;
 
 - (IBAction) toggleNicdSwitch:(id)sender;
@@ -56,8 +56,9 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
   NSInteger result = [openPanel runModal];
   if (result == NSFileHandlingPanelOKButton) {
     NSString *romFile = [[openPanel URL] path];
-    [self.window makeKeyAndOrderFront:self];
-    [self beginEmulatingWithROMFile: romFile];
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [self beginEmulatingWithROMFile: romFile];
+    });
   }
   else {
     [NSApp terminate:self];
@@ -65,28 +66,28 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
 }
 
 - (void) createEmulatorWithROMFile:(NSString *)romFile {
-    _newton = newton_new();
-    newton_load_rom(_newton, [romFile fileSystemRepresentation]);
-    newton_set_newt_config(_newton, kConfigBit3 | kDontPauseCPU | kStopOnThrows | kEnableStdout | kDefaultStdioOn | kEnableListener);
-    newton_set_debugger_bits(_newton, 1);
-    newton_set_bootmode(_newton, NewtonBootModeDiagnostics);
-    newton_set_undefined_opcode(_newton, leibniz_undefined_opcode);
-    newton_set_system_panic(_newton, leibniz_system_panic);
-    newton_set_tapfilecntl_funtcions(_newton,
-                                     (__bridge void *)self,
-                                     leibniz_sys_open,
-                                     leibniz_sys_close,
-                                     leibniz_sys_istty,
-                                     leibniz_sys_read,
-                                     leibniz_sys_write,
-                                     leibniz_sys_set_input_notify);
-    
-    _emulatorQueue = dispatch_queue_create("org.swhite.leibniz.emulator", NULL);
+  _newton = newton_new();
+  newton_load_rom(_newton, [romFile fileSystemRepresentation]);
+  newton_set_newt_config(_newton, kConfigBit3 | kDontPauseCPU | kStopOnThrows | kEnableStdout | kDefaultStdioOn | kEnableListener);
+  newton_set_debugger_bits(_newton, 1);
+  newton_set_bootmode(_newton, NewtonBootModeDiagnostics);
+  newton_set_undefined_opcode(_newton, leibniz_undefined_opcode);
+  newton_set_system_panic(_newton, leibniz_system_panic);
+  newton_set_tapfilecntl_funtcions(_newton,
+                   (__bridge void *)self,
+                   leibniz_sys_open,
+                   leibniz_sys_close,
+                   leibniz_sys_istty,
+                   leibniz_sys_read,
+                   leibniz_sys_write,
+                   leibniz_sys_set_input_notify);
+  
+  _emulatorQueue = dispatch_queue_create("org.swhite.leibniz.emulator", NULL);
 }
 
 - (void) beginEmulatingWithROMFile:(NSString *)romFile {
-    [self createEmulatorWithROMFile:romFile];
-    [self runEmulator];
+  [self createEmulatorWithROMFile:romFile];
+  [self runEmulator];
 }
 
 - (void) runEmulator {
@@ -113,19 +114,6 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
   [sender setState:(!on ? NSOffState : NSOnState)];
 }
 
-
-- (void) updateEmulatorViewWithData:(NSData *)data size:(NSSize)size {
-  dispatch_sync(dispatch_get_main_queue(), ^{
-    CGContextRef context = CGBitmapContextCreate((void *)[data bytes], size.width, size.height, 8,  size.width, CGColorSpaceCreateWithName(kCGColorSpaceGenericGray), kCGBitmapAlphaInfoMask & kCGImageAlphaNone);
-    CGImageRef imageRef = CGBitmapContextCreateImage(context);
-    CGContextRelease(context);
-    
-    [self.screenView setEmulatorImage:imageRef];
-    
-    CGImageRelease(imageRef);;
-  });
-}
-
 - (void) mouseDown:(NSEvent *)theEvent {
   NSPoint location = [theEvent locationInWindow];
   runt_touch_down(_newton->runt, floorf(location.x), floorf(location.y));
@@ -140,38 +128,80 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
   runt_touch_up(_newton->runt);
 }
 
-#pragma mark -
-- (void) showErrorAlertWithTitle:(NSString *)title
-                         message:(NSString *)message
-{
-    if ([NSThread isMainThread] == NO) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [self showErrorAlertWithTitle:title message:message];
-        });
-        return;
-    }
+#pragma mark - Display
+- (void) createDisplayWithWidth:(int)width height:(int)height {
+  NSSize buttonBarSize = self.buttonBarView.bounds.size;
+  NSSize contentSize = NSZeroSize;
+  contentSize.width = MAX(width, buttonBarSize.width);
+  
+  NSRect screenFrame = NSZeroRect;
+  screenFrame.origin.x = floorf((width - contentSize.width)/2);
+  screenFrame.origin.y = buttonBarSize.height;
+  screenFrame.size.width = width;
+  screenFrame.size.height = height;
+  self.screenView.frame = screenFrame;
+  
+  contentSize.height = NSMaxY(screenFrame);
+  
+  [self.window setContentSize:contentSize];
+  [self.window makeKeyAndOrderFront:self];
+}
 
-    NSInteger result = NSRunAlertPanel(title,
-                                       @"%@",
-                                       NSLocalizedString(@"Continue", @"Continue"),
-                                       NSLocalizedString(@"Stop", @"Stop"),
-                                       nil,
-                                       message);
-    if (result == NSOKButton) {
-        [self runEmulator];
-    }
+- (void) updateEmulatorViewWithData:(NSData *)data size:(NSSize)size {
+  CGContextRef context = CGBitmapContextCreate((void *)[data bytes], size.width, size.height, 8,  size.width, CGColorSpaceCreateWithName(kCGColorSpaceGenericGray), kCGBitmapAlphaInfoMask & kCGImageAlphaNone);
+  CGImageRef imageRef = CGBitmapContextCreateImage(context);
+  CGContextRelease(context);
+  
+  [self.screenView setEmulatorImage:imageRef];
+  
+  CGImageRelease(imageRef);;
+}
+
+void newton_display_open(int width, int height) {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [(AppDelegate *)[NSApp delegate] createDisplayWithWidth:width height:height];
+  });
+}
+
+void newton_display_set_framebuffer(const char *display, int width, int height) {
+  NSData *data = [[NSData alloc] initWithBytes:display length:width*height];
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [(AppDelegate *)[NSApp delegate] updateEmulatorViewWithData:data size:NSMakeSize(width, height)];
+  });
+}
+
+#pragma mark - Errors
+- (void) showErrorAlertWithTitle:(NSString *)title
+             message:(NSString *)message
+{
+  if ([NSThread isMainThread] == NO) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [self showErrorAlertWithTitle:title message:message];
+    });
+    return;
+  }
+  
+  NSInteger result = NSRunAlertPanel(title,
+                     @"%@",
+                     NSLocalizedString(@"Continue", @"Continue"),
+                     NSLocalizedString(@"Stop", @"Stop"),
+                     nil,
+                     message);
+  if (result == NSOKButton) {
+    [self runEmulator];
+  }
 }
 
 void leibniz_system_panic(newton_t *newton, const char *msg) {
-    NSString *message = [NSString stringWithCString:msg encoding:NSASCIIStringEncoding];
-    [(AppDelegate *)[NSApp delegate] showErrorAlertWithTitle:NSLocalizedString(@"System Panic", @"System Panic")
-                                                     message:message];
+  NSString *message = [NSString stringWithCString:msg encoding:NSASCIIStringEncoding];
+  [(AppDelegate *)[NSApp delegate] showErrorAlertWithTitle:NSLocalizedString(@"System Panic", @"System Panic")
+                           message:message];
 }
 
 void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode) {
-    NSString *message = [NSString stringWithFormat:@"0x%08x", opcode];
-    [(AppDelegate *)[NSApp delegate] showErrorAlertWithTitle:NSLocalizedString(@"Undefined Opcode", @"Undefined Opcode")
-                                                     message:message];
+  NSString *message = [NSString stringWithFormat:@"0x%08x", opcode];
+  [(AppDelegate *)[NSApp delegate] showErrorAlertWithTitle:NSLocalizedString(@"Undefined Opcode", @"Undefined Opcode")
+                           message:message];
 }
 
 
@@ -316,56 +346,6 @@ int32_t leibniz_sys_set_input_notify(void *ext, uint32_t fildes, uint32_t addr) 
 }
 
 @end
-
-@implementation BlahView
-
-- (void) mouseDown:(NSEvent *)theEvent {
-  [(AppDelegate *)[NSApp delegate] mouseDown:theEvent];
-}
-
--(void)mouseDragged:(NSEvent *)theEvent {
-  [(AppDelegate *)[NSApp delegate] mouseDragged:theEvent];
-}
-
-- (void) mouseUp:(NSEvent *)theEvent {
-  [(AppDelegate *)[NSApp delegate] mouseUp:theEvent];
-}
-
-@end
-
-
-@implementation EmulatorView {
-  CALayer *_screenLayer;
-}
-
-- (id) initWithFrame:(NSRect)frameRect {
-  self = [super initWithFrame:frameRect];
-  if (self != nil) {
-    self.wantsLayer = YES;
-    self.layer.backgroundColor = [[NSColor whiteColor] CGColor];
-    
-    _screenLayer = [CALayer layer];
-    _screenLayer.backgroundColor = [[NSColor whiteColor] CGColor];
-    _screenLayer.frame = CGRectMake(-48, 48, 336, 240);
-    _screenLayer.transform = CATransform3DMakeRotation(DegreesToRadians(270), 0, 0, 1);
-    _screenLayer.contentsGravity = kCAGravityCenter;
-    [self.layer addSublayer:_screenLayer];
-  }
-  return self;
-}
-
-- (void) setEmulatorImage:(CGImageRef)emulatorImage {
-  _screenLayer.contents = (__bridge id)emulatorImage;
-}
-
-
-@end
-
-void FlushDisplay(const char *display, int width, int height) {
-  NSData *data = [[NSData alloc] initWithBytes:display length:width*height];
-  [(AppDelegate *)[NSApp delegate] updateEmulatorViewWithData:data size:NSMakeSize(width, height)];
-  data = nil;
-}
 
 @implementation LeibnizFile
 @end

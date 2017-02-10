@@ -141,7 +141,7 @@ void lcd_squirt_step(lcd_squirt_t *c) {
     c->stepsSinceLastFlush++;
     
     if (c->stepsSinceLastFlush >= 500) {
-      FlushDisplay((const char *)c->displayFramebuffer, SCREEN_WIDTH, SCREEN_HEIGHT);
+      newton_display_set_framebuffer((const char *)c->displayFramebuffer, SCREEN_WIDTH, SCREEN_HEIGHT);
       c->displayDirty = 0;
       c->stepsSinceLastFlush = 0;
     }
@@ -201,6 +201,8 @@ void lcd_squirt_init (lcd_squirt_t *c) {
   c->displayFramebuffer = calloc(SCREEN_WIDTH * SCREEN_HEIGHT, 1);
   memset(c->displayFramebuffer, 0xff, SCREEN_WIDTH * SCREEN_HEIGHT);
   
+  newton_display_open(SCREEN_HEIGHT, SCREEN_WIDTH);
+
   c->logFile = stdout;
 }
 
