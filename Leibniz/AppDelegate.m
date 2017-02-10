@@ -22,7 +22,8 @@ int32_t leibniz_sys_istty(void *ext, uint32_t fildes);
 int32_t leibniz_sys_read(void *ext, uint32_t fildes, void *buf, uint32_t nbyte);
 int32_t leibniz_sys_write(void *ext, uint32_t fildes, const void *buf, uint32_t nbyte);
 int32_t leibniz_sys_set_input_notify(void *ext, uint32_t fildes, uint32_t addr);
-
+void leibniz_system_panic(newton_t *newton, const char *msg);
+void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
 
 @interface LeibnizFile : NSObject
 @property (strong) ListenerWindowController *listener;
@@ -63,22 +64,33 @@ int32_t leibniz_sys_set_input_notify(void *ext, uint32_t fildes, uint32_t addr);
   }
 }
 
-- (void) beginEmulatingWithROMFile:(NSString *)romFile {
-  _emulatorQueue = dispatch_queue_create("org.swhite.leibniz.emulator", NULL);
-  dispatch_async(_emulatorQueue, ^{
+- (void) createEmulatorWithROMFile:(NSString *)romFile {
     _newton = newton_new();
     newton_load_rom(_newton, [romFile fileSystemRepresentation]);
     newton_set_newt_config(_newton, kConfigBit3 | kDontPauseCPU | kStopOnThrows | kEnableStdout | kDefaultStdioOn | kEnableListener);
     newton_set_debugger_bits(_newton, 1);
     newton_set_bootmode(_newton, NewtonBootModeDiagnostics);
+    newton_set_undefined_opcode(_newton, leibniz_undefined_opcode);
+    newton_set_system_panic(_newton, leibniz_system_panic);
     newton_set_tapfilecntl_funtcions(_newton,
-                     (__bridge void *)self,
-                     leibniz_sys_open,
-                     leibniz_sys_close,
-                     leibniz_sys_istty,
-                     leibniz_sys_read,
-                     leibniz_sys_write,
-                     leibniz_sys_set_input_notify);
+                                     (__bridge void *)self,
+                                     leibniz_sys_open,
+                                     leibniz_sys_close,
+                                     leibniz_sys_istty,
+                                     leibniz_sys_read,
+                                     leibniz_sys_write,
+                                     leibniz_sys_set_input_notify);
+    
+    _emulatorQueue = dispatch_queue_create("org.swhite.leibniz.emulator", NULL);
+}
+
+- (void) beginEmulatingWithROMFile:(NSString *)romFile {
+    [self createEmulatorWithROMFile:romFile];
+    [self runEmulator];
+}
+
+- (void) runEmulator {
+  dispatch_async(_emulatorQueue, ^{
     newton_emulate(_newton, INT32_MAX);
   });
 }
@@ -127,6 +139,41 @@ int32_t leibniz_sys_set_input_notify(void *ext, uint32_t fildes, uint32_t addr);
 - (void) mouseUp:(NSEvent *)theEvent {
   runt_touch_up(_newton->runt);
 }
+
+#pragma mark -
+- (void) showErrorAlertWithTitle:(NSString *)title
+                         message:(NSString *)message
+{
+    if ([NSThread isMainThread] == NO) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self showErrorAlertWithTitle:title message:message];
+        });
+        return;
+    }
+
+    NSInteger result = NSRunAlertPanel(title,
+                                       @"%@",
+                                       NSLocalizedString(@"Continue", @"Continue"),
+                                       NSLocalizedString(@"Stop", @"Stop"),
+                                       nil,
+                                       message);
+    if (result == NSOKButton) {
+        [self runEmulator];
+    }
+}
+
+void leibniz_system_panic(newton_t *newton, const char *msg) {
+    NSString *message = [NSString stringWithCString:msg encoding:NSASCIIStringEncoding];
+    [(AppDelegate *)[NSApp delegate] showErrorAlertWithTitle:NSLocalizedString(@"System Panic", @"System Panic")
+                                                     message:message];
+}
+
+void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode) {
+    NSString *message = [NSString stringWithFormat:@"0x%08x", opcode];
+    [(AppDelegate *)[NSApp delegate] showErrorAlertWithTitle:NSLocalizedString(@"Undefined Opcode", @"Undefined Opcode")
+                                                     message:message];
+}
+
 
 #pragma mark - TapFileCntl
 - (LeibnizFile *) fileWithDescriptor:(uint32_t)fp {
