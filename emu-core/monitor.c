@@ -206,11 +206,11 @@ void monitor_parse_input(monitor_t *c, const char *input) {
   }
   else if (sscanf(input, "runt-interrupt %i %i", &argValue, &arg2Value) == 2) {
     if (arg2Value == 1) {
-      runt_raise_interrupt(c->newton->runt, argValue);
+      runt_interrupt_raise(c->newton->runt, argValue);
       printf("Raising interrupt: %i\n", argValue);
     }
     else {
-  	  	runt_lower_interrupt(c->newton->runt, argValue);
+      runt_interrupt_lower(c->newton->runt, argValue);
       printf("Lowering interrupt: %i\n", argValue);
     }
   }
@@ -274,7 +274,7 @@ void monitor_parse_input(monitor_t *c, const char *input) {
       arg2Value = 4;
     }
     
-	newton_mem_hexdump(c->newton, argValue, arg2Value);
+    newton_mem_hexdump(c->newton, argValue, arg2Value);
   }
   else if (sscanf(input, "set r%i 0x%x", &argValue, &arg2Value) == 2) {
     printf("Setting r%i to 0x%08x\n", argValue, arg2Value);

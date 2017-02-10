@@ -44,7 +44,7 @@ enum {
   RuntTicksAlarm3 = 0x48,
   // 0x50: 14 reads
   // 0x54: 14 writes [these two are accessed during data aborts]
-  RuntADC = 0x58,
+  RuntADCValue = 0x58,
   RuntSound1 = 0x5c, // probably not sound, but frequently seen together.
                      // 6 writes during notepad boot. vals: 0x08[2], 0x09[3], 0x0b
   RuntLCD = 0x60,
@@ -149,9 +149,9 @@ void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
       flag = RuntLogTicks;
       prefix = "set-ticks-alarm3";
       break;
-    case RuntADC:
+    case RuntADCValue:
       flag = RuntLogADC;
-      prefix = "adc";
+      prefix = "adc-value";
       break;
     case RuntCPUControl:
       flag = RuntLogCPUControl;
@@ -226,6 +226,67 @@ void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
   }
 }
 
+#pragma mark - ADC
+void runt_set_adc_source(runt_t *c, uint32_t val) {
+  uint32_t source = ((val >> 8) & 0xff);
+  
+  if ((c->logFlags & RuntLogADC) == RuntLogADC) {
+    fprintf(c->logFile, " => ADC sample: 0x%08x -> 0x%08x: ", c->adcSource, source);
+    bool matched = false;
+    for (int i=0; i<countof(runt_adc_names); i++) {
+      if (runt_adc_names[i].index == source) {
+        fprintf(c->logFile, "%s", runt_adc_names[i].name);
+        matched = true;
+        break;
+      }
+    }
+    if (matched == false) {
+      fprintf(c->logFile, "**unknown: 0x%02x**", source);
+    }
+    fprintf(c->logFile, "\n");
+  }
+  
+  c->adcSource = source;
+}
+
+uint32_t runt_get_adc_value(runt_t *c) {
+  uint32_t sampleSource = c->adcSource;
+  uint32_t result = c->memory[(RuntADCValue << 8) / 4];
+  switch (sampleSource) {
+    case RuntADCSourceTabletA:
+    case RuntADCSourceTabletB:
+      if (((result >> 24) & 0xff) == 0x04) {
+        result = 0xfff - c->touchY;
+      }
+      else {
+        result = 0xfff - c->touchX;
+      }
+      break;
+    case RuntADCSourceMainBattery:
+      // AD Main Battery, 0xaba = 6.0, 0xaca = 6.1, 0xa9a = 5.9
+      // AutoPWB on Notepad 1.0b1 wants ~ 0x8ba.
+      // AutoPWB on J1 & omp1.3 images wants ~ 0xaba
+      result = 0x8ba;
+      break;
+    case RuntADCSourceBackupBattery:
+      // backup battery, 0xfc3 = 4.8, 0xfc7 = 4.9, 0x986 = 2.9, 0x686 = 2.0, 0x486 = 1.4
+      result = 0x986;
+      break;
+    case RuntADCSourceThermistor:
+      result = 0x765; // 19.0
+      break;
+    case RuntADCSourceNicad:
+      // the voltage =   4.83 . ADC = 888
+      // Nicad Battery Level =  60%.
+      result = 0x888;
+      break;
+    default:
+      result = 0;
+      break;
+  }
+  return result;
+}
+
 #pragma mark - Interrupts
 void runt_print_description_for_interrupts(runt_t *c, uint32_t val) {
   for (int i=0; i<32; i++) {
@@ -242,49 +303,33 @@ void runt_print_description_for_interrupts(runt_t *c, uint32_t val) {
   }
 }
 
-void runt_print_enabled_interrupts(runt_t *c) {
-    uint32_t val = c->memory[(RuntEnableInterrupt << 8)/4];
-    fprintf(c->logFile, "Enabled interrupts: ");
-    runt_print_description_for_interrupts(c, val);
-    fprintf(c->logFile, "\n");
+bool runt_interrupt_is_enabled(runt_t *c, uint32_t interrupt) {
+  return ((c->memory[(RuntEnableInterrupt << 8) / 4] & interrupt) == interrupt);
 }
 
-void runt_raise_interrupt(runt_t *c, uint32_t interrupt) {
-  if ((c->memory[0x0c00 / 4] & interrupt) == interrupt) {
-    if ((c->interrupt & interrupt) != interrupt) {
-      c->interrupt |= interrupt;
-    }
-    if ((c->logFlags & RuntLogInterrupts) == RuntLogInterrupts) {
-      fprintf(c->logFile, "[RUNT:ASIC] Raising interrupt 0x%02x\n", interrupt);
-    }
-	if (interrupt == RuntInterruptDebugCard1 || interrupt == RuntInterruptDebugCard2 || interrupt == RuntInterruptSerialA) {
-	    arm_set_fiq(c->arm, 1);
-	}
-	else {
-	    arm_set_irq(c->arm, 1);
-	}
-  }
-}
-
-void runt_lower_interrupt(runt_t *c, uint32_t interrupt) {
-  if (interrupt == RuntInterruptADC) {
-    uint32_t sampleSource = c->adcSource;
-    if (sampleSource == RuntADCSourceBackupBattery || sampleSource == RuntADCSourceMainBattery || sampleSource == RuntADCSourceThermistor) {
-      return;
-    }
-    else if (sampleSource == RuntADCSourceTabletA || sampleSource == RuntADCSourceTabletB) {
-      if (c->touchActive == true) {
-        return;
-      }
-    }
-  }
-  else if (interrupt == RuntInterruptCardLockSwitch && c->switches[1] == 1) {
-    return;
-  }
-  else if (interrupt == RuntInterruptPowerSwitch && c->switches[2] == 1) {
+void runt_interrupt_raise(runt_t *c, uint32_t interrupt) {
+  if (runt_interrupt_is_enabled(c, interrupt) == false) {
     return;
   }
   
+  if ((c->interrupt & interrupt) != interrupt) {
+    c->interrupt |= interrupt;
+  }
+  if ((c->logFlags & RuntLogInterrupts) == RuntLogInterrupts) {
+    fprintf(c->logFile, "[RUNT:ASIC] Raising interrupt 0x%02x: ", interrupt);
+    runt_print_description_for_interrupts(c, interrupt);
+    fprintf(c->logFile, "\n");
+  }
+  
+  if (interrupt == RuntInterruptDebugCard1 || interrupt == RuntInterruptDebugCard2 || interrupt == RuntInterruptSerialA) {
+    arm_set_fiq(c->arm, 1);
+  }
+  else {
+    arm_set_irq(c->arm, 1);
+  }
+}
+
+void runt_interrupt_lower(runt_t *c, uint32_t interrupt) {
   if ((c->interrupt & interrupt) == interrupt) {
     c->interrupt ^= interrupt;
   }
@@ -292,9 +337,29 @@ void runt_lower_interrupt(runt_t *c, uint32_t interrupt) {
   if ((c->interrupt & RuntInterruptDebugCard1) == 0 && (c->interrupt & RuntInterruptDebugCard2) == 0 && (c->interrupt & RuntInterruptSerialA) == 0) {
     arm_set_fiq(c->arm, 0);
   }
-
+  
   if (c->interrupt == 0x00) {
     arm_set_irq(c->arm, 0);
+  }
+}
+
+void runt_print_enabled_interrupts(runt_t *c) {
+  uint32_t val = c->memory[(RuntEnableInterrupt << 8)/4];
+  fprintf(c->logFile, "Enabled interrupts: ");
+  runt_print_description_for_interrupts(c, val);
+  fprintf(c->logFile, "\n");
+}
+
+void runt_set_enabled_interrupts(runt_t *c, uint32_t val) {
+  if ((c->logFlags & RuntLogInterrupts) == RuntLogInterrupts) {
+    uint32_t oldVal = c->memory[(RuntEnableInterrupt << 8) / 4];
+    if (val != oldVal) {
+      fprintf(c->logFile, " => enable interrupts was: 0x%08x (", oldVal);
+      runt_print_description_for_interrupts(c, oldVal);
+      fprintf(c->logFile, "), now: 0x%08x (", val);
+      runt_print_description_for_interrupts(c, val);
+      fprintf(c->logFile, ")\n");
+    }
   }
 }
 
@@ -303,56 +368,47 @@ void runt_touch_down(runt_t *c, int x, int y) {
   c->touchX = x;
   c->touchY = y;
   c->touchActive = true;
-  
-  uint32_t sampleSource = c->adcSource;
-  if (sampleSource == RuntADCSourceTabletA || sampleSource == RuntADCSourceTabletB) {
-    runt_raise_interrupt(c, RuntInterruptADC);
-  }
-  runt_raise_interrupt(c, RuntInterruptTablet);
 }
 
 void runt_touch_up(runt_t *c) {
   c->touchX = 0;
   c->touchY = 0;
   c->touchActive = false;
-  
-  uint32_t sampleSource = c->adcSource;
-  if (sampleSource == RuntADCSourceTabletA || sampleSource == RuntADCSourceTabletB) {
-    runt_lower_interrupt(c, RuntInterruptADC);
-  }
-  runt_lower_interrupt(c, RuntInterruptTablet);
 }
 
 void runt_switch_state(runt_t *c, int switchNum, int state) {
-  uint32_t interrupt = 0;
-  switch (switchNum) {
-    case 0:
-      break;
-    case 1:
-      interrupt = RuntInterruptCardLockSwitch;
-      break;
-    case 2:
-      interrupt = RuntInterruptPowerSwitch;
-      break;
-  }
-  
-  if (state == 1) {
-    runt_raise_interrupt(c, interrupt);
-  }
-  else {
-    runt_lower_interrupt(c, interrupt);
-  }
   c->switches[switchNum] = state;
 }
 
-uint8_t runt_get_power_state(runt_t *c, uint32_t subsystem) {
-    return ((c->memory[(RuntPower<<8)/4] & subsystem) == subsystem);
+#pragma mark - Power
+void runt_set_power(runt_t *c, uint32_t val) {
+  if ((c->logFlags & RuntLogPower) == RuntLogPower) {
+    uint32_t oldVal = c->memory[(RuntPowerADC << 8) / 4];
+    fprintf(c->logFile, " => power on: 0x%08x -> 0x%08x: ", oldVal, val);
+    for (int i=0; i<32; i++) {
+      uint32_t bit = (1 << i);
+      if ((val & bit) == bit) {
+        const char *name = runt_power_names[i];
+        if (name != NULL) {
+          fprintf(c->logFile, "%s, ", name);
+        }
+        else {
+          fprintf(c->logFile, "unknown-%i, ", i);
+        }
+      }
+    }
+    fprintf(c->logFile, "\n");
+  }
+}
+
+bool runt_get_power_state(runt_t *c, uint32_t subsystem) {
+  return ((c->memory[(RuntPower<<8)/4] & subsystem) == subsystem);
 }
 
 #pragma mark -
 #pragma mark
 uint32_t runt_get_ticks(runt_t *c) {
-	return c->ticks;
+  return c->ticks;
 }
 
 uint32_t runt_get_rtc(runt_t *c) {
@@ -364,16 +420,16 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val, uint32_t pc) {
   
   uint32_t localAddr = (addr / 4);
   switch ((addr >> 8) & 0xff) {
-	  case 0x00:
-	  // Observed bit 2 changing depending on gNewtConfig
-	  // kDontPauseCPU being set...
-	  if ((val & 2) == 2) {
-		  fprintf(c->logFile, " => CPU pausing enabled?\n");
-	  }
-	  else {
-		  fprintf(c->logFile, " => CPU pausing disabled?\n");
-	  }
-	  break;
+    case 0x00:
+      // Observed bit 2 changing depending on gNewtConfig
+      // kDontPauseCPU being set...
+      if ((val & 2) == 2) {
+        fprintf(c->logFile, " => CPU pausing enabled?\n");
+      }
+      else {
+        fprintf(c->logFile, " => CPU pausing disabled?\n");
+      }
+      break;
     case RuntLCD:
       c->lcd_set_uint32(c->lcd_driver, (addr & 0xff), val);
       break;
@@ -382,13 +438,13 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val, uint32_t pc) {
         c->interruptStick--;
       }
       else {
-        runt_lower_interrupt(c, val);
+        runt_interrupt_lower(c, val);
       }
       break;
       
     case RuntSound:
       // To get diagnostics moving, we'll set the interrupt...
-      runt_raise_interrupt(c, RuntInterruptSound);
+      runt_interrupt_raise(c, RuntInterruptSound);
       break;
       
     case RuntSerial:
@@ -396,81 +452,25 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val, uint32_t pc) {
       if ((addr & 0xff) == RuntSerialData) {
         //fprintf(c->logFile, "serial_putc: 0x%02x '%c'\n", val & 0xff, val & 0xff);
       }
-	  else if ((addr & 0xff) == RuntSerialConfig) {
-	  	
-	  }
-	  else if ((addr & 0xff) == 0) {
-		  if (val == 0x05) {
-			  val = 0x03;
-	          runt_raise_interrupt(c, RuntInterruptSerialA);
-		  }
-	  }
-      break;
-    case RuntADCSource: {
-      uint8_t source = ((val >> 8) & 0xff);
-      c->adcSource = source;
-
-      if (source == RuntADCSourceBackupBattery || source == RuntADCSourceMainBattery ||
-          source == RuntADCSourceThermistor || source == RuntADCSourceNicad)
-      {
-        runt_raise_interrupt(c, RuntInterruptADC);
+      else if ((addr & 0xff) == RuntSerialConfig) {
+        
       }
-      else if ((source == RuntADCSourceTabletA || source == RuntADCSourceTabletB) && c->touchActive == true) {
-        runt_raise_interrupt(c, RuntInterruptADC);
-      }
-      else {
-        runt_lower_interrupt(c, RuntInterruptADC);
-      }
-      
-      
-      if ((c->logFlags & RuntLogADC) == RuntLogADC) {
-        fprintf(c->logFile, " => ADC sample: 0x%08x -> 0x%08x: ", c->memory[localAddr], val);
-        bool matched = false;
-        for (int i=0; i<countof(runt_adc_names); i++) {
-          if (runt_adc_names[i].index == source) {
-            fprintf(c->logFile, "%s", runt_adc_names[i].name);
-            matched = true;
-            break;
-          }
+      else if ((addr & 0xff) == 0) {
+        if (val == 0x05) {
+          val = 0x03;
+          runt_interrupt_raise(c, RuntInterruptSerialA);
         }
-        if (matched == false) {
-          fprintf(c->logFile, "**unknown: 0x%02x**", source);
-        }
-        fprintf(c->logFile, "\n");
       }
-      
       break;
-    }
+    case RuntADCSource:
+      runt_set_adc_source(c, val);
+      break;
     case RuntPower:
-      if ((c->logFlags & RuntLogPower) == RuntLogPower) {
-        fprintf(c->logFile, " => power on: 0x%08x -> 0x%08x: ", c->memory[localAddr], val);
-        for (int i=0; i<32; i++) {
-          uint32_t bit = (1 << i);
-          if ((val & bit) == bit) {
-            const char *name = runt_power_names[i];
-            if (name != NULL) {
-              fprintf(c->logFile, "%s, ", name);
-            }
-            else {
-              fprintf(c->logFile, "unknown-%i, ", i);
-            }
-          }
-        }
-        fprintf(c->logFile, "\n");
-      }
+      runt_set_power(c, val);
       break;
-    case RuntEnableInterrupt: {
-      if ((c->logFlags & RuntLogInterrupts) == RuntLogInterrupts) {
-        if (val != c->memory[localAddr]) {
-          fprintf(c->logFile, " => enable interrupts was: 0x%08x (", c->memory[localAddr]);
-          runt_print_description_for_interrupts(c, c->memory[localAddr]);
-          fprintf(c->logFile, "), now: 0x%08x (", val);
-          runt_print_description_for_interrupts(c, val);
-          fprintf(c->logFile, ")\n");
-        }
-      }
+    case RuntEnableInterrupt:
+      runt_set_enabled_interrupts(c, val);
       break;
-    }
     case RuntRTCAlarm:
       c->rtcAlarm = val;
       break;
@@ -484,7 +484,7 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val, uint32_t pc) {
       c->ticksAlarm3 = val;
       break;
     case RuntSoundDMALength:
-      runt_raise_interrupt(c, RuntInterruptSoundDMA);
+      runt_interrupt_raise(c, RuntInterruptSoundDMA);
       break;
     default:
       break;
@@ -505,43 +505,9 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr, uint32_t pc) {
     case RuntTicks:
       result = runt_get_ticks(c);
       break;
-    case RuntADC: {
-      uint32_t sampleSource = c->adcSource;
-      switch (sampleSource) {
-        case RuntADCSourceTabletA:
-        case RuntADCSourceTabletB:
-          if (((result >> 24) & 0xff) == 0x04) {
-            result = 0xfff - c->touchY;
-          }
-          else {
-            result = 0xfff - c->touchX;
-          }
-          break;
-        case RuntADCSourceMainBattery:
-          // AD Main Battery, 0xaba = 6.0, 0xaca = 6.1, 0xa9a = 5.9
-          // AutoPWB on Notepad 1.0b1 wants ~ 0x8ba.
-          // AutoPWB on J1 & omp1.3 images wants ~ 0xaba
-          result = 0x8ba;
-          break;
-        case RuntADCSourceBackupBattery:
-          // backup battery, 0xfc3 = 4.8, 0xfc7 = 4.9, 0x986 = 2.9, 0x686 = 2.0, 0x486 = 1.4
-          result = 0x986;
-          break;
-        case RuntADCSourceThermistor:
-          result = 0x765; // 19.0
-          break;
-        case RuntADCSourceNicad:
-          // the voltage =   4.83 . ADC = 888
-          // Nicad Battery Level =  60%.
-          result = 0x888;
-          break;
-        default:
-          result = 0;
-          break;
-      }
-      
+    case RuntADCValue:
+      result = runt_get_adc_value(c);
       break;
-    }
     case RuntEnableInterrupt:
       break;
     case RuntGetInterrupt:
@@ -552,15 +518,15 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr, uint32_t pc) {
     case RuntIR:
     case RuntSerial:
       if ((addr & 0xff) == RuntSerialData) {
-
+        
       }
       else if ((addr & 0xff) == RuntSerialConfig) {
-		  
+        
       }
       else {
-		  result = 3;
+        result = 3;
       }
-	  if ((result & 0xff) == 0x00) {
+      if ((result & 0xff) == 0x00) {
         result = 0xffffffff;
       }
       break;
@@ -590,25 +556,46 @@ void runt_step(runt_t *c) {
   c->ticks += 10;
   
   if (c->rtcAlarm != 0 && runt_get_rtc(c) >= c->rtcAlarm) {
-    runt_raise_interrupt(c, RuntInterruptRTC);
+    runt_interrupt_raise(c, RuntInterruptRTC);
     c->rtcAlarm = 0;
   }
   
   if (c->ticksAlarm1 != 0 && runt_get_ticks(c) >= c->ticksAlarm1) {
-    runt_raise_interrupt(c, RuntInterruptTicks);
+    runt_interrupt_raise(c, RuntInterruptTicks);
     c->ticksAlarm1 = 0;
   }
   
   if (c->ticksAlarm2 != 0 && runt_get_ticks(c) >= c->ticksAlarm2) {
-    runt_raise_interrupt(c, RuntInterruptTicks);
+    runt_interrupt_raise(c, RuntInterruptTicks);
     c->ticksAlarm2 = 0;
   }
-
+  
   if (c->ticksAlarm3 != 0 && runt_get_ticks(c) >= c->ticksAlarm3) {
-    runt_raise_interrupt(c, RuntInterruptTicks2);
+    runt_interrupt_raise(c, RuntInterruptTicks2);
     c->ticksAlarm3 = 0;
   }
-
+  
+  if (c->switches[1] == 1) {
+    runt_interrupt_raise(c, RuntInterruptCardLockSwitch);
+  }
+  if (c->switches[2] == 1) {
+    runt_interrupt_raise(c, RuntInterruptPowerSwitch);
+  }
+  
+  uint32_t sampleSource = c->adcSource;
+  if (c->touchActive == true) {
+    runt_interrupt_raise(c, RuntInterruptTablet);
+    if (sampleSource == RuntADCSourceTabletA || sampleSource == RuntADCSourceTabletB) {
+      runt_interrupt_raise(c, RuntInterruptADC);
+    }
+  }
+  
+  if (runt_interrupt_is_enabled(c, RuntInterruptADC) == true) {
+    if (sampleSource == RuntADCSourceBackupBattery || sampleSource == RuntADCSourceMainBattery || sampleSource == RuntADCSourceThermistor) {
+      runt_interrupt_raise(c, RuntInterruptADC);
+    }
+  }
+  
   if (c->lcd_step != NULL) {
     c->lcd_step(c->lcd_driver);
   }
@@ -632,7 +619,7 @@ void runt_set_log_file (runt_t *c, FILE *file) {
 #pragma mark -
 #pragma mark
 void runt_set_lcd_fct(runt_t *c, void *ext,
-                      void *get32, void *set32, void *getname, void *step)
+            void *get32, void *set32, void *getname, void *step)
 {
   c->lcd_driver = ext;
   c->lcd_get_uint32 = get32;
@@ -665,7 +652,7 @@ void runt_init (runt_t *c, int machineType) {
     runt_set_lcd_fct(c, sharp, lcd_sharp_get_mem32, lcd_sharp_set_mem32, lcd_sharp_get_address_name, NULL);
     c->lcd_driver = sharp;
   }
-
+  
   
   //
   // Logging
