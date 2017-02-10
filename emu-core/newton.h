@@ -54,10 +54,24 @@ enum {
   NewtonLogFlash       = (1 << 1),
   NewtonLogSWI         = (1 << 2),
   NewtonLogVectorTable = (1 << 3),
-
+    NewtonLogTapFileCntl = (1 << 4),
   NewtonLogAll         = 0xffffffff,
 };
 
+//
+// TapFileCntl
+//
+typedef int32_t (*newton_do_sys_open_f) (void *ext, const char *name, int mode);
+typedef int32_t (*newton_do_sys_close_f) (void *ext, uint32_t fildes);
+typedef int32_t (*newton_do_sys_istty_f) (void *ext, uint32_t fildes);
+typedef int32_t (*newton_do_sys_read_f) (void *ext, uint32_t fildes, void *buf, uint32_t nbyte);
+typedef int32_t (*newton_do_sys_write_f) (void *ext, uint32_t fildes, const void *buf, uint32_t nbyte);
+typedef int32_t (*newton_do_sys_set_input_notify_f) (void *ext, uint32_t fildes, uint32_t addr);
+
+
+//
+// Membank
+//
 typedef uint32_t (*membank_set_uint32_f) (void *ext, uint32_t addr, uint32_t val, uint32_t pc);
 typedef uint32_t (*membank_get_uint32_f) (void *ext, uint32_t addr, uint32_t pc);
 typedef void (*membank_del_f) (void *ext);
@@ -75,15 +89,6 @@ struct membank_s {
   membank_t *next;
 };
 
-typedef struct newton_file_s newton_file_t;
-struct newton_file_s {
-    char *name;
-    int mode;
-    int fp;
-    int istty;
-    uint32_t input_notify;
-    newton_file_t *next;
-};
 
 typedef struct newton_s {
   arm_t *arm;
@@ -93,15 +98,24 @@ typedef struct newton_s {
   pcmcia_t *pcmcia;
   
   membank_t *membanks;
-  newton_file_t *files;
   
   uint32_t machineType;
   uint32_t romManufacturer;
   uint32_t debuggerBits;
   uint32_t newtConfig;
   uint32_t newtTests;
+    
+    // TapFileCntl related
   bool supportsRegularFiles;
+    void *tapfilecntl_ext;
+    newton_do_sys_open_f do_sys_open;
+    newton_do_sys_close_f do_sys_close;
+    newton_do_sys_istty_f do_sys_istty;
+    newton_do_sys_read_f do_sys_read;
+    newton_do_sys_write_f do_sys_write;
+    newton_do_sys_set_input_notify_f do_sys_set_input_notify;
 
+    //
   bp_entry_t *breakpoints;
   symbol_t *symbols;
   
@@ -177,5 +191,15 @@ bool newton_get_pc_spy(newton_t *c);
 
 void newton_set_sp_spy(newton_t *c, bool spSpy);
 bool newton_get_sp_spy(newton_t *c);
+
+//
+void newton_set_tapfilecntl_funtcions (newton_t *c, void *ext,
+                                       newton_do_sys_open_f do_sys_open,
+                                       newton_do_sys_close_f do_sys_close,
+                                       newton_do_sys_istty_f do_sys_istty,
+                                       newton_do_sys_read_f do_sys_read,
+                                       newton_do_sys_write_f do_sys_write,
+                                       newton_do_sys_set_input_notify_f do_sys_set_input_notify);
+
 
 #endif
