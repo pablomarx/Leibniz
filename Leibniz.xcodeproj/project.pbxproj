@@ -28,6 +28,9 @@
 		F19548A01E47B170001772E8 /* fpopcode.c in Sources */ = {isa = PBXBuildFile; fileRef = F19548921E47B170001772E8 /* fpopcode.c */; };
 		F19548A11E47B170001772E8 /* single_cpdo.c in Sources */ = {isa = PBXBuildFile; fileRef = F19548961E47B170001772E8 /* single_cpdo.c */; };
 		F19548A21E47B170001772E8 /* softfloat.c in Sources */ = {isa = PBXBuildFile; fileRef = F19548971E47B170001772E8 /* softfloat.c */; };
+		F19548A61E4E52C6001772E8 /* ListenerWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = F19548A41E4E52C5001772E8 /* ListenerWindowController.m */; };
+		F19548A71E4E52C6001772E8 /* ListenerWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = F19548A51E4E52C5001772E8 /* ListenerWindowController.xib */; };
+		F19548AA1E4E5922001772E8 /* AMR_ANSIEscapeHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = F19548A91E4E5922001772E8 /* AMR_ANSIEscapeHelper.m */; };
 		F1DB3DD919C60F8B006C7102 /* monitor.c in Sources */ = {isa = PBXBuildFile; fileRef = F1DB3DD719C60F8B006C7102 /* monitor.c */; };
 		F1DB3DDC19C63121006C7102 /* linenoise.c in Sources */ = {isa = PBXBuildFile; fileRef = F1DB3DDA19C63121006C7102 /* linenoise.c */; };
 		F1DD99A71CC818DA00C718CC /* memory.c in Sources */ = {isa = PBXBuildFile; fileRef = F1DD99A51CC818DA00C718CC /* memory.c */; };
@@ -86,6 +89,11 @@
 		F19548961E47B170001772E8 /* single_cpdo.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = single_cpdo.c; sourceTree = "<group>"; };
 		F19548971E47B170001772E8 /* softfloat.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = softfloat.c; sourceTree = "<group>"; };
 		F19548981E47B170001772E8 /* softfloat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = softfloat.h; sourceTree = "<group>"; };
+		F19548A31E4E52C5001772E8 /* ListenerWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ListenerWindowController.h; sourceTree = "<group>"; };
+		F19548A41E4E52C5001772E8 /* ListenerWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ListenerWindowController.m; sourceTree = "<group>"; };
+		F19548A51E4E52C5001772E8 /* ListenerWindowController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ListenerWindowController.xib; sourceTree = "<group>"; };
+		F19548A81E4E5922001772E8 /* AMR_ANSIEscapeHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AMR_ANSIEscapeHelper.h; sourceTree = "<group>"; };
+		F19548A91E4E5922001772E8 /* AMR_ANSIEscapeHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AMR_ANSIEscapeHelper.m; sourceTree = "<group>"; };
 		F1DB3DD719C60F8B006C7102 /* monitor.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = monitor.c; sourceTree = "<group>"; };
 		F1DB3DD819C60F8B006C7102 /* monitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = monitor.h; sourceTree = "<group>"; };
 		F1DB3DDA19C63121006C7102 /* linenoise.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = linenoise.c; sourceTree = "<group>"; };
@@ -200,8 +208,13 @@
 		F1E4AF0E19C1327F00D8EFB4 /* Leibniz */ = {
 			isa = PBXGroup;
 			children = (
+				F19548A81E4E5922001772E8 /* AMR_ANSIEscapeHelper.h */,
+				F19548A91E4E5922001772E8 /* AMR_ANSIEscapeHelper.m */,
 				F1E4AF1319C1327F00D8EFB4 /* AppDelegate.h */,
 				F1E4AF1419C1327F00D8EFB4 /* AppDelegate.m */,
+				F19548A31E4E52C5001772E8 /* ListenerWindowController.h */,
+				F19548A41E4E52C5001772E8 /* ListenerWindowController.m */,
+				F19548A51E4E52C5001772E8 /* ListenerWindowController.xib */,
 				F1E4AF1619C1327F00D8EFB4 /* Images.xcassets */,
 				F1E4AF1819C1327F00D8EFB4 /* MainMenu.xib */,
 				F1853F751CBD87B800CFA4F4 /* newton-buttons.png */,
@@ -319,6 +332,7 @@
 				F1853F761CBD87B800CFA4F4 /* newton-buttons.png in Resources */,
 				F1E4AF1719C1327F00D8EFB4 /* Images.xcassets in Resources */,
 				F1E4AF1A19C1327F00D8EFB4 /* MainMenu.xib in Resources */,
+				F19548A71E4E52C6001772E8 /* ListenerWindowController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -339,6 +353,7 @@
 				F11F0DE31E43CB4800B963C2 /* pcmcia.c in Sources */,
 				F195489B1E47B170001772E8 /* fpa.c in Sources */,
 				F123BD7319C508C200EC994F /* runt.c in Sources */,
+				F19548A61E4E52C6001772E8 /* ListenerWindowController.m in Sources */,
 				F123BD5D19C4FC8800EC994F /* arm.c in Sources */,
 				F195489D1E47B170001772E8 /* fpa11_cpdt.c in Sources */,
 				F1DD99A71CC818DA00C718CC /* memory.c in Sources */,
@@ -361,6 +376,7 @@
 				F123BD6E19C4FC8800EC994F /* opcodes.c in Sources */,
 				F195489E1E47B170001772E8 /* fpa11_cprt.c in Sources */,
 				F19548A01E47B170001772E8 /* fpopcode.c in Sources */,
+				F19548AA1E4E5922001772E8 /* AMR_ANSIEscapeHelper.m in Sources */,
 				F1E4AF1219C1327F00D8EFB4 /* main.m in Sources */,
 				F1DB3DDC19C63121006C7102 /* linenoise.c in Sources */,
 			);

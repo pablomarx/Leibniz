@@ -7,13 +7,29 @@
 //
 
 #import "AppDelegate.h"
+#import "ListenerWindowController.h"
 
 #include "newton.h"
 #include "runt.h"
 #include "monitor.h"
 #include "HammerConfigBits.h"
 
-#define DegreesToRadians(r)      ((r) * M_PI / 180.0)
+#define DegreesToRadians(r)    ((r) * M_PI / 180.0)
+
+int32_t leibniz_sys_open(void *ext, const char *cStrName, int mode);
+int32_t leibniz_sys_close(void *ext, uint32_t fildes);
+int32_t leibniz_sys_istty(void *ext, uint32_t fildes);
+int32_t leibniz_sys_read(void *ext, uint32_t fildes, void *buf, uint32_t nbyte);
+int32_t leibniz_sys_write(void *ext, uint32_t fildes, const void *buf, uint32_t nbyte);
+int32_t leibniz_sys_set_input_notify(void *ext, uint32_t fildes, uint32_t addr);
+
+
+@interface LeibnizFile : NSObject
+@property (strong) ListenerWindowController *listener;
+@property (strong) NSString *name;
+@property (strong) NSArray *openDescriptors;
+@property (assign) uint32_t notifyAddress;
+@end
 
 @interface AppDelegate () {
   dispatch_queue_t _emulatorQueue;
@@ -22,6 +38,7 @@
 
 @property (weak) IBOutlet NSWindow *window;
 @property (weak) IBOutlet EmulatorView *screenView;
+@property (strong) NSArray *files;
 
 - (IBAction) toggleNicdSwitch:(id)sender;
 - (IBAction) toggleCardLockSwitch:(id)sender;
@@ -32,6 +49,8 @@
 @implementation AppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
+  self.files = @[];
+  
   NSOpenPanel *openPanel = [NSOpenPanel openPanel];
   NSInteger result = [openPanel runModal];
   if (result == NSFileHandlingPanelOKButton) {
@@ -52,6 +71,14 @@
     newton_set_newt_config(_newton, kConfigBit3 | kDontPauseCPU | kStopOnThrows | kEnableStdout | kDefaultStdioOn | kEnableListener);
     newton_set_debugger_bits(_newton, 1);
     newton_set_bootmode(_newton, NewtonBootModeDiagnostics);
+    newton_set_tapfilecntl_funtcions(_newton,
+                     (__bridge void *)self,
+                     leibniz_sys_open,
+                     leibniz_sys_close,
+                     leibniz_sys_istty,
+                     leibniz_sys_read,
+                     leibniz_sys_write,
+                     leibniz_sys_set_input_notify);
     newton_emulate(_newton, INT32_MAX);
   });
 }
@@ -82,7 +109,7 @@
     CGContextRelease(context);
     
     [self.screenView setEmulatorImage:imageRef];
-
+    
     CGImageRelease(imageRef);;
   });
 }
@@ -99,6 +126,146 @@
 
 - (void) mouseUp:(NSEvent *)theEvent {
   runt_touch_up(_newton->runt);
+}
+
+#pragma mark - TapFileCntl
+- (LeibnizFile *) fileWithDescriptor:(uint32_t)fp {
+  for (LeibnizFile *aFile in self.files) {
+    if ([aFile.openDescriptors containsObject:@(fp)] == YES) {
+      return aFile;
+    }
+  }
+  return nil;
+}
+
+- (int32_t) openFileNamed:(NSString *)name mode:(int)mode {
+  BOOL isTTY = [name hasPrefix:@"%"];
+  if (isTTY == NO && [name isEqualToString:@"bootNoCalibrate"] == NO) {
+    return -1;
+  }
+  NSLog(@"%s %@ %i", __PRETTY_FUNCTION__, name, mode);
+  int32_t fp = 0;
+  LeibnizFile *file = nil;
+  for (LeibnizFile *aFile in self.files) {
+    if ([aFile.name isEqualToString:name] == YES) {
+      file = aFile;
+    }
+    for (NSNumber *aDescriptor in aFile.openDescriptors) {
+      fp = MAX(fp, [aDescriptor intValue]);
+    }
+  }
+  
+  fp = fp + 1;
+  
+  if (file == nil) {
+    file = [[LeibnizFile alloc] init];
+    file.name = name;
+    file.openDescriptors = @[];
+    if (isTTY == YES) {
+      ListenerWindowController *listener = [[ListenerWindowController alloc] init];
+      listener.window.title = [name substringFromIndex:1];
+      [listener showWindow:self];
+      file.listener = listener;
+    }
+    self.files = [self.files arrayByAddingObject:file];
+  }
+  file.openDescriptors = [file.openDescriptors arrayByAddingObject:@(fp)];
+  
+  return fp;
+}
+
+- (int32_t) closeFileWithDescriptor:(uint32_t)fp {
+  LeibnizFile *file = [self fileWithDescriptor:fp];
+  if (file == nil) {
+    return -1;
+  }
+  
+  NSMutableArray *openDescriptors = [file.openDescriptors mutableCopy];
+  [openDescriptors removeObject:@(fp)];
+  file.openDescriptors = openDescriptors;
+  
+  if ([openDescriptors count] == 0) {
+    NSMutableArray *files = [self.files mutableCopy];
+    [files removeObject:file];
+    self.files = files;
+    
+    [file.listener close];
+  }
+  
+  return 0;
+}
+
+- (int32_t) writeData:(NSData *)data toFileWithDescriptor:(uint32_t)fp {
+  LeibnizFile *file = [self fileWithDescriptor:fp];
+  if (file == nil) {
+    return 0;
+  }
+  
+  NSString *string = [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding];
+  [file.listener appendOutput:string];
+  return (int32_t)[data length];
+}
+
+- (int32_t) setInputNotifyAddress:(uint32_t)address forFileWithDescriptor:(uint32_t)fp {
+  LeibnizFile *file = [self fileWithDescriptor:fp];
+  if (file == nil) {
+    return 0;
+  }
+  file.notifyAddress = address;
+  return 1;
+}
+
+int32_t leibniz_sys_open(void *ext, const char *cStrName, int mode) {
+  __block int32_t result = -1;
+  dispatch_sync(dispatch_get_main_queue(), ^{
+    NSString *name = [NSString stringWithCString:cStrName encoding:NSASCIIStringEncoding];
+    AppDelegate *self = (__bridge AppDelegate *)ext;
+    result = [self openFileNamed:name mode:mode];
+  });
+  return result;
+}
+
+int32_t leibniz_sys_close(void *ext, uint32_t fildes) {
+  __block int32_t result = -1;
+  dispatch_sync(dispatch_get_main_queue(), ^{
+    AppDelegate *self = (__bridge AppDelegate *)ext;
+    result = [self closeFileWithDescriptor:fildes];
+  });
+  return result;
+}
+
+int32_t leibniz_sys_istty(void *ext, uint32_t fildes) {
+  __block int32_t result = 1;
+  /*
+   dispatch_sync(dispatch_get_main_queue(), ^{
+   AppDelegate *self = (__bridge AppDelegate *)ext;
+   result = [self fileWithFPIsRegular:fildes];
+   });
+   */
+  return result;
+}
+
+int32_t leibniz_sys_read(void *ext, uint32_t fildes, void *buf, uint32_t nbyte) {
+  return -1;
+}
+
+int32_t leibniz_sys_write(void *ext, uint32_t fildes, const void *buf, uint32_t nbyte) {
+  NSData *data = [NSData dataWithBytes:buf length:nbyte];
+  __block int32_t result = 0;
+  dispatch_sync(dispatch_get_main_queue(), ^{
+    AppDelegate *self = (__bridge AppDelegate *)ext;
+    result = [self writeData:data toFileWithDescriptor:fildes];
+  });
+  return (nbyte - result);
+}
+
+int32_t leibniz_sys_set_input_notify(void *ext, uint32_t fildes, uint32_t addr) {
+  __block int32_t result = 0;
+  dispatch_sync(dispatch_get_main_queue(), ^{
+    AppDelegate *self = (__bridge AppDelegate *)ext;
+    result = [self setInputNotifyAddress:addr forFileWithDescriptor:fildes];
+  });
+  return result;
 }
 
 @end
@@ -129,7 +296,7 @@
   if (self != nil) {
     self.wantsLayer = YES;
     self.layer.backgroundColor = [[NSColor whiteColor] CGColor];
-
+    
     _screenLayer = [CALayer layer];
     _screenLayer.backgroundColor = [[NSColor whiteColor] CGColor];
     _screenLayer.frame = CGRectMake(-48, 48, 336, 240);
@@ -152,3 +319,6 @@ void FlushDisplay(const char *display, int width, int height) {
   [(AppDelegate *)[NSApp delegate] updateEmulatorViewWithData:data size:NSMakeSize(width, height)];
   data = nil;
 }
+
+@implementation LeibnizFile
+@end

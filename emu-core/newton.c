@@ -59,63 +59,63 @@ const char *newton_get_symbol_for_address(newton_t *c, uint32_t addr) {
 }
 
 void newton_mem_hexdump(newton_t *c, uint32_t addr, uint32_t length) {
-	uint32_t translated = addr;
-	arm_translate_extern(c->arm, &translated, 0, NULL, NULL);
-
-	char *data = malloc(length);
-	for (int i=0; i<length; ) {
-	  uint32_t word = newton_get_mem32(c, translated + i);
+  uint32_t translated = addr;
+  arm_translate_extern(c->arm, &translated, 0, NULL, NULL);
   
-	  data[i++] = word & 0xff;
-	  if (i < length) data[i++] = (word >>  8) & 0xff;
-	  if (i < length) data[i++] = (word >> 16) & 0xff;
-	  if (i < length) data[i++] = (word >> 24) & 0xff;
-	}
-	hexdump(c->logFile, data, translated, length);
-	free(data);
+  char *data = malloc(length);
+  for (int i=0; i<length; ) {
+    uint32_t word = newton_get_mem32(c, translated + i);
+    
+    data[i++] = word & 0xff;
+    if (i < length) data[i++] = (word >>  8) & 0xff;
+    if (i < length) data[i++] = (word >> 16) & 0xff;
+    if (i < length) data[i++] = (word >> 24) & 0xff;
+  }
+  hexdump(c->logFile, data, translated, length);
+  free(data);
 }
 
 #pragma mark -
 void newton_dump_task(newton_t *c, uint32_t taskAddr) {
-	uint32_t name = newton_get_mem32(c, taskAddr + 132);
-	char *pcSymbol = newton_get_symbol_for_address(c, taskAddr);
-	
-    fprintf(c->logFile, "Name: %c%c%c%c\n", (name >> 24) & 0xff, (name >> 16) & 0xff, (name >> 8) & 0xff, name & 0xff);
-    fprintf(c->logFile, "Current Task: 0x%08x\n", newton_get_mem32(c, taskAddr + 124));
-    fprintf(c->logFile, "Priority: %i\n", newton_get_mem32(c, taskAddr + 128));
-    fprintf(c->logFile, "Stack Base: 0x%08x\n", newton_get_mem32(c, taskAddr + 136));
-    fprintf(c->logFile, "Fault Address: 0x%08x\n", newton_get_mem32(c, taskAddr + 84));
-    fprintf(c->logFile, "Fault Status: 0x%08x\n", newton_get_mem32(c, taskAddr + 88));
-
-    fprintf(c->logFile, "r00=%08X  r04=%08X  r08=%08X  r12=%08X  \n",
-            newton_get_mem32(c, taskAddr + 16),
-            newton_get_mem32(c, taskAddr + 32),
-            newton_get_mem32(c, taskAddr + 48),
-            newton_get_mem32(c, taskAddr + 64)
-            );
+  uint32_t name = newton_get_mem32(c, taskAddr + 132);
+  char *pcSymbol = newton_get_symbol_for_address(c, taskAddr);
   
-    fprintf(c->logFile, "r01=%08X  r05=%08X  r09=%08X   SP=%08X  SPSR=%08X\n",
-    newton_get_mem32(c, taskAddr + 20),
-    newton_get_mem32(c, taskAddr + 36),
-    newton_get_mem32(c, taskAddr + 52),
-    newton_get_mem32(c, taskAddr + 68),
-    newton_get_mem32(c, taskAddr + 80)
-            );
+  fprintf(c->logFile, "Name: %c%c%c%c\n", (name >> 24) & 0xff, (name >> 16) & 0xff, (name >> 8) & 0xff, name & 0xff);
+  fprintf(c->logFile, "Current Task: 0x%08x\n", newton_get_mem32(c, taskAddr + 124));
+  fprintf(c->logFile, "Priority: %i\n", newton_get_mem32(c, taskAddr + 128));
+  fprintf(c->logFile, "Stack Base: 0x%08x\n", newton_get_mem32(c, taskAddr + 136));
+  fprintf(c->logFile, "Fault Address: 0x%08x\n", newton_get_mem32(c, taskAddr + 84));
+  fprintf(c->logFile, "Fault Status: 0x%08x\n", newton_get_mem32(c, taskAddr + 88));
   
-    fprintf(c->logFile, "r02=%08X  r06=%08X  r10=%08X   LR=%08X    \n",
-    newton_get_mem32(c, taskAddr + 24),
-    newton_get_mem32(c, taskAddr + 40),
-    newton_get_mem32(c, taskAddr + 56),
-    newton_get_mem32(c, taskAddr + 72)
-            );
+  fprintf(c->logFile, "r00=%08X  r04=%08X  r08=%08X  r12=%08X  \n",
+      newton_get_mem32(c, taskAddr + 16),
+      newton_get_mem32(c, taskAddr + 32),
+      newton_get_mem32(c, taskAddr + 48),
+      newton_get_mem32(c, taskAddr + 64)
+      );
   
-    fprintf(c->logFile, "r03=%08X  r07=%08X  r11=%08X   PC=%08X %s    \n",
-    newton_get_mem32(c, taskAddr + 28),
-    newton_get_mem32(c, taskAddr + 44),
-    newton_get_mem32(c, taskAddr + 60),
-    newton_get_mem32(c, taskAddr + 76),
-	pcSymbol ? pcSymbol : ""
-            );    
+  fprintf(c->logFile, "r01=%08X  r05=%08X  r09=%08X   SP=%08X  SPSR=%08X\n",
+      newton_get_mem32(c, taskAddr + 20),
+      newton_get_mem32(c, taskAddr + 36),
+      newton_get_mem32(c, taskAddr + 52),
+      newton_get_mem32(c, taskAddr + 68),
+      newton_get_mem32(c, taskAddr + 80)
+      );
+  
+  fprintf(c->logFile, "r02=%08X  r06=%08X  r10=%08X   LR=%08X  \n",
+      newton_get_mem32(c, taskAddr + 24),
+      newton_get_mem32(c, taskAddr + 40),
+      newton_get_mem32(c, taskAddr + 56),
+      newton_get_mem32(c, taskAddr + 72)
+      );
+  
+  fprintf(c->logFile, "r03=%08X  r07=%08X  r11=%08X   PC=%08X %s  \n",
+      newton_get_mem32(c, taskAddr + 28),
+      newton_get_mem32(c, taskAddr + 44),
+      newton_get_mem32(c, taskAddr + 60),
+      newton_get_mem32(c, taskAddr + 76),
+      pcSymbol ? pcSymbol : ""
+      );
 }
 
 #pragma mark - Memory access
@@ -234,14 +234,14 @@ uint32_t newton_set_mem32 (newton_t *c, uint32_t addr, uint32_t val) {
       membank = membank->next;
     }
   }
-
+  
   if (membank == NULL) {
     fprintf(c->logFile, "UNKNOWN MEMORY SET: 0x%08x => 0x%08x, PC=0x%08x\n", addr, val, arm_get_pc(c->arm));
     if (c->breakOnUnknownMemory) {
       newton_stop(c);
     }
   }
-
+  
   if (c->memTrace == true) {
     const char *symName = newton_get_symbol_for_address(c, addr);
     if (symName == NULL) {
@@ -285,9 +285,9 @@ void arm_dasm_str (char *dst, arm_dasm_t *op)
 void newton_print_state(newton_t *newt) {
   arm_t *c = newt->arm;
   unsigned long long opcnt, clkcnt;
-  unsigned long      delay;
-  arm_dasm_t         op;
-  char               str[256];
+  unsigned long    delay;
+  arm_dasm_t     op;
+  char         str[256];
   bool memTrace = newt->memTrace;
   newt->memTrace = false;
   
@@ -298,45 +298,45 @@ void newton_print_state(newton_t *newt) {
   delay = arm_get_delay (c);
   
   fprintf(newt->logFile, "CLK=%llx  OP=%llx  DLY=%lx  CPI=%.4f\n",
-          clkcnt, opcnt, delay,
-          (opcnt > 0) ? ((double) (clkcnt + delay) / (double) opcnt) : 1.0
-          );
+      clkcnt, opcnt, delay,
+      (opcnt > 0) ? ((double) (clkcnt + delay) / (double) opcnt) : 1.0
+      );
   
   fprintf(newt->logFile, "r00=%08lX  r04=%08lX  r08=%08lX  r12=%08lX  CPSR=%08lX\n",
-          (unsigned long) arm_get_gpr (c, 0),
-          (unsigned long) arm_get_gpr (c, 4),
-          (unsigned long) arm_get_gpr (c, 8),
-          (unsigned long) arm_get_gpr (c, 12),
-          (unsigned long) arm_get_cpsr (c)
-          );
+      (unsigned long) arm_get_gpr (c, 0),
+      (unsigned long) arm_get_gpr (c, 4),
+      (unsigned long) arm_get_gpr (c, 8),
+      (unsigned long) arm_get_gpr (c, 12),
+      (unsigned long) arm_get_cpsr (c)
+      );
   
   fprintf(newt->logFile, "r01=%08lX  r05=%08lX  r09=%08lX   SP=%08lX  SPSR=%08lX\n",
-          (unsigned long) arm_get_gpr (c, 1),
-          (unsigned long) arm_get_gpr (c, 5),
-          (unsigned long) arm_get_gpr (c, 9),
-          (unsigned long) arm_get_gpr (c, 13),
-          (unsigned long) arm_get_spsr (c)
-          );
+      (unsigned long) arm_get_gpr (c, 1),
+      (unsigned long) arm_get_gpr (c, 5),
+      (unsigned long) arm_get_gpr (c, 9),
+      (unsigned long) arm_get_gpr (c, 13),
+      (unsigned long) arm_get_spsr (c)
+      );
   
-  fprintf(newt->logFile, "r02=%08lX  r06=%08lX  r10=%08lX   LR=%08lX    CC=[%c%c%c%c]\n",
-          (unsigned long) arm_get_gpr (c, 2),
-          (unsigned long) arm_get_gpr (c, 6),
-          (unsigned long) arm_get_gpr (c, 10),
-          (unsigned long) arm_get_gpr (c, 14),
-          (arm_get_cc_n (c)) ? 'N' : '-',
-          (arm_get_cc_z (c)) ? 'Z' : '-',
-          (arm_get_cc_c (c)) ? 'C' : '-',
-          (arm_get_cc_v (c)) ? 'V' : '-'
-          );
+  fprintf(newt->logFile, "r02=%08lX  r06=%08lX  r10=%08lX   LR=%08lX  CC=[%c%c%c%c]\n",
+      (unsigned long) arm_get_gpr (c, 2),
+      (unsigned long) arm_get_gpr (c, 6),
+      (unsigned long) arm_get_gpr (c, 10),
+      (unsigned long) arm_get_gpr (c, 14),
+      (arm_get_cc_n (c)) ? 'N' : '-',
+      (arm_get_cc_z (c)) ? 'Z' : '-',
+      (arm_get_cc_c (c)) ? 'C' : '-',
+      (arm_get_cc_v (c)) ? 'V' : '-'
+      );
   
-  fprintf(newt->logFile, "r03=%08lX  r07=%08lX  r11=%08lX   PC=%08lX     M=%02X (%s)\n",
-          (unsigned long) arm_get_gpr (c, 3),
-          (unsigned long) arm_get_gpr (c, 7),
-          (unsigned long) arm_get_gpr (c, 11),
-          (unsigned long) arm_get_gpr (c, 15),
-          (unsigned) arm_get_cpsr_m (c),
-          arm_modes[arm_get_cpsr_m (c) & 0x1f]
-          );
+  fprintf(newt->logFile, "r03=%08lX  r07=%08lX  r11=%08lX   PC=%08lX   M=%02X (%s)\n",
+      (unsigned long) arm_get_gpr (c, 3),
+      (unsigned long) arm_get_gpr (c, 7),
+      (unsigned long) arm_get_gpr (c, 11),
+      (unsigned long) arm_get_gpr (c, 15),
+      (unsigned) arm_get_cpsr_m (c),
+      arm_modes[arm_get_cpsr_m (c) & 0x1f]
+      );
   
   fprintf(newt->logFile, "---------------------------------------------------------------------\n");
   uint32_t pc = arm_get_pc (c);
@@ -531,7 +531,7 @@ void newton_set_logfile(newton_t *c, FILE *file) {
     runt_set_log_file(c->runt, file);
   }
   if (c->pcmcia != NULL) {
-	pcmcia_set_log_file(c->pcmcia, file);
+    pcmcia_set_log_file(c->pcmcia, file);
   }
 }
 
@@ -543,24 +543,24 @@ int newton_log_opcode (void *ext, uint32_t ir) {
 }
 
 char *newton_get_string(newton_t *c, uint32_t address, uint32_t length) {
-    uint32_t translated = address;
-    arm_translate_extern(c->arm, &translated, 0, NULL, NULL);
-    
-    char *msg = calloc(1024, 1);
-    uint32_t value;
-    int index = 0;
-    while (1) {
-        value = newton_get_mem32(c, translated);
-        if (index < length) msg[index++] = (value >> 24) & 0xff;
-        if (index < length) msg[index++] = (value >> 16) & 0xff;
-        if (index < length) msg[index++] = (value >>  8) & 0xff;
-        if (index < length) msg[index++] = (value      ) & 0xff;
-        if (index >= length) {
-            break;
-        }
-        translated += 4;
+  uint32_t translated = address;
+  arm_translate_extern(c->arm, &translated, 0, NULL, NULL);
+  
+  char *msg = calloc(1024, 1);
+  uint32_t value;
+  int index = 0;
+  while (1) {
+    value = newton_get_mem32(c, translated);
+    if (index < length) msg[index++] = (value >> 24) & 0xff;
+    if (index < length) msg[index++] = (value >> 16) & 0xff;
+    if (index < length) msg[index++] = (value >>  8) & 0xff;
+    if (index < length) msg[index++] = (value    ) & 0xff;
+    if (index >= length) {
+      break;
     }
-    return msg;
+    translated += 4;
+  }
+  return msg;
 }
 
 
@@ -576,7 +576,7 @@ char *newton_get_cstring(newton_t *c, uint32_t address) {
     msg[index+0] = (value >> 24) & 0xff;
     msg[index+1] = (value >> 16) & 0xff;
     msg[index+2] = (value >>  8) & 0xff;
-    msg[index+3] = (value      ) & 0xff;
+    msg[index+3] = (value    ) & 0xff;
     if (msg[index+3] == 0x00 || msg[index+2] == 0x00 || msg[index+1] == 0x00 || msg[index+0] == 0x00) {
       break;
     }
@@ -968,28 +968,28 @@ void newton_log_exception (void *ext, uint32_t addr) {
       break;
     }
     case 0x0c:
-	  if ((c->logFlags & NewtonLogVectorTable) == NewtonLogVectorTable) {
+      if ((c->logFlags & NewtonLogVectorTable) == NewtonLogVectorTable) {
         fprintf(c->logFile, "%s PC=0x%08x: prefetch_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
-	    newton_stop((newton_t *)ext);
+        newton_stop((newton_t *)ext);
       }
       break;
     case 0x10:
-	  if ((c->logFlags & NewtonLogVectorTable) == NewtonLogVectorTable) {
+      if ((c->logFlags & NewtonLogVectorTable) == NewtonLogVectorTable) {
         fprintf(c->logFile, "%s PC=0x%08x: data_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
       }
       break;
     case 0x14:
-	  if ((c->logFlags & NewtonLogVectorTable) == NewtonLogVectorTable) {
+      if ((c->logFlags & NewtonLogVectorTable) == NewtonLogVectorTable) {
         fprintf(c->logFile, "%s PC=0x%08x: unused_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
       }
       break;
     case 0x18:
-	  if ((c->logFlags & NewtonLogVectorTable) == NewtonLogVectorTable) {
+      if ((c->logFlags & NewtonLogVectorTable) == NewtonLogVectorTable) {
         fprintf(c->logFile, "%s PC=0x%08x: irq_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
       }
       break;
     case 0x1c:
-	  if ((c->logFlags & NewtonLogVectorTable) == NewtonLogVectorTable) {
+      if ((c->logFlags & NewtonLogVectorTable) == NewtonLogVectorTable) {
         fprintf(c->logFile, "%s PC=0x%08x: fiq_handler\n", __PRETTY_FUNCTION__, arm_get_pc(c->arm));
       }
       break;
@@ -1127,8 +1127,8 @@ void newton_init (newton_t *c)
   c->arm->log_opcode = newton_log_opcode;
   c->arm->log_undef = newton_log_undef;
   arm_set_mem_fct(c->arm, c,
-                  newton_get_mem8, newton_get_mem16, newton_get_mem32,
-                  newton_set_mem8, newton_set_mem16, newton_set_mem32);
+          newton_get_mem8, newton_get_mem16, newton_get_mem32,
+          newton_set_mem8, newton_set_mem16, newton_set_mem32);
   arm_reset(c->arm);
   
   //
@@ -1149,12 +1149,12 @@ void newton_init (newton_t *c)
 }
 
 void newton_install_memory_handler(newton_t *c,
-                                   uint32_t base,
-                                   uint32_t length,
-                                   void *context,
-                                   void *getuint32,
-                                   void *setuint32,
-                                   void *del)
+                   uint32_t base,
+                   uint32_t length,
+                   void *context,
+                   void *getuint32,
+                   void *setuint32,
+                   void *del)
 {
   membank_t *bank = calloc(sizeof(membank_t), 1);
   bank->context = context;
@@ -1164,7 +1164,7 @@ void newton_install_memory_handler(newton_t *c,
   
   bank->base = base;
   bank->length = length;
-
+  
   bank->next = c->membanks;
   c->membanks = bank;
 }
@@ -1188,7 +1188,7 @@ void newton_configure_voyager(newton_t *c, memory_t *rom) {
 
 void newton_configure_runt(newton_t *c, memory_t *rom) {
   arm_set_id(c->arm, ARM_C15_ID_610);
-
+  
   // Configure 16MB ROM space
   newton_install_memory(c, rom, 0x00000000, 0x01000000);
   
@@ -1207,7 +1207,7 @@ void newton_configure_runt(newton_t *c, memory_t *rom) {
   // Configure 2MB RAM
   memory_t *ram = memory_new("RAM", ramSize);
   newton_install_memory(c, ram, 0x01000000, 2 * 1024 * 1024);
-    
+  
   if (flashSize > 0) {
     // Configure 2MB flash
     memory_t *flash = memory_new("FLASH", flashSize);
@@ -1235,13 +1235,13 @@ void newton_configure_runt(newton_t *c, memory_t *rom) {
   
   
   // XXX: What about the rest of I/O card space? 0x10000000 - 0x20000000
-   
+  
   // Configure the Runt ASIC
   c->runt = runt_new(c->machineType);
   runt_set_arm(c->runt, c->arm);
   runt_set_log_file(c->runt, c->logFile);
   newton_install_memory_handler(c, 0x01400000, 0x00400000, c->runt, runt_get_mem32, runt_set_mem32, runt_del);
-
+  
   // Configure pcmcia handler
   pcmcia_t *pcmcia = pcmcia_new();
   pcmcia_set_log_file(pcmcia, c->logFile);
@@ -1301,17 +1301,17 @@ int newton_load_rom(newton_t *c, const char *path) {
   memory_set_readonly(rom, true);
   uint32_t i=0;
   while (fread(&romWord, 1, sizeof(romWord), romFP) == sizeof(romWord)) {
-    rom->contents[i++] = (((romWord      ) & 0xff) << 24) |
-                         (((romWord >>  8) & 0xff) << 16) |
-                         (((romWord >> 16) & 0xff) << 8 ) |
-                         (((romWord >> 24) & 0xff));
+    rom->contents[i++] = (((romWord    ) & 0xff) << 24) |
+    (((romWord >>  8) & 0xff) << 16) |
+    (((romWord >> 16) & 0xff) << 8 ) |
+    (((romWord >> 24) & 0xff));
   }
   fclose(romFP);
   
   printf("Loaded ROM: %s => %i bytes\n", path, romSize);
   
   c->machineType = memory_get_uint32(rom, 0x000013ec, 0);
-  printf("Machine Type    : 0x%08x => ", c->machineType);
+  printf("Machine Type  : 0x%08x => ", c->machineType);
   switch (c->machineType) {
     case kGestalt_MachineType_MessagePad:
       printf("Junior");
@@ -1353,7 +1353,7 @@ int newton_load_rom(newton_t *c, const char *path) {
       break;
   }
   printf("\n");
-
+  
   uint32_t romVersion = memory_get_uint32(rom, 0x13dc, 0);
   if (romVersion == 0x06290000) {
     c->supportsRegularFiles = false;
@@ -1361,7 +1361,7 @@ int newton_load_rom(newton_t *c, const char *path) {
   else {
     c->supportsRegularFiles = true;
   }
-    
+  
   if (c->machineType == kGestalt_MachineType_Senior || c->machineType == kGestalt_MachineType_Emate) {
     newton_configure_voyager(c, rom);
   }
