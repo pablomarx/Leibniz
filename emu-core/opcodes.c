@@ -2770,27 +2770,49 @@ void opc5 (arm_t *c)
 
 /* D0: Coprocessor data transfers (LDC, STC) */
 static
+void opd0_00 (arm_t *c)
+{
+    int      r;
+    unsigned cop;
+    
+    cop = arm_get_bits (c->ir, 8, 4);
+    
+    if (arm_copr_check (c, cop) == 0) {
+        r = c->copr[cop]->exec (c, c->copr[cop]);
+    }
+    else {
+        r = 1;
+    }
+    
+    if (r) {
+        arm_set_clk (c, 0, 1);
+        arm_exception_undefined (c);
+        return;
+    }
+}
+
+/* C0: Coprocessor data transfers (LDC, STC) */
+static
+void opc0 (arm_t *c)
+{
+    if ((c->ir & 0x0e000000) == 0x0c000000) {
+        opd0_00(c);
+    }
+    else {
+        op_undefined (c);
+    }
+}
+
+/* D0: Coprocessor data transfers (LDC, STC) */
+static
 void opd0 (arm_t *c)
 {
-	int      r;
-	unsigned cop;
-
-	cop = arm_get_bits (c->ir, 8, 4);
-	
-	if (arm_copr_check (c, cop) == 0) {
-		r = c->copr[cop]->exec (c, c->copr[cop]);
-	}
-	else {
-		r = 1;
-	}
-
-	if (r) {
-		arm_set_clk (c, 0, 1);
-		arm_exception_undefined (c);
-		return;
-	}
-
-//	arm_set_clk (c, 4, 1);
+    if ((c->ir & 0x0e000000) == 0x0c000000) {
+        opd0_00(c);
+    }
+    else {
+        op_undefined (c);
+    }
 }
 
 /* E0 00: cdp[cond] coproc, opcode1, crd, crn, crm, opcode2 */
@@ -2930,10 +2952,10 @@ arm_opcode_f arm_opcodes[256] = {
 	opa0, opa0, opa0, opa0, opa0, opa0, opa0, opa0,
 	opb0, opb0, opb0, opb0, opb0, opb0, opb0, opb0,  /* b0 */
 	opb0, opb0, opb0, opb0, opb0, opb0, opb0, opb0,
-	NULL, NULL, NULL, NULL, opc4, opc5, NULL, NULL,  /* c0 */
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, opd0, opd0, NULL,  /* d0 */
-	NULL, opd0, NULL, NULL, NULL, NULL, NULL, NULL,
+	opc0, opc0, opc0, opc0, opc4, opc5, opc0, opc0,  /* c0 */
+	opc0, opc0, opc0, opc0, opc0, opc0, opc0, opc0,
+	opd0, opd0, opd0, opd0, opd0, opd0, opd0, opd0,  /* d0 */
+	opd0, opd0, opd0, opd0, opd0, opd0, opd0, opd0,
 	ope0, ope0, ope0, ope0, ope0, ope0, ope0, ope0,  /* e0 */
 	ope0, ope0, ope0, ope0, ope0, ope0, ope0, ope0,
 	opf0, opf0, opf0, opf0, opf0, opf0, opf0, opf0,  /* f0 */
