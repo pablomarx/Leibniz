@@ -89,8 +89,14 @@ struct membank_s {
   membank_t *next;
 };
 
+//
+//
+//
+typedef struct newton_s newton_t;
+typedef void (*newton_system_panic_f) (newton_t *c, const char *msg);
+typedef void (*newton_undefined_opcode_f) (newton_t *c, uint32_t opcode);
 
-typedef struct newton_s {
+struct newton_s {
   arm_t *arm;
   bool stop;
   
@@ -104,25 +110,25 @@ typedef struct newton_s {
   uint32_t debuggerBits;
   uint32_t newtConfig;
   uint32_t newtTests;
-    
-    // TapFileCntl related
+  
+  // TapFileCntl related
   bool supportsRegularFiles;
-    void *tapfilecntl_ext;
-    newton_do_sys_open_f do_sys_open;
-    newton_do_sys_close_f do_sys_close;
-    newton_do_sys_istty_f do_sys_istty;
-    newton_do_sys_read_f do_sys_read;
-    newton_do_sys_write_f do_sys_write;
-    newton_do_sys_set_input_notify_f do_sys_set_input_notify;
-
-    //
+  void *tapfilecntl_ext;
+  newton_do_sys_open_f do_sys_open;
+  newton_do_sys_close_f do_sys_close;
+  newton_do_sys_istty_f do_sys_istty;
+  newton_do_sys_read_f do_sys_read;
+  newton_do_sys_write_f do_sys_write;
+  newton_do_sys_set_input_notify_f do_sys_set_input_notify;
+  
+  //
   bp_entry_t *breakpoints;
   symbol_t *symbols;
   
   bool instructionTrace;
   bool memTrace;
   bool breakOnUnknownMemory;
-
+  
   bool pcSpy;
   bool spSpy;
   uint32_t lastPc;
@@ -130,7 +136,10 @@ typedef struct newton_s {
   
   FILE *logFile;
   uint32_t logFlags;
-} newton_t;
+  
+  newton_undefined_opcode_f  undefined_opcode;
+  newton_system_panic_f system_panic;
+};
 
 typedef enum {
   NewtonBootModeNormal = 0,
@@ -193,13 +202,16 @@ void newton_set_sp_spy(newton_t *c, bool spSpy);
 bool newton_get_sp_spy(newton_t *c);
 
 //
+void newton_set_system_panic(newton_t *c, newton_system_panic_f system_panic);
+void newton_set_undefined_opcode(newton_t *c, newton_undefined_opcode_f undefined_opcode);
+
 void newton_set_tapfilecntl_funtcions (newton_t *c, void *ext,
-                                       newton_do_sys_open_f do_sys_open,
-                                       newton_do_sys_close_f do_sys_close,
-                                       newton_do_sys_istty_f do_sys_istty,
-                                       newton_do_sys_read_f do_sys_read,
-                                       newton_do_sys_write_f do_sys_write,
-                                       newton_do_sys_set_input_notify_f do_sys_set_input_notify);
+                     newton_do_sys_open_f do_sys_open,
+                     newton_do_sys_close_f do_sys_close,
+                     newton_do_sys_istty_f do_sys_istty,
+                     newton_do_sys_read_f do_sys_read,
+                     newton_do_sys_write_f do_sys_write,
+                     newton_do_sys_set_input_notify_f do_sys_set_input_notify);
 
 
 #endif

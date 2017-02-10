@@ -810,6 +810,9 @@ void newton_log_undef (void *ext, uint32_t ir) {
     uint32_t address = arm_get_pc(c->arm) + 4;
     char *msg = newton_get_cstring((newton_t *)ext, address);
     fprintf(c->logFile, "SystemPanic: %s", msg);
+    if (c->system_panic != NULL) {
+      c->system_panic(c, msg);
+    }
     free(msg);
     newton_stop((newton_t *)ext);
   }
@@ -822,6 +825,10 @@ void newton_log_undef (void *ext, uint32_t ir) {
   }
   else {
     fprintf(c->logFile, "UNKNOWN!");
+    if (c->undefined_opcode != NULL) {
+      c->undefined_opcode(c, ir);
+      newton_stop((newton_t *)ext);
+    }
   }
   fprintf(c->logFile, "\n");
   
@@ -1096,6 +1103,14 @@ void newton_set_tapfilecntl_funtcions (newton_t *c, void *ext,
   c->do_sys_read = do_sys_read;
   c->do_sys_write = do_sys_write;
   c->do_sys_set_input_notify = do_sys_set_input_notify;
+}
+
+void newton_set_system_panic(newton_t *c, newton_system_panic_f system_panic) {
+  c->system_panic = system_panic;
+}
+
+void newton_set_undefined_opcode(newton_t *c, newton_undefined_opcode_f undefined_opcode) {
+  c->undefined_opcode = undefined_opcode;
 }
 
 #pragma mark -
