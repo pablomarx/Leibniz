@@ -283,13 +283,23 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode) {
   return (int32_t)[data length];
 }
 
-- (int32_t) setInputNotifyAddress:(uint32_t)address forFileWithDescriptor:(uint32_t)fp {
+- (int32_t) readForFileWithDescriptor:(uint32_t)fp intoBuffer:(void *)buffer maxLength:(uint32_t)maxLength {
   LeibnizFile *file = [self fileWithDescriptor:fp];
   if (file == nil) {
     return 0;
   }
+  
+  return 0;
+}
+
+- (int32_t) setInputNotifyAddress:(uint32_t)address forFileWithDescriptor:(uint32_t)fp {
+  LeibnizFile *file = [self fileWithDescriptor:fp];
+  if (file == nil) {
+    return -1;
+  }
+
   file.notifyAddress = address;
-  return 1;
+  return 0;
 }
 
 int32_t leibniz_sys_open(void *ext, const char *cStrName, int mode) {
@@ -312,18 +322,25 @@ int32_t leibniz_sys_close(void *ext, uint32_t fildes) {
 }
 
 int32_t leibniz_sys_istty(void *ext, uint32_t fildes) {
-  __block int32_t result = 1;
-  /*
-   dispatch_sync(dispatch_get_main_queue(), ^{
-   AppDelegate *self = (__bridge AppDelegate *)ext;
-   result = [self fileWithFPIsRegular:fildes];
-   });
-   */
+  __block int32_t result = -1;
+  dispatch_sync(dispatch_get_main_queue(), ^{
+    AppDelegate *self = (__bridge AppDelegate *)ext;
+    LeibnizFile *file = [self fileWithDescriptor:fildes];
+    if (file == nil) {
+      result = -1;
+    }
+    result = (file.listener != nil);
+  });
   return result;
 }
 
 int32_t leibniz_sys_read(void *ext, uint32_t fildes, void *buf, uint32_t nbyte) {
-  return -1;
+  __block int32_t result = 0;
+  dispatch_sync(dispatch_get_main_queue(), ^{
+    AppDelegate *self = (__bridge AppDelegate *)ext;
+    result = [self readForFileWithDescriptor:fildes intoBuffer:buf maxLength:nbyte];
+  });
+  return result;
 }
 
 int32_t leibniz_sys_write(void *ext, uint32_t fildes, const void *buf, uint32_t nbyte) {
