@@ -751,6 +751,13 @@ int32_t newton_do_sys_set_input_notify(newton_t *c) {
   return result;
 }
 
+void newton_file_input_notify(newton_t *c, uint32_t addr, uint32_t value)
+{
+  uint32_t translated = addr;
+  arm_translate_extern(c->arm, &translated, 0, NULL, NULL);
+  newton_set_mem32(c, translated, value);
+}
+
 void newton_tap_file_control(newton_t *c)
 {
   enum {

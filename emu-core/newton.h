@@ -201,6 +201,8 @@ bool newton_get_pc_spy(newton_t *c);
 void newton_set_sp_spy(newton_t *c, bool spSpy);
 bool newton_get_sp_spy(newton_t *c);
 
+void newton_file_input_notify(newton_t *c, uint32_t addr, uint32_t value);
+
 //
 void newton_set_system_panic(newton_t *c, newton_system_panic_f system_panic);
 void newton_set_undefined_opcode(newton_t *c, newton_undefined_opcode_f undefined_opcode);
