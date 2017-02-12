@@ -177,12 +177,12 @@ uint32_t lcd_sharp_set_mem32(lcd_sharp_t *c, uint32_t addr, uint32_t val) {
         {
           if (c->displayInverse) {
             int pixel = c->displayFramebuffer[offset];
-            pixel = pixel ? 0x00 : 0xff;
+            pixel = pixel ? BLACK_COLOR : WHITE_COLOR;
             c->displayFramebuffer[offset] = pixel;
           }
           else {
-            int pixel = (((val & 0xff) >> i) & 1) ? 0x00 : 0xff;
-            if (c->displayFillMode == 0 || pixel == 0x00) {
+            int pixel = (((val & 0xff) >> i) & 1) ? BLACK_COLOR : WHITE_COLOR;
+            if (c->displayFillMode == 0 || pixel == BLACK_COLOR) {
               c->displayFramebuffer[offset] = pixel;
             }
           }

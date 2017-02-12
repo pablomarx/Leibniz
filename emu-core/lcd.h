@@ -9,6 +9,9 @@
 #ifndef lcd_h
 #define lcd_h
 
+#define BLACK_COLOR 0x00
+#define WHITE_COLOR 0xff
+
 extern void newton_display_open(int width, int height);
 extern void newton_display_set_framebuffer(const char *display, int width, int height);
 

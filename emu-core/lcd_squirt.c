@@ -105,7 +105,7 @@ uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
       uint8_t pixels = ((uint8_t)(val >> 24));
       for (int bitIdx=7; bitIdx>=0; bitIdx--) {
         uint8_t bitVal = ((pixels>>bitIdx) & 1);
-        c->displayFramebuffer[framebufferIdx] = (bitVal ? 0x00 : 0xff);
+        c->displayFramebuffer[framebufferIdx] = (bitVal ? BLACK_COLOR : WHITE_COLOR);
         framebufferIdx++;
       }
       
@@ -172,7 +172,7 @@ uint32_t lcd_squirt_get_mem32(lcd_squirt_t *c, uint32_t addr) {
       }
       result = 0;
       for (int j=7; j>=0; j--) {
-        int pixel = (c->displayFramebuffer[framebufferIdx] != 0x00) ? 0 : 1;
+        int pixel = (c->displayFramebuffer[framebufferIdx] != BLACK_COLOR) ? 0 : 1;
         result |= (pixel << j);
         framebufferIdx++;
       }
