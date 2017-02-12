@@ -18,15 +18,21 @@
 typedef struct lcd_sharp_s {
   FILE *logFile;
   uint32_t *memory;
-
-  int displayFillMode;
-  int displayOrientation;
-  int displayInverse;
-  int displayCursorX;
-  int displayCursorY;
-  int displayBusy;
+  
+  uint16_t writeX;
+  uint16_t writeY;
+  uint16_t readX;
+  uint16_t readY;
+  uint16_t windowW;
+  uint16_t windowH;
+  uint16_t windowX;
+  uint16_t windowY;
+  
+  uint8_t contrast;
+  uint8_t fillMode;
+  
+  bool displayBusy;
   int displayDirty;
-  int displayDirection;
   unsigned char *displayFramebuffer;
 } lcd_sharp_t;
 
