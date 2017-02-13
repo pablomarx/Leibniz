@@ -31,6 +31,7 @@ typedef struct lcd_sharp_s {
   
   uint8_t contrast;
   uint8_t fillMode;
+  uint8_t bitMask;
   
   int displayBusy;
   bool displayDirty;

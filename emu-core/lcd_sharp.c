@@ -14,7 +14,7 @@ enum {
   SharpLCDUnknown1  = 0x00,  // CR
   SharpLCDNotBusy   = 0x04,  // SR
   SharpLCDPixelData = 0x08,  // DR
-  SharpLCDUnknown2  = 0x0c,  // BM
+  SharpLCDBitMask   = 0x0c,  // BM
   
   SharpLCDUnknown3  = 0x10,  // IDR
   SharpLCDDirection = 0x14,  // IDW
@@ -83,7 +83,11 @@ const char *lcd_sharp_get_address_name(lcd_sharp_t *c, uint32_t addr) {
     case SharpLCDFlush:
       prefix = "lcd-flush";
       break;
-
+      
+    case SharpLCDBitMask:
+      prefix = "lcd-bitmask";
+      break;
+      
     case SharpLCDContrast:
       prefix = "lcd-contrast";
       break;
@@ -181,6 +185,9 @@ static inline void lcd_sharp_write_pixels(lcd_sharp_t *c, uint8_t val) {
     if (x < c->windowLeft || x > c->windowRight || y < c->windowTop || y > c->windowBottom) {
       continue;
     }
+    if (((c->bitMask >> i) & 1) == 0) {
+      continue;
+    }
     
     int offset = (y * SCREEN_WIDTH) + (x);
     if (offset < 0 || offset >= SCREEN_HEIGHT * SCREEN_WIDTH) {
@@ -224,11 +231,14 @@ uint32_t lcd_sharp_set_mem32(lcd_sharp_t *c, uint32_t addr, uint32_t val) {
     case SharpLCDFillMode:
       c->fillMode = byteVal;
       break;
-
+      
     case SharpLCDContrast:
       c->contrast = byteVal;
       break;
-
+    case SharpLCDBitMask:
+      c->bitMask = byteVal;
+      break;
+      
     case SharpLCDWriteX_l:
       c->writeX = (c->writeX & 0xff00) | byteVal;
       break;
@@ -310,15 +320,18 @@ uint32_t lcd_sharp_get_mem32(lcd_sharp_t *c, uint32_t addr) {
     case SharpLCDVersion:
       result = 91;
       break;
-
+      
     case SharpLCDPixelData:
       result = lcd_sharp_read_pixels(c);
       break;
-
+      
     case SharpLCDContrast:
       result = c->contrast;
       break;
-
+      
+    case SharpLCDBitMask:
+      result = c->bitMask;
+      break;
       
     case SharpLCDWriteX_l:
       result = (c->writeX & 0xff);
