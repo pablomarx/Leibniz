@@ -51,14 +51,10 @@ enum {
     RuntSerialConfig = 0x08,
     RuntSerialData   = 0x04,
     
-  RuntSoundDMABase = 0xb0,
-  RuntSoundDMALength = 0xb4,
-  // a8: two writes, vals: 0x00, 0x22
-  // b0: one write, val: 0x0106f030 (looks like a RAM address)
-  // b4: four writes, vals: 0x00[3], 0x113
-  // c0: one write, val = 0x0106f030 (looks like a RAM address)
-  // c4: one read, two writes, vals: 0x00, 0x113
-  // c8: two writes, vals: 0x100, 0x10f
+  RuntSoundDMA1Base = 0xb0,
+  RuntSoundDMA1Length = 0xb4,
+  RuntSoundDMA2Base = 0xc0,
+  RuntSoundDMA2Length = 0xc4,
 };
 
 enum {
@@ -205,11 +201,13 @@ void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
       flag = RuntLogRTC;
       prefix = "set-rtc-alarm";
       break;
-    case RuntSoundDMABase:
+    case RuntSoundDMA1Base:
+    case RuntSoundDMA2Base:
       flag = RuntLogSound;
       prefix = "sound-dma-base";
       break;
-    case RuntSoundDMALength:
+    case RuntSoundDMA1Length:
+    case RuntSoundDMA2Length:
       flag = RuntLogSound;
       prefix = "sound-dma-length";
       break;
@@ -509,7 +507,8 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val, uint32_t pc) {
     case RuntTicksAlarm3:
       c->ticksAlarm3 = val;
       break;
-    case RuntSoundDMALength:
+    case RuntSoundDMA1Length:
+    case RuntSoundDMA2Length:
       runt_interrupt_raise(c, RuntInterruptSoundDMA);
       break;
     default:
