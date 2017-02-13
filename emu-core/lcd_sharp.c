@@ -152,6 +152,11 @@ static inline uint8_t lcd_sharp_read_pixels(lcd_sharp_t *c) {
 }
 
 static inline void lcd_sharp_write_pixels(lcd_sharp_t *c, uint8_t val) {
+  // Without this, diagnostics doesn't clear the screen properly.
+  if (c->windowTop == 0xffff) {
+    c->windowTop = 0;
+  }
+  
   int x = c->writeX;
   int y = c->writeY;
   if (x < 0) {
@@ -172,18 +177,12 @@ static inline void lcd_sharp_write_pixels(lcd_sharp_t *c, uint8_t val) {
     y = SCREEN_HEIGHT - y;
   }
   
-  // This isn't accurate -- should be taking window x/y w/h
-  // into account.  This is just to match the previous
-  // behavior of the emulator.
-  int i;
-  if (c->fillMode == SharpLCDFillModeInvert) {
-    i = 4;
-  }
-  else {
-    i = 7;
-  }
-  
-  for (; i>=0; i--, x++) {
+  for (int i=7; i>=0; i--, x++) {
+    if (x < c->windowLeft || x > c->windowRight || y < c->windowTop || y > c->windowBottom) {
+      x++;
+      continue;
+    }
+    
     int offset = (y * SCREEN_WIDTH) + (x);
     if (offset < 0 || offset >= SCREEN_HEIGHT * SCREEN_WIDTH) {
       offset = 0;
@@ -209,8 +208,6 @@ static inline void lcd_sharp_write_pixels(lcd_sharp_t *c, uint8_t val) {
   
   
   if (direction != 144 ) c->writeY++;
-  // See above warning about not being accurate
-  else if (c->fillMode == SharpLCDFillModeInvert) c->writeX += 5;
   else c->writeX+=8;
   
   c->displayDirty = true;
