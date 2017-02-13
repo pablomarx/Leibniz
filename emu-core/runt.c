@@ -69,10 +69,10 @@ enum {
   RuntADCSourceUnknownB,
   RuntADCSourceUnknownC,
 
-  RuntADCSourceTabletMinX,
-  RuntADCSourceTabletMaxX,
-  RuntADCSourceTabletMinY,
-  RuntADCSourceTabletMaxY,
+  RuntADCSourceTabletPositionX,
+  RuntADCSourceTabletPositionY,
+  RuntADCSourceTabletUnknownX,
+  RuntADCSourceTabletUnknownY,
 };
 
 typedef struct {
@@ -92,10 +92,10 @@ static runt_adc_source_t runt_adc_sources[] = {
   { .mask = 0xffffffff, .test = 0x00003402, .val = RuntADCSourceMainBattery, .name = "MainBattery" },
   { .mask = 0xffffffff, .test = 0x00003802, .val = RuntADCSourceBackupBattery, .name = "BackupBattery" },
   
-  { .mask = 0x000000ff, .test = 0x000000a2, .val = RuntADCSourceTabletMinX, .name = "TabletMinX" },
-  { .mask = 0x000000ff, .test = 0x00000032, .val = RuntADCSourceTabletMaxX, .name = "TabletMaxX" },
-  { .mask = 0x000000ff, .test = 0x0000000e, .val = RuntADCSourceTabletMinY, .name = "TabletMinY" },
-  { .mask = 0x000000ff, .test = 0x0000000a, .val = RuntADCSourceTabletMaxY, .name = "TabletMaxY" },
+  { .mask = 0x000000ff, .test = 0x00000032, .val = RuntADCSourceTabletPositionX, .name = "TabletPositionX" },
+  { .mask = 0x000000ff, .test = 0x0000000e, .val = RuntADCSourceTabletPositionY, .name = "TabletPositionY" },
+  { .mask = 0x000000ff, .test = 0x0000000a, .val = RuntADCSourceTabletUnknownY, .name = "TabletUnknownY" },
+  { .mask = 0x000000ff, .test = 0x000000a2, .val = RuntADCSourceTabletUnknownX, .name = "TabletUnknownX" },
 };
 
 static const char *runt_power_names[] = {
@@ -304,20 +304,28 @@ uint32_t runt_get_adc_value(runt_t *c) {
     case RuntADCSourceUnknownC:
       result = 0xaaa;
       break;
-    case RuntADCSourceTabletMinY:
-    case RuntADCSourceTabletMaxY:
-    case RuntADCSourceTabletMinX:
-    case RuntADCSourceTabletMaxX:
+    case RuntADCSourceTabletUnknownY:
+    case RuntADCSourceTabletUnknownX:
+    case RuntADCSourceTabletPositionY:
+    case RuntADCSourceTabletPositionX:
     {
       if (c->touchActive == true && runt_get_power_state(c, RuntPowerTablet) == true) {
         switch (c->adcSource) {
-          case RuntADCSourceTabletMinY:
-          case RuntADCSourceTabletMaxY:
-            result = 0xfff - 320 - c->touchY;
+          case RuntADCSourceTabletPositionX:
+            result = 0xfff - (c->touchX * 10);
             break;
-          case RuntADCSourceTabletMinX:
-          case RuntADCSourceTabletMaxX:
-            result = 0xfff - 500 - c->touchX;
+          case RuntADCSourceTabletPositionY:
+            result = 0xfff - (c->touchY * 16);
+            break;
+
+          // These two values need to differ by
+          // 0x03e8 in order for Newton alignment
+          // to accept the positions...
+          case RuntADCSourceTabletUnknownX:
+            result = 0xfff;
+            break;
+          case RuntADCSourceTabletUnknownY:
+            result = 0xc17;
             break;
         }
       }
@@ -635,8 +643,8 @@ void runt_step(runt_t *c) {
     runt_interrupt_raise(c, RuntInterruptTablet);
   }
     
-  if (sampleSource == RuntADCSourceTabletMinY || sampleSource == RuntADCSourceTabletMaxY ||
-      sampleSource == RuntADCSourceTabletMinX || sampleSource == RuntADCSourceTabletMaxX)
+  if (sampleSource == RuntADCSourceTabletPositionY || sampleSource == RuntADCSourceTabletUnknownY ||
+      sampleSource == RuntADCSourceTabletUnknownX || sampleSource == RuntADCSourceTabletPositionX)
   {
     runt_interrupt_raise(c, RuntInterruptADC);
   }
