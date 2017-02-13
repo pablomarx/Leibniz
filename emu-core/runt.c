@@ -639,6 +639,9 @@ void runt_step(runt_t *c) {
   }
   
   switch (sampleSource) {
+    case RuntADCSourceUnknownA:
+    case RuntADCSourceUnknownB:
+    case RuntADCSourceUnknownC:
     case RuntADCSourceNicad:
     case RuntADCSourceBackupBattery:
     case RuntADCSourceMainBattery:
