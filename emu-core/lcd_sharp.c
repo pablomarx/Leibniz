@@ -159,12 +159,6 @@ static inline uint8_t lcd_sharp_read_pixels(lcd_sharp_t *c) {
 }
 
 static inline void lcd_sharp_write_pixels(lcd_sharp_t *c, uint8_t val) {
-  // Without this, diagnostics doesn't clear the screen properly.
-  if (c->windowTop == 0xffff) {
-    c->windowTop = 0;
-  }
-  
-  
   int x = c->writeX;
   int y = c->writeY;
   
