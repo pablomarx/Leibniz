@@ -512,6 +512,9 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val, uint32_t pc) {
     case RuntEnableInterrupt:
       runt_set_enabled_interrupts(c, val);
       break;
+    case RuntRTC:
+      c->bootTime = time(NULL);
+      break;
     case RuntRTCAlarm:
       c->rtcAlarm = val;
       break;

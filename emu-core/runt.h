@@ -77,11 +77,12 @@ typedef void (*lcd_step_f)(void *ext);
 typedef struct runt_s {
   arm_t *arm;
   uint32_t *memory;
-  time_t bootTime;
   uint32_t ticks;
   int machineType;
-  
+
   uint32_t rtcAlarm;
+  time_t bootTime;
+
   uint32_t ticksAlarm1;
   uint32_t ticksAlarm2;
   uint32_t ticksAlarm3;
