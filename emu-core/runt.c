@@ -62,7 +62,11 @@ enum {
   RuntADCSourceThermistor,
   RuntADCSourceMainBattery,
   RuntADCSourceBackupBattery,
-  
+
+  RuntADCSourceUnknownA,
+  RuntADCSourceUnknownB,
+  RuntADCSourceUnknownC,
+
   RuntADCSourceTabletMinX,
   RuntADCSourceTabletMaxX,
   RuntADCSourceTabletMinY,
@@ -77,6 +81,10 @@ typedef struct {
 } runt_adc_source_t;
 
 static runt_adc_source_t runt_adc_sources[] = {
+  { .mask = 0xffffffff, .test = 0x00000202, .val = RuntADCSourceUnknownA, .name = "UnknownA" },
+  { .mask = 0xffffffff, .test = 0x00000402, .val = RuntADCSourceUnknownB, .name = "UnknownB" },
+  { .mask = 0xffffffff, .test = 0x00000802, .val = RuntADCSourceUnknownC, .name = "UnknownC" },
+
   { .mask = 0xffffffff, .test = 0x00001402, .val = RuntADCSourceNicad, .name = "Nicad" },
   { .mask = 0xffffffff, .test = 0x00003202, .val = RuntADCSourceThermistor, .name = "Thermistor" },
   { .mask = 0xffffffff, .test = 0x00003402, .val = RuntADCSourceMainBattery, .name = "MainBattery" },
@@ -279,6 +287,15 @@ uint32_t runt_get_adc_value(runt_t *c) {
       // the voltage =   4.83 . ADC = 888
       // Nicad Battery Level =  60%.
       result = 0x888;
+      break;
+    case RuntADCSourceUnknownA:
+      result = 0x888;
+      break;
+    case RuntADCSourceUnknownB:
+      result = 0xccc;
+      break;
+    case RuntADCSourceUnknownC:
+      result = 0xaaa;
       break;
     case RuntADCSourceTabletMinY:
     case RuntADCSourceTabletMaxY:
