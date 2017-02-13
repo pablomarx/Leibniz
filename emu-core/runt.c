@@ -92,10 +92,10 @@ static runt_adc_source_t runt_adc_sources[] = {
   { .mask = 0xffffffff, .test = 0x00003402, .val = RuntADCSourceMainBattery, .name = "MainBattery" },
   { .mask = 0xffffffff, .test = 0x00003802, .val = RuntADCSourceBackupBattery, .name = "BackupBattery" },
   
-  { .mask = 0x000000ff, .test = 0x000000a2, .val = RuntADCSourceTabletMinY, .name = "TabletMinY" },
-  { .mask = 0x000000ff, .test = 0x00000032, .val = RuntADCSourceTabletMaxY, .name = "TabletMaxY" },
-  { .mask = 0x000000ff, .test = 0x0000000e, .val = RuntADCSourceTabletMinX, .name = "TabletMinX" },
-  { .mask = 0x000000ff, .test = 0x0000000a, .val = RuntADCSourceTabletMaxX, .name = "TabletMaxX" },
+  { .mask = 0x000000ff, .test = 0x000000a2, .val = RuntADCSourceTabletMinX, .name = "TabletMinX" },
+  { .mask = 0x000000ff, .test = 0x00000032, .val = RuntADCSourceTabletMaxX, .name = "TabletMaxX" },
+  { .mask = 0x000000ff, .test = 0x0000000e, .val = RuntADCSourceTabletMinY, .name = "TabletMinY" },
+  { .mask = 0x000000ff, .test = 0x0000000a, .val = RuntADCSourceTabletMaxY, .name = "TabletMaxY" },
 };
 
 static const char *runt_power_names[] = {
@@ -312,14 +312,10 @@ uint32_t runt_get_adc_value(runt_t *c) {
       if (c->touchActive == true && runt_get_power_state(c, RuntPowerTablet) == true) {
         switch (c->adcSource) {
           case RuntADCSourceTabletMinY:
-            result = 0xfff - 320 - c->touchY;
-            break;
           case RuntADCSourceTabletMaxY:
             result = 0xfff - 320 - c->touchY;
             break;
           case RuntADCSourceTabletMinX:
-            result = 0xfff - 500 - c->touchX;
-            break;
           case RuntADCSourceTabletMaxX:
             result = 0xfff - 500 - c->touchX;
             break;

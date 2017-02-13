@@ -114,17 +114,15 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
   [sender setState:(!on ? NSOffState : NSOnState)];
 }
 
-- (void) mouseDown:(NSEvent *)theEvent {
-  NSPoint location = [theEvent locationInWindow];
-  runt_touch_down(_newton->runt, floorf(location.x), floorf(location.y));
+- (void) tabletTouchedDownAtPoint:(NSPoint)point {
+  runt_touch_down(_newton->runt, point.x, point.y);
 }
 
--(void)mouseDragged:(NSEvent *)theEvent {
-  NSPoint location = [theEvent locationInWindow];
-  runt_touch_down(_newton->runt, floorf(location.x), floorf(location.y));
+- (void) tabletDraggedToPoint:(NSPoint)point {
+  runt_touch_down(_newton->runt, point.x, point.y);
 }
 
-- (void) mouseUp:(NSEvent *)theEvent {
+- (void) tabletTouchedUpAtPoint:(NSPoint)point {
   runt_touch_up(_newton->runt);
 }
 

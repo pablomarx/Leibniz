@@ -8,6 +8,12 @@
 
 #import <Cocoa/Cocoa.h>
 
+@interface NSObject(TouchViewDelegate)
+- (void) tabletTouchedDownAtPoint:(NSPoint)point;
+- (void) tabletDraggedToPoint:(NSPoint)point;
+- (void) tabletTouchedUpAtPoint:(NSPoint)point;
+@end
+
 @interface TouchView : NSView
 
 @property (weak) IBOutlet id delegate;
