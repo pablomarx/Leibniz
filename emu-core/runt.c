@@ -620,10 +620,10 @@ void runt_step(runt_t *c) {
     c->ticksAlarm3 = 0;
   }
   
-  if (c->switches[1] == 1) {
+  if (c->switches[RuntSwitchCardLock] == 1) {
     runt_interrupt_raise(c, RuntInterruptCardLockSwitch);
   }
-  if (c->switches[2] == 1) {
+  if (c->switches[RuntSwitchPower] == 1) {
     runt_interrupt_raise(c, RuntInterruptPowerSwitch);
   }
   

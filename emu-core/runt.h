@@ -69,6 +69,12 @@ enum {
   RuntInterruptDebugCard2     = (1 << 26), // Notepad 1.0b1: RegisterInterrupt(0x4000000, 0x0, 0x74294); -- more debug card?
 };
 
+enum {
+  RuntSwitchNicad,
+  RuntSwitchPower,
+  RuntSwitchCardLock,
+};
+
 typedef uint32_t (*lcd_get_uint32_f) (void *ext, uint32_t addr);
 typedef uint32_t (*lcd_set_uint32_f) (void *ext, uint32_t addr, uint32_t val);
 typedef const char * (*lcd_get_address_name_f) (void *ext, uint32_t addr);
