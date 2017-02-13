@@ -610,12 +610,12 @@ void runt_step(runt_t *c) {
   uint32_t sampleSource = c->adcSource;
   if (c->touchActive == true) {
     runt_interrupt_raise(c, RuntInterruptTablet);
+  }
     
-    if (sampleSource == RuntADCSourceTabletMinY || sampleSource == RuntADCSourceTabletMaxY ||
+  if (sampleSource == RuntADCSourceTabletMinY || sampleSource == RuntADCSourceTabletMaxY ||
       sampleSource == RuntADCSourceTabletMinX || sampleSource == RuntADCSourceTabletMaxX)
-    {
-      runt_interrupt_raise(c, RuntInterruptADC);
-    }
+  {
+    runt_interrupt_raise(c, RuntInterruptADC);
   }
   
   switch (sampleSource) {
