@@ -35,8 +35,10 @@ enum {
   RuntTicksAlarm1 = 0x38,
   RuntTicksAlarm2 = 0x40,
   RuntTicksAlarm3 = 0x48,
-  // 0x50: 14 reads
-  // 0x54: 14 writes [these two are accessed during data aborts]
+    
+  RuntFaultRead = 0x50,
+  RuntFaultWrite = 0x54,
+
   RuntADCValue = 0x58,
   RuntSound1 = 0x5c, // probably not sound, but frequently seen together.
                      // 6 writes during notepad boot. vals: 0x08[2], 0x09[3], 0x0b
@@ -195,6 +197,11 @@ void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
     case RuntPower:
       flag = RuntLogPower;
       prefix = "power";
+      break;
+    case RuntFaultRead:
+    case RuntFaultWrite:
+      flag = RuntLogFaults;
+      prefix = "fault";
       break;
     case RuntSound1:
     case RuntSound:

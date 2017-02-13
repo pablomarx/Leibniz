@@ -29,7 +29,8 @@ enum {
   RuntLogSound      = (1 << 9),
   RuntLogRTC        = (1 << 10),
   RuntLogCPUControl = (1 << 11),
-  RuntLogUnknown    = (1 << 12),
+  RuntLogFaults     = (1 << 12),
+  RuntLogUnknown    = (1 << 13),
   
   RuntLogAll        = 0xffffffff,
 };
