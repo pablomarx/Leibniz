@@ -41,15 +41,15 @@ enum {
   SharpLCDReadY_l   = 0x58,  // YRL
   SharpLCDReadY_h   = 0x5c,  // YRH
   
-  SharpLCDWindowX_l = 0x60,  // XLTL
-  SharpLCDWindowX_h = 0x64,  // XLTH
-  SharpLCDWindowY_l = 0x68,  // YTL
-  SharpLCDWindowY_h = 0x6c,  // YTH
+  SharpLCDWindowLeft_l   = 0x60,  // XLTL
+  SharpLCDWindowLeft_h   = 0x64,  // XLTH
+  SharpLCDWindowTop_l    = 0x68,  // YTL
+  SharpLCDWindowTop_h    = 0x6c,  // YTH
   
-  SharpLCDWindowW_l = 0x70,  // XRTL
-  SharpLCDWindowW_h = 0x74,  // XRTH
-  SharpLCDWindowH_l = 0x78,  // YBL
-  SharpLCDWindowH_h = 0x7c,  // YBH
+  SharpLCDWindowRight_l  = 0x70,  // XRTL
+  SharpLCDWindowRight_h  = 0x74,  // XRTH
+  SharpLCDWindowBottom_l = 0x78,  // YBL
+  SharpLCDWindowBottom_h = 0x7c,  // YBH
 };
 
 enum {
@@ -113,30 +113,30 @@ const char *lcd_sharp_get_address_name(lcd_sharp_t *c, uint32_t addr) {
       prefix = "lcd-read-y-high";
       break;
       
-    case SharpLCDWindowX_l:
-      prefix = "lcd-window-x-low";
+    case SharpLCDWindowLeft_l:
+      prefix = "lcd-window-left_low";
       break;
-    case SharpLCDWindowX_h:
-      prefix = "lcd-window-x-high";
+    case SharpLCDWindowLeft_h:
+      prefix = "lcd-window-left_high";
       break;
-    case SharpLCDWindowY_l:
-      prefix = "lcd-window-y-low";
+    case SharpLCDWindowTop_l:
+      prefix = "lcd-window-top_low";
       break;
-    case SharpLCDWindowY_h:
-      prefix = "lcd-window-y-high";
+    case SharpLCDWindowTop_h:
+      prefix = "lcd-window-top_high";
       break;
       
-    case SharpLCDWindowW_l:
-      prefix = "lcd-window-width-low";
+    case SharpLCDWindowRight_l:
+      prefix = "lcd-window-right_low";
       break;
-    case SharpLCDWindowW_h:
-      prefix = "lcd-window-width-high";
+    case SharpLCDWindowRight_h:
+      prefix = "lcd-window-right_high";
       break;
-    case SharpLCDWindowH_l:
-      prefix = "lcd-window-height-low";
+    case SharpLCDWindowBottom_l:
+      prefix = "lcd-window-bottom_low";
       break;
-    case SharpLCDWindowH_h:
-      prefix = "lcd-window-height-high";
+    case SharpLCDWindowBottom_h:
+      prefix = "lcd-window-bottom_high";
       break;
       
     default:
@@ -259,30 +259,30 @@ uint32_t lcd_sharp_set_mem32(lcd_sharp_t *c, uint32_t addr, uint32_t val) {
       c->readY = (c->readY & 0x00ff) | (byteVal << 8);
       break;
       
-    case SharpLCDWindowX_l:
-      c->windowX = (c->windowX & 0xff00) | byteVal;
+    case SharpLCDWindowLeft_l:
+      c->windowLeft = (c->windowLeft & 0xff00) | byteVal;
       break;
-    case SharpLCDWindowX_h:
-      c->windowX = (c->windowX & 0x00ff) | (byteVal << 8);
+    case SharpLCDWindowLeft_h:
+      c->windowLeft = (c->windowLeft & 0x00ff) | (byteVal << 8);
       break;
-    case SharpLCDWindowY_l:
-      c->windowY = (c->windowY & 0xff00) | byteVal;
+    case SharpLCDWindowTop_l:
+      c->windowTop = (c->windowTop & 0xff00) | byteVal;
       break;
-    case SharpLCDWindowY_h:
-      c->windowY = (c->windowY & 0x00ff) | (byteVal << 8);
+    case SharpLCDWindowTop_h:
+      c->windowTop = (c->windowTop & 0x00ff) | (byteVal << 8);
       break;
       
-    case SharpLCDWindowW_l:
-      c->windowW = (c->windowW & 0xff00) | byteVal;
+    case SharpLCDWindowRight_l:
+      c->windowRight = (c->windowRight & 0xff00) | byteVal;
       break;
-    case SharpLCDWindowW_h:
-      c->windowW = (c->windowW & 0x00ff) | (byteVal << 8);
+    case SharpLCDWindowRight_h:
+      c->windowRight = (c->windowRight & 0x00ff) | (byteVal << 8);
       break;
-    case SharpLCDWindowH_l:
-      c->windowH = (c->windowH & 0xff00) | byteVal;
+    case SharpLCDWindowBottom_l:
+      c->windowBottom = (c->windowBottom & 0xff00) | byteVal;
       break;
-    case SharpLCDWindowH_h:
-      c->windowH = (c->windowH & 0x00ff) | (byteVal << 8);
+    case SharpLCDWindowBottom_h:
+      c->windowBottom = (c->windowBottom & 0x00ff) | (byteVal << 8);
       break;
       
     case SharpLCDPixelData:
@@ -350,30 +350,30 @@ uint32_t lcd_sharp_get_mem32(lcd_sharp_t *c, uint32_t addr) {
       result = (c->readY >> 8) & 0xff;
       break;
       
-    case SharpLCDWindowX_l:
-      result = (c->windowX & 0xff);
+    case SharpLCDWindowLeft_l:
+      result = (c->windowLeft & 0xff);
       break;
-    case SharpLCDWindowX_h:
-      result = (c->windowX >> 8) & 0xff;
+    case SharpLCDWindowLeft_h:
+      result = (c->windowLeft >> 8) & 0xff;
       break;
-    case SharpLCDWindowY_l:
-      result = (c->windowY & 0xff);
+    case SharpLCDWindowTop_l:
+      result = (c->windowTop & 0xff);
       break;
-    case SharpLCDWindowY_h:
-      result = (c->windowY >> 8) & 0xff;
+    case SharpLCDWindowTop_h:
+      result = (c->windowTop >> 8) & 0xff;
       break;
       
-    case SharpLCDWindowW_l:
-      result = (c->windowW & 0xff);
+    case SharpLCDWindowRight_l:
+      result = (c->windowRight & 0xff);
       break;
-    case SharpLCDWindowW_h:
-      result = (c->windowW >> 8) & 0xff;
+    case SharpLCDWindowRight_h:
+      result = (c->windowRight >> 8) & 0xff;
       break;
-    case SharpLCDWindowH_l:
-      result = (c->windowH & 0xff);
+    case SharpLCDWindowBottom_l:
+      result = (c->windowBottom & 0xff);
       break;
-    case SharpLCDWindowH_h:
-      result = (c->windowH >> 8) & 0xff;
+    case SharpLCDWindowBottom_h:
+      result = (c->windowBottom >> 8) & 0xff;
       break;
       
   }
@@ -388,8 +388,8 @@ void lcd_sharp_set_log_file (lcd_sharp_t *c, FILE *file) {
 void lcd_sharp_init (lcd_sharp_t *c) {
   c->memory = calloc(0xff, sizeof(uint32_t));
   
-  c->windowW = SCREEN_WIDTH - 1;
-  c->windowH = SCREEN_HEIGHT - 1;
+  c->windowRight = SCREEN_WIDTH - 1;
+  c->windowBottom = SCREEN_HEIGHT - 1;
   c->contrast = 138;
   
   //

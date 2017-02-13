@@ -23,10 +23,11 @@ typedef struct lcd_sharp_s {
   uint16_t writeY;
   uint16_t readX;
   uint16_t readY;
-  uint16_t windowW;
-  uint16_t windowH;
-  uint16_t windowX;
-  uint16_t windowY;
+
+  uint16_t windowLeft;
+  uint16_t windowTop;
+  uint16_t windowRight;
+  uint16_t windowBottom;
   
   uint8_t contrast;
   uint8_t fillMode;
