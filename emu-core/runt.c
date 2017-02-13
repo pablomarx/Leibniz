@@ -78,9 +78,9 @@ typedef struct {
 
 static runt_adc_source_t runt_adc_sources[] = {
   { .mask = 0xffffffff, .test = 0x00001402, .val = RuntADCSourceNicad, .name = "Nicad" },
-  { .mask = 0xffffffff, .test = 0x00003202, .val = RuntADCSourceNicad, .name = "Thermistor" },
-  { .mask = 0xffffffff, .test = 0x00003402, .val = RuntADCSourceNicad, .name = "MainBattery" },
-  { .mask = 0xffffffff, .test = 0x00003802, .val = RuntADCSourceNicad, .name = "BackupBattery" },
+  { .mask = 0xffffffff, .test = 0x00003202, .val = RuntADCSourceThermistor, .name = "Thermistor" },
+  { .mask = 0xffffffff, .test = 0x00003402, .val = RuntADCSourceMainBattery, .name = "MainBattery" },
+  { .mask = 0xffffffff, .test = 0x00003802, .val = RuntADCSourceBackupBattery, .name = "BackupBattery" },
   
   { .mask = 0x000000ff, .test = 0x000000a2, .val = RuntADCSourceTabletMinY, .name = "TabletMinY" },
   { .mask = 0x000000ff, .test = 0x00000032, .val = RuntADCSourceTabletMaxY, .name = "TabletMaxY" },
