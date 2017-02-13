@@ -16,8 +16,8 @@ enum {
   SharpLCDPixelData = 0x08,  // DR
   SharpLCDBitMask   = 0x0c,  // BM
   
-  SharpLCDUnknown3  = 0x10,  // IDR
-  SharpLCDDirection = 0x14,  // IDW
+  SharpLCDIDR       = 0x10,  // IDR
+  SharpLCDIDW       = 0x14,  // IDW
   SharpLCDUnknown4  = 0x18,  // LPL
   SharpLCDUnknown5  = 0x1c,  // LPH
   
@@ -77,8 +77,11 @@ const char *lcd_sharp_get_address_name(lcd_sharp_t *c, uint32_t addr) {
     case SharpLCDPixelData:
       prefix = "lcd-pixel-data";
       break;
-    case SharpLCDDirection:
-      prefix = "direction";
+    case SharpLCDIDR:
+      prefix = "lcd-idr";
+      break;
+    case SharpLCDIDW:
+      prefix = "lcd-idw";
       break;
     case SharpLCDFlush:
       prefix = "lcd-flush";
@@ -161,25 +164,10 @@ static inline void lcd_sharp_write_pixels(lcd_sharp_t *c, uint8_t val) {
     c->windowTop = 0;
   }
   
+  
   int x = c->writeX;
   int y = c->writeY;
-  if (x < 0) {
-    x += SCREEN_WIDTH;
-  }
-  else if (x >= SCREEN_WIDTH) {
-    x -= SCREEN_WIDTH;
-  }
-  if (y < 0) {
-    y += SCREEN_HEIGHT;
-  }
-  else if (y >= SCREEN_HEIGHT) {
-    y -= SCREEN_HEIGHT;
-  }
   
-  uint8_t direction = c->memory[SharpLCDDirection/4];
-  if (direction == 0x06) {
-    y = SCREEN_HEIGHT - y;
-  }
   
   for (int i=7; i>=0; i--, x++) {
     if (x >= SCREEN_WIDTH) {
@@ -220,9 +208,30 @@ static inline void lcd_sharp_write_pixels(lcd_sharp_t *c, uint8_t val) {
     c->displayFramebuffer[offset] = pixel;
   }
   
+  if (c->idw == 0x05 || c->idw == 0x06) {
+    x -= 8;
+    if (x < 0) {
+      y--;
+      x = SCREEN_WIDTH - x;
+    }
+
+    if (c->idw == 0x06) {
+      y--;
+    }
+    else {
+      y++;
+    }
+      
+    if (y >= SCREEN_HEIGHT) {
+      y = y - SCREEN_HEIGHT;
+    }
+    else if (y < 0) {
+      y = y + SCREEN_HEIGHT;
+    }
+  }
   
-  if (direction != 144 ) c->writeY++;
-  else c->writeX+=8;
+  c->writeX = x;
+  c->writeY = y;
   
   c->displayDirty = true;
 }
@@ -245,6 +254,12 @@ uint32_t lcd_sharp_set_mem32(lcd_sharp_t *c, uint32_t addr, uint32_t val) {
       break;
     case SharpLCDBitMask:
       c->bitMask = byteVal;
+      break;
+    case SharpLCDIDR:
+      c->idr = byteVal;
+      break;
+    case SharpLCDIDW:
+      c->idw = byteVal;
       break;
       
     case SharpLCDWriteX_l:
@@ -339,6 +354,13 @@ uint32_t lcd_sharp_get_mem32(lcd_sharp_t *c, uint32_t addr) {
       
     case SharpLCDBitMask:
       result = c->bitMask;
+      break;
+      
+    case SharpLCDIDR:
+      result = c->idr;
+      break;
+    case SharpLCDIDW:
+      result = c->idw;
       break;
       
     case SharpLCDWriteX_l:

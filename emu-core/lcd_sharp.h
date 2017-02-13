@@ -29,6 +29,8 @@ typedef struct lcd_sharp_s {
   uint16_t windowRight;
   uint16_t windowBottom;
   
+  uint8_t idw;
+  uint8_t idr;
   uint8_t contrast;
   uint8_t fillMode;
   uint8_t bitMask;
