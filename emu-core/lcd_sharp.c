@@ -182,6 +182,14 @@ static inline void lcd_sharp_write_pixels(lcd_sharp_t *c, uint8_t val) {
   }
   
   for (int i=7; i>=0; i--, x++) {
+    if (x >= SCREEN_WIDTH) {
+      x = 0;
+      y++;
+    }
+    if (y >= SCREEN_HEIGHT) {
+      y = 0;
+    }
+    
     if (x < c->windowLeft || x > c->windowRight || y < c->windowTop || y > c->windowBottom) {
       continue;
     }
