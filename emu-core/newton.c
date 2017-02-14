@@ -78,7 +78,7 @@ void newton_mem_hexdump(newton_t *c, uint32_t addr, uint32_t length) {
 #pragma mark -
 void newton_dump_task(newton_t *c, uint32_t taskAddr) {
   uint32_t name = newton_get_mem32(c, taskAddr + 132);
-  char *pcSymbol = newton_get_symbol_for_address(c, taskAddr);
+  const char *pcSymbol = newton_get_symbol_for_address(c, taskAddr);
   
   fprintf(c->logFile, "Name: %c%c%c%c\n", (name >> 24) & 0xff, (name >> 16) & 0xff, (name >> 8) & 0xff, name & 0xff);
   fprintf(c->logFile, "Current Task: 0x%08x\n", newton_get_mem32(c, taskAddr + 124));

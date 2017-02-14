@@ -151,13 +151,13 @@ struct arm_s;
 struct arm_copr_s;
 
 
-typedef unsigned char (*arm_get_uint8_f) (void *ext, unsigned long addr);
-typedef unsigned short (*arm_get_uint16_f) (void *ext, unsigned long addr);
-typedef unsigned long (*arm_get_uint32_f) (void *ext, unsigned long addr);
+typedef uint8_t (*arm_get_uint8_f) (void *ext, uint32_t addr);
+typedef uint16_t (*arm_get_uint16_f) (void *ext, uint32_t addr);
+typedef uint32_t (*arm_get_uint32_f) (void *ext, uint32_t addr);
 
-typedef void (*arm_set_uint8_f) (void *ext, unsigned long addr, unsigned char val);
-typedef void (*arm_set_uint16_f) (void *ext, unsigned long addr, unsigned short val);
-typedef void (*arm_set_uint32_f) (void *ext, unsigned long addr, unsigned long val);
+typedef void (*arm_set_uint8_f) (void *ext, uint32_t addr, uint8_t val);
+typedef void (*arm_set_uint16_f) (void *ext, uint32_t addr, uint16_t val);
+typedef void (*arm_set_uint32_f) (void *ext, uint32_t addr, uint32_t val);
 
 typedef void (*arm_opcode_f) (struct arm_s *c);
 
@@ -348,7 +348,7 @@ unsigned arm_get_flags (const arm_t *c, unsigned flags);
  *****************************************************************************/
 void arm_set_flags (arm_t *c, unsigned flags, int val);
 
-unsigned long arm_get_id (arm_t *c);
+uint32_t arm_get_id (arm_t *c);
 void arm_set_id (arm_t *c, uint32_t id);
 
 

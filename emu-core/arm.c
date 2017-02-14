@@ -150,7 +150,7 @@ void arm_set_flags (arm_t *c, unsigned flags, int val)
 	}
 }
 
-unsigned long arm_get_id (arm_t *c)
+uint32_t arm_get_id (arm_t *c)
 {
 	return (c->copr15.reg[0]);
 }
