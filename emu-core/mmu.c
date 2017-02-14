@@ -45,7 +45,6 @@
 static
 void arm_mmu_fault (arm_t *c, uint32_t addr, unsigned status, unsigned domn)
 {
-	printf("arm_mmu_fault(addr=0x%08x, status=%i, domn=%i)\n", addr, status, domn);
 	arm_copr15_t *mmu;
 
 	mmu = arm_get_mmu (c);
@@ -242,7 +241,6 @@ int arm_translate (arm_t *c, uint32_t *addr, uint32_t *mask,
 		/* page translation fault */
 		*mask = 0;
 		*perm = 0;
-		printf("*addr=0x%08x, addr1=0x%08x, desc1=0x%08x, addr2=0x%08x, desc2=0x%08x\n", *addr, addr1, desc1, addr2, desc2);
 		return (1);
 
 	case 0x01:
