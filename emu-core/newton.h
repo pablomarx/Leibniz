@@ -54,7 +54,8 @@ enum {
   NewtonLogFlash       = (1 << 1),
   NewtonLogSWI         = (1 << 2),
   NewtonLogVectorTable = (1 << 3),
-    NewtonLogTapFileCntl = (1 << 4),
+  NewtonLogTapFileCntl = (1 << 4),
+  NewtonLogUndefined   = (1 << 5),
   NewtonLogAll         = 0xffffffff,
 };
 
@@ -94,6 +95,7 @@ struct membank_s {
 //
 typedef struct newton_s newton_t;
 typedef void (*newton_system_panic_f) (newton_t *c, const char *msg);
+typedef void (*newton_debugstr_f) (newton_t *c, const char *msg);
 typedef void (*newton_undefined_opcode_f) (newton_t *c, uint32_t opcode);
 
 struct newton_s {
@@ -139,6 +141,7 @@ struct newton_s {
   
   newton_undefined_opcode_f  undefined_opcode;
   newton_system_panic_f system_panic;
+  newton_debugstr_f debug_str;
 };
 
 typedef enum {
@@ -206,6 +209,7 @@ void newton_file_input_notify(newton_t *c, uint32_t addr, uint32_t value);
 //
 void newton_set_system_panic(newton_t *c, newton_system_panic_f system_panic);
 void newton_set_undefined_opcode(newton_t *c, newton_undefined_opcode_f undefined_opcode);
+void newton_set_debugstr(newton_t *c, newton_debugstr_f debugstr);
 
 void newton_set_tapfilecntl_funtcions (newton_t *c, void *ext,
                      newton_do_sys_open_f do_sys_open,

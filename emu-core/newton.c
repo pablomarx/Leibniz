@@ -806,56 +806,83 @@ void newton_tap_file_control(newton_t *c)
 
 void newton_log_undef (void *ext, uint32_t ir) {
   newton_t *c = (newton_t *)ext;
-  fprintf(c->logFile, "%s instr=0x%08x, PC=0x%08x: ", __PRETTY_FUNCTION__, ir, arm_get_pc(c->arm));
+  bool shouldLog = ((c->logFlags & NewtonLogUndefined) == NewtonLogUndefined);
+  if (shouldLog == true) {
+  	fprintf(c->logFile, "%s instr=0x%08x, PC=0x%08x: ", __PRETTY_FUNCTION__, ir, arm_get_pc(c->arm));
+  }
   
   if (ir == 0xE6000010) {
-    fprintf(c->logFile, "SystemBoot");
-    c->arm->reg[15] = c->arm->reg[15] + 4;
+  	if (shouldLog == true) {
+  		fprintf(c->logFile, "SystemBoot");
+  	}
+  	c->arm->reg[15] = c->arm->reg[15] + 4;
   }
   else if (ir == 0xE6000110) {
-    fprintf(c->logFile, "ExitToShell");
-    newton_stop((newton_t *)ext);
+  	if (shouldLog == true) {
+  		fprintf(c->logFile, "ExitToShell");
+  	}
+  	newton_stop((newton_t *)ext);
   }
   else if (ir == 0xE6000210) {
-    fprintf(c->logFile, "Debugger");
-    newton_stop((newton_t *)ext);
+  	if (shouldLog == true) {
+  		fprintf(c->logFile, "Debugger");
+  	}
+  	newton_stop((newton_t *)ext);
   }
   else if (ir == 0xE6000310) {
-    char *msg = newton_get_cstring((newton_t *)ext, c->arm->reg[0]);
-    fprintf(c->logFile, "DebugStr: %s", msg);
-    free(msg);
-    newton_stop((newton_t *)ext);
+  	if (c->debug_str != NULL || shouldLog == true) {
+  		char *msg = newton_get_cstring((newton_t *)ext, c->arm->reg[0]);
+  		if (c->debug_str != NULL) {
+  			c->debug_str(c, msg);
+  		}
+  		if (shouldLog == true) {
+  			fprintf(c->logFile, "DebugStr: %s", msg);
+  		}
+  		free(msg);
+  	}
+  	newton_stop((newton_t *)ext);
   }
   else if (ir == 0xE6000410) {
-    fprintf(c->logFile, "PublicFiller");
+  	if (shouldLog == true) {
+  		fprintf(c->logFile, "PublicFiller");
+  	}
   }
   else if (ir == 0xE6000510) {
-    uint32_t address = arm_get_pc(c->arm) + 4;
-    char *msg = newton_get_cstring((newton_t *)ext, address);
-    fprintf(c->logFile, "SystemPanic: %s", msg);
-    if (c->system_panic != NULL) {
-      c->system_panic(c, msg);
-    }
-    free(msg);
-    newton_stop((newton_t *)ext);
+  	if (c->system_panic != NULL || shouldLog == true) {
+  		uint32_t address = arm_get_pc(c->arm) + 4;
+  		char *msg = newton_get_cstring((newton_t *)ext, address);
+  		if (shouldLog == true) {
+  			fprintf(c->logFile, "SystemPanic: %s", msg);
+  		}
+  		if (c->system_panic != NULL) {
+  			c->system_panic(c, msg);
+  		}
+  		free(msg);
+  	}
+  	newton_stop((newton_t *)ext);
   }
   else if (ir == 0xE6000710) {
-    fprintf(c->logFile, "SendTestResults");
+  	if (shouldLog == true) {
+  		fprintf(c->logFile, "SendTestResults");
+  	}
   }
   else if (ir == 0xE6000810) {
-    newton_tap_file_control(c);
-    c->arm->reg[15] = c->arm->reg[14];
+  	newton_tap_file_control(c);
+  	c->arm->reg[15] = c->arm->reg[14];
   }
   else {
-    fprintf(c->logFile, "UNKNOWN!");
-    if (c->undefined_opcode != NULL) {
-      c->undefined_opcode(c, ir);
-      newton_stop((newton_t *)ext);
-    }
+  	if (shouldLog == true) {
+  		fprintf(c->logFile, "UNKNOWN!");
+  	}
+  	if (c->undefined_opcode != NULL) {
+  		c->undefined_opcode(c, ir);
+  		newton_stop((newton_t *)ext);
+  	}
   }
-  fprintf(c->logFile, "\n");
-  
-  //newton_stop((newton_t *)ext);
+
+  if (shouldLog == true) {
+  	fprintf(c->logFile, "\n");
+  }
 }
 
 static const char *swiNames[] = {
@@ -1134,6 +1161,10 @@ void newton_set_system_panic(newton_t *c, newton_system_panic_f system_panic) {
 
 void newton_set_undefined_opcode(newton_t *c, newton_undefined_opcode_f undefined_opcode) {
   c->undefined_opcode = undefined_opcode;
+}
+
+void newton_set_debugstr(newton_t *c, newton_debugstr_f debugstr) {
+  c->debug_str = debugstr;
 }
 
 #pragma mark -
