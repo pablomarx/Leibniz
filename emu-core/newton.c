@@ -1298,7 +1298,12 @@ int newton_load_rom(newton_t *c, const char *path) {
   fseek(romFP, 0l, SEEK_END);
   uint32_t romSize = (uint32_t)ftell(romFP);
   fseek(romFP, 0l, SEEK_SET);
-  
+    
+  if (romSize % 4 != 0) {
+    printf("Bad ROM size: %i\n", romSize);
+    return -1;
+  }
+
   uint32_t romWord = 0;
   if (fread(&romWord, 1, sizeof(romWord), romFP) == sizeof(romWord)) {
     if (htonl(romWord) == 0xE1A00000) {
