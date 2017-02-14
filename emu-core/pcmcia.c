@@ -51,7 +51,9 @@ void pcmcia_del (pcmcia_t *c)
 
 uint32_t pcmcia_set_mem32(pcmcia_t *c, uint32_t addr, uint32_t val, uint32_t pc)
 {
-    fprintf(c->logFile, "[PCMCIA:WRITE] PC:0x%08x addr:0x%08x => val:0x%08x\n", pc, addr, val);
+    if (c->logEnabled == true) {
+    	fprintf(c->logFile, "[PCMCIA:WRITE] PC:0x%08x addr:0x%08x => val:0x%08x\n", pc, addr, val);
+    }
     uint32_t reg = (addr & 0xffff);
     c->memory[reg/4] = val;
     return val;
@@ -78,12 +80,18 @@ uint32_t pcmcia_get_mem32(pcmcia_t *c, uint32_t addr, uint32_t pc)
         result = 0xff;
     }
     
-    fprintf(c->logFile, "[PCMCIA:READ] PC:0x%08x addr:0x%08x => val:0x%08x\n", pc, addr, result);
+    if (c->logEnabled == true) {
+    	fprintf(c->logFile, "[PCMCIA:READ] PC:0x%08x addr:0x%08x => val:0x%08x\n", pc, addr, result);
+    }
     return result;
 }
 
 void pcmcia_set_log_file (pcmcia_t *c, FILE *file) {
     c->logFile = file;
+}
+
+void pcmcia_set_log_enabled (pcmcia_t *c, bool enabled) {
+    c->logEnabled = enabled;
 }
 
 void pcmcia_set_runt (pcmcia_t *c, runt_t *runt) {

@@ -9,6 +9,7 @@
 #ifndef __PCMCIA_H
 #define __PCMCIA_H
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include "runt.h"
@@ -18,6 +19,7 @@ typedef struct pcmcia_s {
   runt_t *runt;
   
   FILE *logFile;
+  bool logEnabled;
 } pcmcia_t;
 
 void pcmcia_init (pcmcia_t *c);
@@ -28,6 +30,7 @@ void pcmcia_del (pcmcia_t *c);
 uint32_t pcmcia_set_mem32(pcmcia_t *c, uint32_t addr, uint32_t val, uint32_t pc);
 uint32_t pcmcia_get_mem32(pcmcia_t *c, uint32_t addr, uint32_t pc);
 
+void pcmcia_set_log_enabled (pcmcia_t *c, bool enabled);
 void pcmcia_set_log_file (pcmcia_t *c, FILE *file);
 void pcmcia_set_runt (pcmcia_t *c, runt_t *runt);
 
