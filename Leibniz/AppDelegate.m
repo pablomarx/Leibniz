@@ -22,6 +22,7 @@ int32_t leibniz_sys_read(void *ext, uint32_t fildes, void *buf, uint32_t nbyte);
 int32_t leibniz_sys_write(void *ext, uint32_t fildes, const void *buf, uint32_t nbyte);
 int32_t leibniz_sys_set_input_notify(void *ext, uint32_t fildes, uint32_t addr);
 void leibniz_system_panic(newton_t *newton, const char *msg);
+void leibniz_debugstr(newton_t *newton, const char *msg);
 void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
 
 @interface LeibnizFile : NSObject
@@ -73,6 +74,7 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
   newton_set_bootmode(_newton, NewtonBootModeDiagnostics);
   newton_set_undefined_opcode(_newton, leibniz_undefined_opcode);
   newton_set_system_panic(_newton, leibniz_system_panic);
+  newton_set_debugstr(_newton, leibniz_debugstr);
   newton_set_tapfilecntl_funtcions(_newton,
                    (__bridge void *)self,
                    leibniz_sys_open,
@@ -194,6 +196,12 @@ void leibniz_system_panic(newton_t *newton, const char *msg) {
   NSString *message = [NSString stringWithCString:msg encoding:NSASCIIStringEncoding];
   [(AppDelegate *)[NSApp delegate] showErrorAlertWithTitle:NSLocalizedString(@"System Panic", @"System Panic")
                            message:message];
+}
+
+void leibniz_debugstr(newton_t *newton, const char *msg) {
+	NSString *message = [NSString stringWithCString:msg encoding:NSASCIIStringEncoding];
+	[(AppDelegate *)[NSApp delegate] showErrorAlertWithTitle:NSLocalizedString(@"DebugStr", @"DebugStr")
+													 message:message];
 }
 
 void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode) {
