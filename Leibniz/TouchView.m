@@ -13,8 +13,8 @@
 - (NSPoint) tabletPointFromEvent:(NSEvent *)theEvent {
     NSRect bounds = self.bounds;
     NSPoint location = [theEvent locationInWindow];
-    uint16_t x = floor(location.x);
-    uint16_t y = floor(location.y);
+    uint16_t x = floor(MAX(0, MIN(location.x, bounds.size.width)));
+    uint16_t y = floor(MAX(0, MIN(location.y, bounds.size.height)));
     y = bounds.size.height - y;
     x = bounds.size.width - x;
     return NSMakePoint(y, x);
