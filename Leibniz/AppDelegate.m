@@ -30,6 +30,7 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
 @property (strong) NSString *name;
 @property (strong) NSArray *openDescriptors;
 @property (assign) uint32_t notifyAddress;
+@property (strong) NSMutableData *inputBuffer;
 @end
 
 @interface AppDelegate () {
@@ -294,8 +295,22 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode) {
   if (file == nil) {
     return 0;
   }
+
+  NSData *inputBuffer = file.inputBuffer;
+  if (inputBuffer == nil || [inputBuffer length] == 0) {
+    return 0;
+  }
   
-  return 0;
+  const void *input = [inputBuffer bytes];
+  int32_t length = MIN(maxLength, (int32_t)[inputBuffer length]);
+  memcpy(buffer, input, length);
+  
+  [file.inputBuffer replaceBytesInRange:NSMakeRange(0, length) withBytes:NULL length:0];
+  if ([file.inputBuffer length] == 0) {
+    newton_file_input_notify(_newton, file.notifyAddress, 0);
+  }
+  
+  return length;
 }
 
 - (int32_t) setInputNotifyAddress:(uint32_t)address forFileWithDescriptor:(uint32_t)fp {
@@ -371,4 +386,13 @@ int32_t leibniz_sys_set_input_notify(void *ext, uint32_t fildes, uint32_t addr) 
 @end
 
 @implementation LeibnizFile
+
+- (instancetype) init {
+  self = [super init];
+  if (self != nil) {
+    self.inputBuffer = [NSMutableData data];
+  }
+  return self;
+}
+
 @end
