@@ -17,7 +17,6 @@
 #include "arm.h"
 #include "fpa.h"
 #include "hexdump.h"
-#include "memory.h"
 #include "newton.h"
 #include "runt.h"
 #include "pcmcia.h"
@@ -1136,6 +1135,13 @@ void newton_set_log_flags (newton_t *c, unsigned flags, int val) {
   else {
     c->logFlags &= ~flags;
   }
+
+  bool logSRAM = ((c->logFlags & NewtonLogSRAM) == NewtonLogSRAM);
+  bool logPCMCIA = ((c->logFlags & NewtonLogPCMCIA) == NewtonLogPCMCIA);
+	
+  memory_set_logs_reads(c->sram, logSRAM);
+  memory_set_logs_writes(c->sram, logSRAM);
+  pcmcia_set_log_enabled(c->pcmcia, logPCMCIA);
 }
 
 void newton_set_tapfilecntl_funtcions (newton_t *c, void *ext,
@@ -1273,12 +1279,12 @@ void newton_configure_runt(newton_t *c, memory_t *rom) {
     flashSize = 2 * 1024 * 1024;
   }
   
-  // Configure 2MB RAM
+  // Configure RAM
   memory_t *ram = memory_new("RAM", ramSize);
   newton_install_memory(c, ram, 0x01000000, 2 * 1024 * 1024);
   
   if (flashSize > 0) {
-    // Configure 2MB flash
+    // Configure flash
     memory_t *flash = memory_new("FLASH", flashSize);
     memory_set_uint32(flash, 0x04, 0x00a4a200, 0);
     //memory_set_logs_reads(flash, true);
@@ -1286,12 +1292,11 @@ void newton_configure_runt(newton_t *c, memory_t *rom) {
     newton_install_memory(c, flash, 0x01200000, 2 * 1024 * 1024);
   }
   
-  // Configure 1MB SRAM
+  // Configure SRAM
   memory_t *sram = memory_new("SRAM", 0x00100000);
   newton_install_memory(c, sram, 0x14000000, 0x00100000);
-  memory_set_logs_reads(sram, true);
-  memory_set_logs_writes(sram, true);
-  
+  c->sram = sram;
+	
   // This will cause diagnostics to copy the first 128KB
   // of the SRAM card into the start of RAM
   //memory_set_uint32(sram, 0x00, 'SERD', 0);
