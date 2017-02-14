@@ -735,7 +735,9 @@ void runt_init (runt_t *c, int machineType) {
   runt_set_log_flags(c, RuntLogCPUControl, 0);
   runt_set_log_flags(c, RuntLogPower, 0);
   runt_set_log_flags(c, RuntLogFaults, 0);
-  
+  runt_set_log_flags(c, RuntLogSerial, 0);
+  runt_set_log_flags(c, RuntLogIR, 0);
+	
   c->bootTime = time(NULL);
 }
 
