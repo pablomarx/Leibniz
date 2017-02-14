@@ -53,21 +53,21 @@ enum {
 enum {
   RuntInterruptRTC            = (1 << 1),
   RuntInterruptTicks          = (1 << 2),
-  RuntInterruptTicks2         = (1 << 3), // Notepad 1.0b1: RegisterInterrupt(0x8, 0x0, 0x74344); -- tablet?
+  RuntInterruptTicks2         = (1 << 3),
   RuntInterruptUnknown1       = (1 << 4),
   RuntInterruptADC            = (1 << 10),
-  RuntInterruptSerialA        = (1 << 11), // FIQ - Notepad 1.0b1: RegisterInterrupt(0x800, 0x0, 0x747c4); -- nop
+  RuntInterruptSerialA        = (1 << 11),
   RuntInterruptSound          = (1 << 12),
-  RuntInterruptPCMCIA         = (1 << 13), // Notepad 1.0b1: RegisterInterrupt(0x2000, 0x0, 0x747e0) -- something with 0x01500000, which in MMU world, 0x01500000 maps to 0x70000000, so PCMCIA interrupt?
-  RuntInterruptDiagnostics    = (1 << 14), // the diagnostic jumper pads? creates a reg dump on screen...
+  RuntInterruptPCMCIA         = (1 << 13),
+  RuntInterruptDiagnostics    = (1 << 14),
   RuntInterruptCardLockSwitch = (1 << 15),
   RuntInterruptPowerSwitch    = (1 << 16),
-  RuntInterruptSerial         = (1 << 17), // questionable
-  RuntInterruptTablet         = (1 << 18), // FIQ - Notepad 1.0b1: RegisterInterrupt(0x40000, 0x0, 0x74790); -- looks at ticks??
+  RuntInterruptSerial         = (1 << 17),
+  RuntInterruptTablet         = (1 << 18),
   RuntInterruptSoundDMA       = (1 << 19),
-  RuntInterruptUnknown5       = (1 << 24), // FIQ - Notepad 1.0b1: RegisterInterrupt(0x1000000, 0x0, 0x7435c); -- nop -- raises FIQ?
-  RuntInterruptDebugCard1     = (1 << 25), // debug card?
-  RuntInterruptDebugCard2     = (1 << 26), // Notepad 1.0b1: RegisterInterrupt(0x4000000, 0x0, 0x74294); -- more debug card?
+  RuntInterruptUnknown5       = (1 << 24),
+  RuntInterruptPowerFault     = (1 << 25),
+  RuntInterruptBatteryRemoved = (1 << 26),
 };
 
 enum {

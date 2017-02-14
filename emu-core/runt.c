@@ -109,7 +109,7 @@ static const char *runt_interrupt_names[] = {
   "rtc", "ticks", "ticks2", NULL, NULL, NULL, NULL, NULL,
   NULL, "adc", "serialA", "sound", "pcmcia", "diags", "cardlock", "powerswitch",
   "serial", "tablet", NULL, NULL, NULL, NULL, NULL, NULL,
-  "debugcard1", "debugcard2", NULL, NULL, NULL, NULL, NULL, NULL,
+  "power-fault", "battery-removed", NULL, NULL, NULL, NULL, NULL, NULL,
 };
 
 void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
@@ -373,7 +373,7 @@ void runt_interrupt_raise(runt_t *c, uint32_t interrupt) {
     }
   }
   
-  if (interrupt == RuntInterruptDebugCard1 || interrupt == RuntInterruptDebugCard2 || interrupt == RuntInterruptSerialA) {
+  if (interrupt == RuntInterruptPowerFault || interrupt == RuntInterruptBatteryRemoved || interrupt == RuntInterruptSerialA) {
     arm_set_fiq(c->arm, 1);
   }
   else {
@@ -386,7 +386,7 @@ void runt_interrupt_lower(runt_t *c, uint32_t interrupt) {
     c->interrupt ^= interrupt;
   }
   
-  if ((c->interrupt & RuntInterruptDebugCard1) == 0 && (c->interrupt & RuntInterruptDebugCard2) == 0 && (c->interrupt & RuntInterruptSerialA) == 0) {
+  if ((c->interrupt & RuntInterruptPowerFault) == 0 && (c->interrupt & RuntInterruptBatteryRemoved) == 0 && (c->interrupt & RuntInterruptSerialA) == 0) {
     arm_set_fiq(c->arm, 0);
   }
   
