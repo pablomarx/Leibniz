@@ -649,17 +649,11 @@ void runt_step(runt_t *c) {
     runt_interrupt_raise(c, RuntInterruptPowerSwitch);
   }
   
-  uint32_t sampleSource = c->adcSource;
   if (c->touchActive == true) {
     runt_interrupt_raise(c, RuntInterruptTablet);
   }
     
-  if (sampleSource == RuntADCSourceTabletPositionY || sampleSource == RuntADCSourceTabletUnknownY ||
-      sampleSource == RuntADCSourceTabletUnknownX || sampleSource == RuntADCSourceTabletPositionX)
-  {
-    runt_interrupt_raise(c, RuntInterruptADC);
-  }
-  
+  uint32_t sampleSource = c->adcSource;
   switch (sampleSource) {
     case RuntADCSourceUnknownA:
     case RuntADCSourceUnknownB:
@@ -668,6 +662,10 @@ void runt_step(runt_t *c) {
     case RuntADCSourceBackupBattery:
     case RuntADCSourceMainBattery:
     case RuntADCSourceThermistor:
+    case RuntADCSourceTabletPositionX:
+    case RuntADCSourceTabletPositionY:
+    case RuntADCSourceTabletUnknownX:
+    case RuntADCSourceTabletUnknownY:
       if (runt_interrupt_is_enabled(c, RuntInterruptADC) == true && runt_power_state_get(c, RuntPowerADC) == true) {
         runt_interrupt_raise(c, RuntInterruptADC);
       }
