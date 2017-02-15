@@ -8,37 +8,53 @@
 
 #import "EmulatorView.h"
 
-#define DegreesToRadians(r)  ((r) * M_PI / 180.0)
+#import <OpenGL/OpenGL.h>
+#import <OpenGL/gl.h>
 
-@implementation EmulatorView {
-  CALayer *_screenLayer;
-}
+@implementation EmulatorView
 
 - (id) initWithFrame:(NSRect)frameRect {
-  self = [super initWithFrame:frameRect];
-  if (self != nil) {
-      self.wantsLayer = YES;
-      self.layer.backgroundColor = [[NSColor whiteColor] CGColor];
-      
-      _screenLayer = [CALayer layer];
-      _screenLayer.backgroundColor = [[NSColor whiteColor] CGColor];
-      _screenLayer.contentsGravity = kCAGravityCenter;
-      [self.layer addSublayer:_screenLayer];
-  }
-  return self;
+	NSOpenGLPixelFormatAttribute att[] =
+	{
+		NSOpenGLPFADoubleBuffer,
+		NSOpenGLPFAColorSize, 24,
+		NSOpenGLPFAAccelerated,
+		0
+	};
+	
+	NSOpenGLPixelFormat *pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:att];
+
+	return [super initWithFrame:frameRect pixelFormat:pixelFormat];
 }
 
-- (void) setFrame:(NSRect)frame {
-  _screenLayer.transform = CATransform3DIdentity;
-  [super setFrame:frame];
+- (void) updateWithFramebuffer:(const uint8_t *)framebuffer width:(uint16_t)width height:(uint16_t)height {
+	[self.openGLContext makeCurrentContext];
 
-  _screenLayer.frame = self.bounds;
-  _screenLayer.transform = CATransform3DMakeRotation(DegreesToRadians(270), 0, 0, 1);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, width, height, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, framebuffer);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	
+	glClearColor(0,0,0,0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+	glEnable(GL_TEXTURE_2D);
+	glBegin(GL_QUADS);
+	
+	glTexCoord2f(0.0, 1.0);
+	glVertex2f(-1.0, 1.0);
+	
+	glTexCoord2f(1.0, 1.0);
+	glVertex2f(-1.0, -1.0);
+	
+	glTexCoord2f(1.0, 0.0);
+	glVertex2f(1.0, -1.0);
+	
+	glTexCoord2f(0.0, 0.0);
+	glVertex2f(1.0, 1.0);
+
+	glEnd();
+
+	[self.openGLContext flushBuffer];
 }
-
-- (void) setEmulatorImage:(CGImageRef)emulatorImage {
-  _screenLayer.contents = (__bridge id)emulatorImage;
-}
-
 
 @end

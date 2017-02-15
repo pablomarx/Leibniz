@@ -8,8 +8,8 @@
 
 #import <Cocoa/Cocoa.h>
 
-@interface EmulatorView : NSView
+@interface EmulatorView : NSOpenGLView
 
-- (void) setEmulatorImage:(CGImageRef)emulatorImage;
+- (void) updateWithFramebuffer:(const uint8_t *)framebuffer width:(uint16_t)width height:(uint16_t)height;
 
 @end

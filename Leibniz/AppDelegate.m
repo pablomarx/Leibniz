@@ -148,14 +148,8 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
   [self.window makeKeyAndOrderFront:self];
 }
 
-- (void) updateEmulatorViewWithData:(NSData *)data size:(NSSize)size {
-  CGContextRef context = CGBitmapContextCreate((void *)[data bytes], size.width, size.height, 8,  size.width, CGColorSpaceCreateWithName(kCGColorSpaceGenericGray), kCGBitmapAlphaInfoMask & kCGImageAlphaNone);
-  CGImageRef imageRef = CGBitmapContextCreateImage(context);
-  CGContextRelease(context);
-  
-  [self.screenView setEmulatorImage:imageRef];
-  
-  CGImageRelease(imageRef);;
+- (void) updateEmulatorViewWithData:(const uint8_t *)data width:(uint16_t)width height:(uint16_t)height {
+  [self.screenView updateWithFramebuffer:data width:width height:height];
 }
 
 void newton_display_open(int width, int height) {
@@ -164,11 +158,8 @@ void newton_display_open(int width, int height) {
   });
 }
 
-void newton_display_set_framebuffer(const char *display, int width, int height) {
-  NSData *data = [[NSData alloc] initWithBytes:display length:width*height];
-  dispatch_async(dispatch_get_main_queue(), ^{
-    [(AppDelegate *)[NSApp delegate] updateEmulatorViewWithData:data size:NSMakeSize(width, height)];
-  });
+void newton_display_set_framebuffer(const uint8_t *display, int width, int height) {
+  [(AppDelegate *)[NSApp delegate] updateEmulatorViewWithData:display width:width height:height];
 }
 
 #pragma mark - Errors
