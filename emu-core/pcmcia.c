@@ -67,8 +67,8 @@ uint32_t pcmcia_get_mem32(pcmcia_t *c, uint32_t addr, uint32_t pc)
         // "LOAD DIAGS TO ICCARD" writes 0x1b, and will fail with the VPP results
         // "IC CARD CHECK"'s "VPP1 and "VPP2" writes 0x0b, and will fail without the VPP results.
         if (((c->memory[0x5800/4] >> 4) & 1) == 0) {
-            bool vpp1 = runt_get_power_state(c->runt, RuntPowerVPP1);
-            bool vpp2 = runt_get_power_state(c->runt, RuntPowerVPP2);
+            bool vpp1 = runt_power_state_get(c->runt, RuntPowerVPP1);
+            bool vpp2 = runt_power_state_get(c->runt, RuntPowerVPP2);
             
             result = (vpp2 << 2) | (!vpp1 << 3) | (vpp1 << 4) | (!vpp2 << 5);
         }

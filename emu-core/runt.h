@@ -138,7 +138,7 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr, uint32_t pc);
 void runt_interrupt_raise(runt_t *c, uint32_t interrupt);
 void runt_interrupt_lower(runt_t *c, uint32_t interrupt);
 
-bool runt_get_power_state(runt_t *c, uint32_t subsystem);
+bool runt_power_state_get(runt_t *c, uint32_t subsystem);
 
 void runt_switch_state(runt_t *c, int switchNum, int state);
 

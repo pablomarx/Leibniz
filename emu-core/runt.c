@@ -237,9 +237,18 @@ void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
   }
 }
 
+#pragma mark -
+static inline uint32_t runt_register_get(runt_t *c, uint8_t reg) {
+  return c->memory[(reg<<8)/4];
+}
+
+static inline void runt_register_set(runt_t *c, uint8_t reg, uint32_t val) {
+  c->memory[(reg<<8)/4] = val;
+}
+
 #pragma mark - ADC
 uint32_t runt_get_adc_source(runt_t *c) {
-  return c->memory[(RuntADCSource<<8)/4];
+  return runt_register_get(c, RuntADCSource);
 }
 
 void runt_set_adc_source(runt_t *c, uint32_t val) {
@@ -271,7 +280,7 @@ void runt_set_adc_source(runt_t *c, uint32_t val) {
 }
 
 uint32_t runt_get_adc_value(runt_t *c) {
-  if (runt_get_power_state(c, RuntPowerADC) == false) {
+  if (runt_power_state_get(c, RuntPowerADC) == false) {
     return 0;
   }
   
@@ -309,7 +318,7 @@ uint32_t runt_get_adc_value(runt_t *c) {
     case RuntADCSourceTabletPositionY:
     case RuntADCSourceTabletPositionX:
     {
-      if (c->touchActive == true && runt_get_power_state(c, RuntPowerTablet) == true) {
+      if (c->touchActive == true && runt_power_state_get(c, RuntPowerTablet) == true) {
         switch (c->adcSource) {
           case RuntADCSourceTabletPositionX:
             result = 0xf15 - (c->touchX * 10);
@@ -355,7 +364,8 @@ void runt_print_description_for_interrupts(runt_t *c, uint32_t val) {
 }
 
 bool runt_interrupt_is_enabled(runt_t *c, uint32_t interrupt) {
-  return ((c->memory[(RuntEnableInterrupt << 8) / 4] & interrupt) == interrupt);
+  uint32_t irqs = runt_register_get(c, RuntEnableInterrupt);
+  return ((irqs & interrupt) == interrupt);
 }
 
 void runt_interrupt_raise(runt_t *c, uint32_t interrupt) {
@@ -396,7 +406,7 @@ void runt_interrupt_lower(runt_t *c, uint32_t interrupt) {
 }
 
 void runt_print_enabled_interrupts(runt_t *c) {
-  uint32_t val = c->memory[(RuntEnableInterrupt << 8)/4];
+  uint32_t val = runt_register_get(c, RuntEnableInterrupt);
   fprintf(c->logFile, "Enabled interrupts: ");
   runt_print_description_for_interrupts(c, val);
   fprintf(c->logFile, "\n");
@@ -404,7 +414,7 @@ void runt_print_enabled_interrupts(runt_t *c) {
 
 void runt_set_enabled_interrupts(runt_t *c, uint32_t val) {
   if ((c->logFlags & RuntLogInterrupts) == RuntLogInterrupts) {
-    uint32_t oldVal = c->memory[(RuntEnableInterrupt << 8) / 4];
+    uint32_t oldVal = runt_register_get(c, RuntEnableInterrupt);
     if (val != oldVal) {
       fprintf(c->logFile, " => enable interrupts was: 0x%08x (", oldVal);
       runt_print_description_for_interrupts(c, oldVal);
@@ -433,9 +443,9 @@ void runt_switch_state(runt_t *c, int switchNum, int state) {
 }
 
 #pragma mark - Power
-void runt_set_power(runt_t *c, uint32_t val) {
+void runt_power_state_set(runt_t *c, uint32_t val) {
+  uint32_t oldVal = runt_register_get(c, RuntPower);
   if ((c->logFlags & RuntLogPower) == RuntLogPower) {
-    uint32_t oldVal = c->memory[(RuntPowerADC << 8) / 4];
     fprintf(c->logFile, " => power on: 0x%08x -> 0x%08x: ", oldVal, val);
     for (int i=0; i<32; i++) {
       uint32_t bit = (1 << i);
@@ -453,8 +463,9 @@ void runt_set_power(runt_t *c, uint32_t val) {
   }
 }
 
-bool runt_get_power_state(runt_t *c, uint32_t subsystem) {
-  return ((c->memory[(RuntPower<<8)/4] & subsystem) == subsystem);
+bool runt_power_state_get(runt_t *c, uint32_t subsystem) {
+  uint32_t val = runt_register_get(c, RuntPower);
+  return ((val & subsystem) == subsystem);
 }
 
 #pragma mark -
@@ -518,7 +529,7 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val, uint32_t pc) {
       runt_set_adc_source(c, val);
       break;
     case RuntPower:
-      runt_set_power(c, val);
+      runt_power_state_set(c, val);
       break;
     case RuntEnableInterrupt:
       runt_set_enabled_interrupts(c, val);
@@ -657,7 +668,7 @@ void runt_step(runt_t *c) {
     case RuntADCSourceBackupBattery:
     case RuntADCSourceMainBattery:
     case RuntADCSourceThermistor:
-      if (runt_interrupt_is_enabled(c, RuntInterruptADC) == true && runt_get_power_state(c, RuntPowerADC) == true) {
+      if (runt_interrupt_is_enabled(c, RuntInterruptADC) == true && runt_power_state_get(c, RuntPowerADC) == true) {
         runt_interrupt_raise(c, RuntInterruptADC);
       }
       break;
