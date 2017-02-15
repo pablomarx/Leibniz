@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -I. -g -std=c99 
+CFLAGS = -I. -g -std=c99 -DHOST_WORDS_BIGENDIAN=1
 LDFLAGS = -g
 LD = $(CC)
 
@@ -29,7 +29,7 @@ OBJS := arm.o \
 		fpa11_cprt.o \
 		fpopcode.o \
 		single_cpdo.o \
-		softfloat.o
+		softfloat.o \
 
 all:	newton
 

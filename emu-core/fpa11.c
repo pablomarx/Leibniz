@@ -1,8 +1,8 @@
 /*
     NetWinder Floating Point Emulator
-    (c) Corel Computer Corporation, 1998
+    (c) Rebel.COM, 1998,1999
 
-    Direct questions, comments to Scott Bambrough <scottb@corelcomputer.com>
+    Direct questions, comments to Scott Bambrough <scottb@netwinder.org>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,123 +15,138 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+    along with this program; if not, see <http://www.gnu.org/licenses/>.
 */
+
+//#include "qemu/osdep.h"
+#include "fpa11.h"
+
+#include "fpopcode.h"
+
+//#include "fpmodule.h"
+//#include "fpmodule.inl"
 
 //#include <asm/system.h>
 
-#include "config.h"
-#include "fpa11.h"
-#include "milieu.h"
-#include "fpopcode.h"
 
-#include "fpmodule.h"
-#include "fpmodule.inl"
-
-/* forward declarations */
-unsigned int EmulateCPDO(const unsigned int);
-unsigned int EmulateCPDT(const unsigned int);
-unsigned int EmulateCPRT(const unsigned int);
-
-/* Emulator registers */
-FPA11 *fpa11;
+FPA11* qemufpa = 0;
+//CPUARMState* user_registers;
 
 /* Reset the FPA11 chip.  Called to initialize and reset the emulator. */
 void resetFPA11(void)
 {
   int i;
-  /* initialize the registers */
+  FPA11 *fpa11 = GET_FPA11();
+
+  /* initialize the register type array */
   for (i=0;i<=7;i++)
   {
-    fpa11->fpreg[i].fType = typeNone;
+    fpa11->fType[i] = typeNone;
   }
-  
-  /* FPSR: set system id to FP_EMULATOR, clear all other bits */
-  fpa11->fpsr = FP_EMULATOR;
-  
+
+  /* FPSR: set system id to FP_EMULATOR, set AC, clear all other bits */
+  fpa11->fpsr = FP_EMULATOR | BIT_AC;
+
   /* FPCR: set SB, AB and DA bits, clear all others */
-#if MAINTAIN_FPCR         
+#ifdef MAINTAIN_FPCR
   fpa11->fpcr = MASK_RESET;
 #endif
 }
 
 void SetRoundingMode(const unsigned int opcode)
 {
-#if MAINTAIN_FPCR
+    int rounding_mode;
+   FPA11 *fpa11 = GET_FPA11();
+
+#ifdef MAINTAIN_FPCR
    fpa11->fpcr &= ~MASK_ROUNDING_MODE;
-#endif   
+#endif
    switch (opcode & MASK_ROUNDING_MODE)
    {
       default:
       case ROUND_TO_NEAREST:
-         float_rounding_mode = float_round_nearest_even;
-#if MAINTAIN_FPCR         
+         rounding_mode = float_round_nearest_even;
+#ifdef MAINTAIN_FPCR
          fpa11->fpcr |= ROUND_TO_NEAREST;
-#endif         
+#endif
       break;
-      
+
       case ROUND_TO_PLUS_INFINITY:
-         float_rounding_mode = float_round_up;
-#if MAINTAIN_FPCR         
+         rounding_mode = float_round_up;
+#ifdef MAINTAIN_FPCR
          fpa11->fpcr |= ROUND_TO_PLUS_INFINITY;
-#endif         
+#endif
       break;
-      
+
       case ROUND_TO_MINUS_INFINITY:
-         float_rounding_mode = float_round_down;
-#if MAINTAIN_FPCR         
+         rounding_mode = float_round_down;
+#ifdef MAINTAIN_FPCR
          fpa11->fpcr |= ROUND_TO_MINUS_INFINITY;
-#endif         
+#endif
       break;
-      
+
       case ROUND_TO_ZERO:
-         float_rounding_mode = float_round_to_zero;
-#if MAINTAIN_FPCR         
+         rounding_mode = float_round_to_zero;
+#ifdef MAINTAIN_FPCR
          fpa11->fpcr |= ROUND_TO_ZERO;
-#endif         
+#endif
       break;
   }
+   set_float_rounding_mode(rounding_mode, &fpa11->fp_status);
 }
 
 void SetRoundingPrecision(const unsigned int opcode)
 {
-#if MAINTAIN_FPCR
+    int rounding_precision;
+   FPA11 *fpa11 = GET_FPA11();
+#ifdef MAINTAIN_FPCR
    fpa11->fpcr &= ~MASK_ROUNDING_PRECISION;
-#endif   
+#endif
    switch (opcode & MASK_ROUNDING_PRECISION)
    {
       case ROUND_SINGLE:
-         floatx80_rounding_precision = 32;
-#if MAINTAIN_FPCR         
+         rounding_precision = 32;
+#ifdef MAINTAIN_FPCR
          fpa11->fpcr |= ROUND_SINGLE;
-#endif         
+#endif
       break;
-      
+
       case ROUND_DOUBLE:
-         floatx80_rounding_precision = 64;
-#if MAINTAIN_FPCR         
+         rounding_precision = 64;
+#ifdef MAINTAIN_FPCR
          fpa11->fpcr |= ROUND_DOUBLE;
-#endif         
+#endif
       break;
-      
+
       case ROUND_EXTENDED:
-         floatx80_rounding_precision = 80;
-#if MAINTAIN_FPCR         
+         rounding_precision = 80;
+#ifdef MAINTAIN_FPCR
          fpa11->fpcr |= ROUND_EXTENDED;
-#endif         
+#endif
       break;
-      
-      default: floatx80_rounding_precision = 80;
+
+      default: rounding_precision = 80;
   }
+   set_floatx80_rounding_precision(rounding_precision, &fpa11->fp_status);
 }
 
 /* Emulate the instruction in the opcode. */
-unsigned int EmulateAll(unsigned int opcode)
+/* ??? This is not thread safe.  */
+unsigned int EmulateAll(unsigned int opcode, FPA11* qfpa) //, CPUARMState* qregs)
 {
   unsigned int nRc = 0;
-  unsigned long flags;
-  save_flags(flags); sti();
+//  unsigned long flags;
+  FPA11 *fpa11;
+//  save_flags(flags); sti();
+
+  qemufpa=qfpa;
+//  user_registers=qregs;
+
+#if 0
+  fprintf(stderr,"emulating FP insn 0x%08x, PC=0x%08x\n",
+          opcode, qregs[ARM_REG_PC]);
+#endif
+  fpa11 = GET_FPA11();
 
   if (fpa11->initflag == 0)		/* good place for __builtin_expect */
   {
@@ -141,8 +156,11 @@ unsigned int EmulateAll(unsigned int opcode)
     fpa11->initflag = 1;
   }
 
+  set_float_exception_flags(0, &fpa11->fp_status);
+
   if (TEST_OPCODE(opcode,MASK_CPRT))
   {
+    //fprintf(stderr,"emulating CPRT\n");
     /* Emulate conversion opcodes. */
     /* Emulate register transfer opcodes. */
     /* Emulate comparison opcodes. */
@@ -150,12 +168,14 @@ unsigned int EmulateAll(unsigned int opcode)
   }
   else if (TEST_OPCODE(opcode,MASK_CPDO))
   {
+    //fprintf(stderr,"emulating CPDO\n");
     /* Emulate monadic arithmetic opcodes. */
     /* Emulate dyadic arithmetic opcodes. */
     nRc = EmulateCPDO(opcode);
   }
   else if (TEST_OPCODE(opcode,MASK_CPDT))
   {
+    //fprintf(stderr,"emulating CPDT\n");
     /* Emulate load/store opcodes. */
     /* Emulate load/store multiple opcodes. */
     nRc = EmulateCPDT(opcode);
@@ -166,7 +186,14 @@ unsigned int EmulateAll(unsigned int opcode)
     nRc = 0;
   }
 
-  restore_flags(flags);
+//  restore_flags(flags);
+  if(nRc == 1 && get_float_exception_flags(&fpa11->fp_status))
+  {
+    //printf("fef 0x%x\n",float_exception_flags);
+    nRc = -get_float_exception_flags(&fpa11->fp_status);
+  }
+
+  //printf("returning %d\n",nRc);
   return(nRc);
 }
 
@@ -196,16 +223,15 @@ unsigned int EmulateAll1(unsigned int opcode)
           }
       }
      break;
-     
-     case 0xe: 
+
+     case 0xe:
        if (opcode & 0x10)
          return EmulateCPDO(opcode);
        else
          return EmulateCPRT(opcode);
      break;
-  
+
      default: return 0;
   }
 }
 #endif
-

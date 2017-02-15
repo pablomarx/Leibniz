@@ -1,8 +1,8 @@
 /*
     NetWinder Floating Point Emulator
-    (c) Corel Computer Corporation, 1998
+    (c) Rebel.COM, 1998,1999
 
-    Direct questions, comments to Scott Bambrough <scottb@corelcomputer.com>
+    Direct questions, comments to Scott Bambrough <scottb@netwinder.org>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,47 +15,43 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+    along with this program; if not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "config.h"
+//#include "qemu/osdep.h"
 #include "fpa11.h"
 #include "fpopcode.h"
 
-unsigned int SingleCPDO(const unsigned int opcode);
-unsigned int DoubleCPDO(const unsigned int opcode);
-unsigned int ExtendedCPDO(const unsigned int opcode);
-
 unsigned int EmulateCPDO(const unsigned int opcode)
 {
+   FPA11 *fpa11 = GET_FPA11();
    unsigned int Fd, nType, nDest, nRc = 1;
-   
-   //fp_printk("EmulateCPDO(0x%08x)\n",opcode);
+
+   //printk("EmulateCPDO(0x%08x)\n",opcode);
 
    /* Get the destination size.  If not valid let Linux perform
       an invalid instruction trap. */
    nDest = getDestinationSize(opcode);
    if (typeNone == nDest) return 0;
-   
+
    SetRoundingMode(opcode);
-     
+
    /* Compare the size of the operands in Fn and Fm.
       Choose the largest size and perform operations in that size,
-      in order to make use of all the precision of the operands. 
-      If Fm is a constant, we just grab a constant of a size 
+      in order to make use of all the precision of the operands.
+      If Fm is a constant, we just grab a constant of a size
       matching the size of the operand in Fn. */
    if (MONADIC_INSTRUCTION(opcode))
      nType = nDest;
    else
-     nType = fpa11->fpreg[getFn(opcode)].fType;
-   
+     nType = fpa11->fType[getFn(opcode)];
+
    if (!CONSTANT_FM(opcode))
    {
      register unsigned int Fm = getFm(opcode);
-     if (nType < fpa11->fpreg[Fm].fType)
+     if (nType < fpa11->fType[Fm])
      {
-        nType = fpa11->fpreg[Fm].fType;
+        nType = fpa11->fType[Fm];
      }
    }
 
@@ -71,7 +67,7 @@ unsigned int EmulateCPDO(const unsigned int opcode)
       destination register is the correct size.  If not force it
       to be. */
    Fd = getFd(opcode);
-   nType = fpa11->fpreg[Fd].fType;
+   nType = fpa11->fType[Fd];
    if ((0 != nRc) && (nDest != nType))
    {
      switch (nDest)
@@ -79,39 +75,39 @@ unsigned int EmulateCPDO(const unsigned int opcode)
        case typeSingle:
        {
          if (typeDouble == nType)
-           fpa11->fpreg[Fd].fValue.fSingle = 
-              float64_to_float32(fpa11->fpreg[Fd].fValue.fDouble);
+           fpa11->fpreg[Fd].fSingle =
+              float64_to_float32(fpa11->fpreg[Fd].fDouble, &fpa11->fp_status);
          else
-           fpa11->fpreg[Fd].fValue.fSingle = 
-              floatx80_to_float32(fpa11->fpreg[Fd].fValue.fExtended);
+           fpa11->fpreg[Fd].fSingle =
+              floatx80_to_float32(fpa11->fpreg[Fd].fExtended, &fpa11->fp_status);
        }
        break;
-          
+
        case typeDouble:
        {
          if (typeSingle == nType)
-           fpa11->fpreg[Fd].fValue.fDouble = 
-              float32_to_float64(fpa11->fpreg[Fd].fValue.fSingle);
+           fpa11->fpreg[Fd].fDouble =
+              float32_to_float64(fpa11->fpreg[Fd].fSingle, &fpa11->fp_status);
          else
-           fpa11->fpreg[Fd].fValue.fDouble = 
-              floatx80_to_float64(fpa11->fpreg[Fd].fValue.fExtended);
+           fpa11->fpreg[Fd].fDouble =
+              floatx80_to_float64(fpa11->fpreg[Fd].fExtended, &fpa11->fp_status);
        }
        break;
-          
+
        case typeExtended:
        {
          if (typeSingle == nType)
-           fpa11->fpreg[Fd].fValue.fExtended = 
-              float32_to_floatx80(fpa11->fpreg[Fd].fValue.fSingle);
+           fpa11->fpreg[Fd].fExtended =
+              float32_to_floatx80(fpa11->fpreg[Fd].fSingle, &fpa11->fp_status);
          else
-           fpa11->fpreg[Fd].fValue.fExtended = 
-              float64_to_floatx80(fpa11->fpreg[Fd].fValue.fDouble);
+           fpa11->fpreg[Fd].fExtended =
+              float64_to_floatx80(fpa11->fpreg[Fd].fDouble, &fpa11->fp_status);
        }
        break;
      }
-     
-     fpa11->fpreg[Fd].fType = nDest;
+
+     fpa11->fType[Fd] = nDest;
    }
-   
+
    return nRc;
 }

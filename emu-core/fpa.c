@@ -19,14 +19,16 @@
 #endif
 
 
-extern unsigned int EmulateAll(unsigned int opcode);
+extern FPA11* qemufpa;
+
+extern unsigned int EmulateAll(unsigned int opcode, FPA11* qfpa);
 
 static arm_copr_t fpa_bridge;
 
 int fpa_exec(arm_t *arm, arm_copr_t *copro) 
 {
 	int r;
-	r = EmulateAll(arm->ir);
+	r = EmulateAll(arm->ir, qemufpa);
 	if (r) {
 		arm_set_clk (arm, 4, 1);
 	}
@@ -47,13 +49,13 @@ void fpa_init(arm_t *arm)
 	fpa_bridge.ext = arm;
 	arm_set_copr(arm, 1, &fpa_bridge);
 	
-	fpa11 = calloc(1, sizeof(FPA11));
+	qemufpa = calloc(1, sizeof(FPA11));
 }
 
 void fpa_delete(void)
 {
 	fpa_bridge.ext = 0;
-	free(fpa11);
+	free(qemufpa);
 }
 
 // Previously implemented in fpmodule.inl
@@ -107,14 +109,14 @@ unsigned int readMode(void)
 }
 
 // Previously in the Linux kernel
-void get_user(unsigned int *val, const unsigned int *addr)
+void get_user_u32(unsigned int *val, const unsigned int *addr)
 {
 	FPA_Debug("[FPA] %s %08x %08x\n", __PRETTY_FUNCTION__, addr, val);
 	arm_t *arm = (arm_t *)fpa_bridge.ext;
 	arm_dload32_t(arm, addr, val);
 }
 
-void put_user(unsigned int val, unsigned int *addr)
+void put_user_u32(unsigned int val, unsigned int *addr)
 {
 	FPA_Debug("[FPA] %s %08x %08x\n", __PRETTY_FUNCTION__, addr, val);
 	arm_t *arm = (arm_t *)fpa_bridge.ext;

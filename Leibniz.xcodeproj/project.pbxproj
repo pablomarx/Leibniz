@@ -83,11 +83,9 @@
 		F195488E1E47B170001772E8 /* fpa11_cprt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fpa11_cprt.c; sourceTree = "<group>"; };
 		F195488F1E47B170001772E8 /* fpa11.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fpa11.c; sourceTree = "<group>"; };
 		F19548901E47B170001772E8 /* fpa11.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fpa11.h; sourceTree = "<group>"; };
-		F19548911E47B170001772E8 /* fpmodule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fpmodule.h; sourceTree = "<group>"; };
 		F19548921E47B170001772E8 /* fpopcode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fpopcode.c; sourceTree = "<group>"; };
 		F19548931E47B170001772E8 /* fpopcode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fpopcode.h; sourceTree = "<group>"; };
 		F19548941E47B170001772E8 /* fpsr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fpsr.h; sourceTree = "<group>"; };
-		F19548951E47B170001772E8 /* milieu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = milieu.h; sourceTree = "<group>"; };
 		F19548961E47B170001772E8 /* single_cpdo.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = single_cpdo.c; sourceTree = "<group>"; };
 		F19548971E47B170001772E8 /* softfloat.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = softfloat.c; sourceTree = "<group>"; };
 		F19548981E47B170001772E8 /* softfloat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = softfloat.h; sourceTree = "<group>"; };
@@ -158,7 +156,6 @@
 				F195488E1E47B170001772E8 /* fpa11_cprt.c */,
 				F195488F1E47B170001772E8 /* fpa11.c */,
 				F19548901E47B170001772E8 /* fpa11.h */,
-				F19548911E47B170001772E8 /* fpmodule.h */,
 				F19548921E47B170001772E8 /* fpopcode.c */,
 				F19548931E47B170001772E8 /* fpopcode.h */,
 				F19548941E47B170001772E8 /* fpsr.h */,
@@ -175,7 +172,6 @@
 				F1DB3DDB19C63121006C7102 /* linenoise.h */,
 				F1DD99A51CC818DA00C718CC /* memory.c */,
 				F1DD99A61CC818DA00C718CC /* memory.h */,
-				F19548951E47B170001772E8 /* milieu.h */,
 				F123BD5519C4FC8800EC994F /* mmu.c */,
 				F1DB3DD719C60F8B006C7102 /* monitor.c */,
 				F1DB3DD819C60F8B006C7102 /* monitor.h */,
@@ -467,6 +463,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = "-DHOST_WORDS_BIGENDIAN=1";
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -505,6 +502,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				OTHER_CFLAGS = "-DHOST_WORDS_BIGENDIAN=1";
 				SDKROOT = macosx;
 			};
 			name = Release;

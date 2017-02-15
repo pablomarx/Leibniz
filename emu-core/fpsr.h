@@ -1,8 +1,8 @@
 /*
     NetWinder Floating Point Emulator
-    (c) Corel Computer Corporation, 1998
+    (c) Rebel.com, 1998-1999
 
-    Direct questions, comments to Scott Bambrough <scottb@corelcomputer.com>
+    Direct questions, comments to Scott Bambrough <scottb@netwinder.org>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,12 +15,11 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+    along with this program; if not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __FPSR_H__
-#define __FPSR_H__
+#ifndef FPSR_H
+#define FPSR_H
 
 /*
 The FPSR is a 32 bit register consisting of 4 parts, each exactly
@@ -30,7 +29,7 @@ one byte.
 	EXCEPTION TRAP ENABLE BYTE
 	SYSTEM CONTROL BYTE
 	CUMULATIVE EXCEPTION FLAGS BYTE
-	
+
 The FPCR is a 32 bit register consisting of bit flags.
 */
 
@@ -43,7 +42,7 @@ typedef unsigned int FPCR;  /* type for floating point control register */
 
 #define MASK_SYSID		0xff000000
 #define BIT_HARDWARE		0x80000000
-#define FP_EMULATOR		0x01000000	/* System ID for emulator */ 
+#define FP_EMULATOR		0x01000000	/* System ID for emulator */
 #define FP_ACCELERATOR		0x81000000	/* System ID for FPA11 */
 
 /* EXCEPTION TRAP ENABLE BYTE
@@ -63,12 +62,12 @@ typedef unsigned int FPCR;  /* type for floating point control register */
 #define MASK_SYSTEM_CONTROL	0x0000ff00
 #define MASK_TRAP_STRICT	0x00001f00
 
-#define BIT_AC	0x00100000	/* use alternative C-flag definition
+#define BIT_AC	0x00001000	/* use alternative C-flag definition
 				   for compares */
-#define BIT_EP	0x00080000	/* use expanded packed decimal format */
-#define BIT_SO	0x00040000	/* select synchronous operation of FPA */
-#define BIT_NE	0x00020000	/* NaN exception bit */
-#define BIT_ND	0x00010000	/* no denormalized numbers bit */
+#define BIT_EP	0x00000800	/* use expanded packed decimal format */
+#define BIT_SO	0x00000400	/* select synchronous operation of FPA */
+#define BIT_NE	0x00000200	/* NaN exception bit */
+#define BIT_ND	0x00000100	/* no denormalized numbers bit */
 
 /* CUMULATIVE EXCEPTION FLAGS BYTE
 ---------------------------------- */

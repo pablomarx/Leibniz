@@ -1,8 +1,8 @@
 /*
     NetWinder Floating Point Emulator
-    (c) Corel Computer Corporation, 1998
+    (c) Rebel.COM, 1998,1999
 
-    Direct questions, comments to Scott Bambrough <scottb@corelcomputer.com>
+    Direct questions, comments to Scott Bambrough <scottb@netwinder.org>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,27 +15,26 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+    along with this program; if not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __FPOPCODE_H__
-#define __FPOPCODE_H__
+#ifndef FPOPCODE_H
+#define FPOPCODE_H
 
 /*
 ARM Floating Point Instruction Classes
-| | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | 
+| | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
 |c o n d|1 1 0 P|U|u|W|L|   Rn  |v|  Fd |0|0|0|1|  o f f s e t  | CPDT
 |c o n d|1 1 0 P|U|w|W|L|   Rn  |x|  Fd |0|0|0|1|  o f f s e t  | CPDT
-| | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | 
+| | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
 |c o n d|1 1 1 0|a|b|c|d|e|  Fn |j|  Fd |0|0|0|1|f|g|h|0|i|  Fm | CPDO
 |c o n d|1 1 1 0|a|b|c|L|e|  Fn |   Rd  |0|0|0|1|f|g|h|1|i|  Fm | CPRT
 |c o n d|1 1 1 0|a|b|c|1|e|  Fn |1|1|1|1|0|0|0|1|f|g|h|1|i|  Fm | comparisons
-| | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | 
+| | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
 
 CPDT		data transfer instructions
 		LDF, STF, LFM, SFM
-		
+
 CPDO		dyadic arithmetic instructions
 		ADF, MUF, SUF, RSF, DVF, RDF,
 		POW, RPW, RMF, FML, FDV, FRD, POL
@@ -43,7 +42,7 @@ CPDO		dyadic arithmetic instructions
 CPDO		monadic arithmetic instructions
 		MVF, MNF, ABS, RND, SQT, LOG, LGN, EXP,
 		SIN, COS, TAN, ASN, ACS, ATN, URD, NRM
-		
+
 CPRT		joint arithmetic/data transfer instructions
 		FIX (arithmetic followed by load/store)
 		FLT (load/store followed by arithmetic)
@@ -57,7 +56,7 @@ U		up/down bit: 0 = stack grows down, 1 = stack grows up
 W		write back bit: 1 = update base register (Rn)
 L		load/store bit: 0 = store, 1 = load
 Rn		base register
-Rd		destination/source register		
+Rd		destination/source register
 Fd		floating point destination register
 Fn		floating point source register
 Fm		floating point source register or floating point constant
@@ -76,11 +75,11 @@ TABLE 1
 +-------------------------+---+---+---------+---------+
 |  Precision              | u | v | FPSR.EP | length  |
 +-------------------------+---+---+---------+---------+
-| Single                  | 0 ü 0 |    x    | 1 words |
-| Double                  | 1 ü 1 |    x    | 2 words |
-| Extended                | 1 ü 1 |    x    | 3 words |
-| Packed decimal          | 1 ü 1 |    0    | 3 words |
-| Expanded packed decimal | 1 ü 1 |    1    | 4 words |
+| Single                  | 0 | 0 |    x    | 1 words |
+| Double                  | 1 | 1 |    x    | 2 words |
+| Extended                | 1 | 1 |    x    | 3 words |
+| Packed decimal          | 1 | 1 |    0    | 3 words |
+| Expanded packed decimal | 1 | 1 |    1    | 4 words |
 +-------------------------+---+---+---------+---------+
 Note: x = don't care
 */
@@ -90,10 +89,10 @@ TABLE 2
 +---+---+---------------------------------+
 | w | x | Number of registers to transfer |
 +---+---+---------------------------------+
-| 0 ü 1 |  1                              |
-| 1 ü 0 |  2                              |
-| 1 ü 1 |  3                              |
-| 0 ü 0 |  4                              |
+| 0 | 1 |  1                              |
+| 1 | 0 |  2                              |
+| 1 | 1 |  3                              |
+| 0 | 0 |  4                              |
 +---+---+---------------------------------+
 */
 
@@ -154,10 +153,10 @@ TABLE 5
 +-------------------------+---+---+
 |  Rounding Precision     | e | f |
 +-------------------------+---+---+
-| IEEE Single precision   | 0 ü 0 |
-| IEEE Double precision   | 0 ü 1 |
-| IEEE Extended precision | 1 ü 0 |
-| undefined (trap)        | 1 ü 1 |
+| IEEE Single precision   | 0 | 0 |
+| IEEE Double precision   | 0 | 1 |
+| IEEE Extended precision | 1 | 0 |
+| undefined (trap)        | 1 | 1 |
 +-------------------------+---+---+
 */
 
@@ -166,10 +165,10 @@ TABLE 5
 +---------------------------------+---+---+
 |  Rounding Mode                  | g | h |
 +---------------------------------+---+---+
-| Round to nearest (default)      | 0 ü 0 |
-| Round toward plus infinity      | 0 ü 1 |
-| Round toward negative infinity  | 1 ü 0 |
-| Round toward zero               | 1 ü 1 |
+| Round to nearest (default)      | 0 | 0 |
+| Round toward plus infinity      | 0 | 1 |
+| Round toward negative infinity  | 1 | 0 |
+| Round toward zero               | 1 | 1 |
 +---------------------------------+---+---+
 */
 
@@ -366,9 +365,24 @@ TABLE 5
 /* Get the rounding mode from the opcode. */
 #define getRoundingMode(opcode)		((opcode & MASK_ROUNDING_MODE) >> 5)
 
-float32 getSingleConstant(const unsigned int nIndex);
-float64 getDoubleConstant(const unsigned int nIndex);
-floatx80 getExtendedConstant(const unsigned int nIndex);
+extern const floatx80 floatx80Constant[];
+extern const float64 float64Constant[];
+extern const float32 float32Constant[];
+
+static inline floatx80 getExtendedConstant(const unsigned int nIndex)
+{
+   return floatx80Constant[nIndex];
+}
+
+static inline float64 getDoubleConstant(const unsigned int nIndex)
+{
+   return float64Constant[nIndex];
+}
+
+static inline float32 getSingleConstant(const unsigned int nIndex)
+{
+   return float32Constant[nIndex];
+}
 
 unsigned int getRegisterCount(const unsigned int opcode);
 unsigned int getDestinationSize(const unsigned int opcode);

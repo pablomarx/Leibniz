@@ -1,9 +1,9 @@
 /*
     NetWinder Floating Point Emulator
-    (c) Corel Computer Corporation, 1998
+    (c) Rebel.COM, 1998,1999
     (c) Philip Blundell, 1999
 
-    Direct questions, comments to Scott Bambrough <scottb@corelcomputer.com>
+    Direct questions, comments to Scott Bambrough <scottb@netwinder.org>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,24 +16,16 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+    along with this program; if not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "config.h"
-#include "milieu.h"
+//#include "qemu/osdep.h"
+#include "fpa11.h"
 #include "softfloat.h"
 #include "fpopcode.h"
-#include "fpa11.h"
 #include "fpa11.inl"
-#include "fpmodule.h"
-#include "fpmodule.inl"
-
-extern flag floatx80_is_nan(floatx80);
-extern flag float64_is_nan( float64);
-extern flag float32_is_nan( float32);
-
-void SetRoundingMode(const unsigned int opcode);
+//#include "fpmodule.h"
+//#include "fpmodule.inl"
 
 unsigned int PerformFLT(const unsigned int opcode);
 unsigned int PerformFIX(const unsigned int opcode);
@@ -45,7 +37,7 @@ unsigned int EmulateCPRT(const unsigned int opcode)
 {
   unsigned int nRc = 1;
 
-  //fp_printk("EmulateCPRT(0x%08x)\n",opcode);
+  //printk("EmulateCPRT(0x%08x)\n",opcode);
 
   if (opcode & 0x800000)
   {
@@ -61,161 +53,140 @@ unsigned int EmulateCPRT(const unsigned int opcode)
   {
     case  FLT_CODE >> 20: nRc = PerformFLT(opcode); break;
     case  FIX_CODE >> 20: nRc = PerformFIX(opcode); break;
-    
+
     case  WFS_CODE >> 20: writeFPSR(readRegister(getRd(opcode))); break;
     case  RFS_CODE >> 20: writeRegister(getRd(opcode),readFPSR()); break;
 
-    /* ?? Not at all sure about the mode checks here.  Linux never
-       calls the emulator from a non-USR fault but we always run in SVC
-       mode.  Is there even any point trying to emulate the way FPA11
-       behaves in this respect?  */
-    case  WFC_CODE >> 20:
-    {
-       int mode = 0;
-	   // swhite hack
-#if 1
-	   mode = readMode();
-#else
-       __asm__ volatile ("mrs %0, cpsr; and %0, %0, #0x1f;" : : "g" (mode));
+#if 0    /* We currently have no use for the FPCR, so there's no point
+	    in emulating it. */
+    case  WFC_CODE >> 20: writeFPCR(readRegister(getRd(opcode)));
+    case  RFC_CODE >> 20: writeRegister(getRd(opcode),readFPCR()); break;
 #endif
-       nRc = (0x13 == mode) ? 1 : 0;	/* in SVC processor mode? */
-       if (nRc) writeFPCR(readRegister(getRd(opcode)));
-    }
-    break;
-    
-    case  RFC_CODE >> 20:
-    {
-       int mode = 0;
-	   // swhite hack
-#if 1
-	   mode = readMode();
-#else
-       __asm__ volatile ("mrs %0, cpsr; and %0, %0, #0x1f;" : : "g" (mode));
-#endif
-       nRc = (0x13 == mode) ? 1 : 0;	/* in SVC processor mode? */
-       if (nRc) writeRegister(getRd(opcode),readFPCR()); break;
-    }
-    break;
 
     default: nRc = 0;
   }
-  
+
   return nRc;
 }
 
 unsigned int PerformFLT(const unsigned int opcode)
 {
+   FPA11 *fpa11 = GET_FPA11();
+
    unsigned int nRc = 1;
    SetRoundingMode(opcode);
-   SetRoundingPrecision(opcode);
-   
+
    switch (opcode & MASK_ROUNDING_PRECISION)
    {
       case ROUND_SINGLE:
       {
-        fpa11->fpreg[getFn(opcode)].fType = typeSingle;
-        fpa11->fpreg[getFn(opcode)].fValue.fSingle =
-	   int32_to_float32(readRegister(getRd(opcode)));
+        fpa11->fType[getFn(opcode)] = typeSingle;
+        fpa11->fpreg[getFn(opcode)].fSingle =
+	   int32_to_float32(readRegister(getRd(opcode)), &fpa11->fp_status);
       }
       break;
 
       case ROUND_DOUBLE:
       {
-        fpa11->fpreg[getFn(opcode)].fType = typeDouble;
-        fpa11->fpreg[getFn(opcode)].fValue.fDouble =
-            int32_to_float64(readRegister(getRd(opcode)));
+        fpa11->fType[getFn(opcode)] = typeDouble;
+        fpa11->fpreg[getFn(opcode)].fDouble =
+            int32_to_float64(readRegister(getRd(opcode)), &fpa11->fp_status);
       }
       break;
-        
+
       case ROUND_EXTENDED:
       {
-        fpa11->fpreg[getFn(opcode)].fType = typeExtended;
-        fpa11->fpreg[getFn(opcode)].fValue.fExtended =
-	   int32_to_floatx80(readRegister(getRd(opcode)));
+        fpa11->fType[getFn(opcode)] = typeExtended;
+        fpa11->fpreg[getFn(opcode)].fExtended =
+	   int32_to_floatx80(readRegister(getRd(opcode)), &fpa11->fp_status);
       }
       break;
-      
+
       default: nRc = 0;
   }
-  
+
   return nRc;
 }
 
 unsigned int PerformFIX(const unsigned int opcode)
 {
+   FPA11 *fpa11 = GET_FPA11();
    unsigned int nRc = 1;
    unsigned int Fn = getFm(opcode);
-   
+
    SetRoundingMode(opcode);
 
-   switch (fpa11->fpreg[Fn].fType)
+   switch (fpa11->fType[Fn])
    {
       case typeSingle:
       {
          writeRegister(getRd(opcode),
-	               float32_to_int32(fpa11->fpreg[Fn].fValue.fSingle));
+	               float32_to_int32(fpa11->fpreg[Fn].fSingle, &fpa11->fp_status));
       }
       break;
 
       case typeDouble:
       {
+         //printf("F%d is 0x%" PRIx64 "\n",Fn,fpa11->fpreg[Fn].fDouble);
          writeRegister(getRd(opcode),
-	               float64_to_int32(fpa11->fpreg[Fn].fValue.fDouble));
+	               float64_to_int32(fpa11->fpreg[Fn].fDouble, &fpa11->fp_status));
       }
       break;
-      	               
+
       case typeExtended:
       {
          writeRegister(getRd(opcode),
-	               floatx80_to_int32(fpa11->fpreg[Fn].fValue.fExtended));
+	               floatx80_to_int32(fpa11->fpreg[Fn].fExtended, &fpa11->fp_status));
       }
       break;
-      
+
       default: nRc = 0;
   }
-  
+
   return nRc;
 }
 
-   
-static unsigned int __inline__
+
+static __inline unsigned int
 PerformComparisonOperation(floatx80 Fn, floatx80 Fm)
 {
+   FPA11 *fpa11 = GET_FPA11();
    unsigned int flags = 0;
 
    /* test for less than condition */
-   if (floatx80_lt(Fn,Fm))
+   if (floatx80_lt(Fn,Fm, &fpa11->fp_status))
    {
       flags |= CC_NEGATIVE;
    }
-  
+
    /* test for equal condition */
-   if (floatx80_eq(Fn,Fm))
+   if (floatx80_eq_quiet(Fn,Fm, &fpa11->fp_status))
    {
       flags |= CC_ZERO;
    }
 
    /* test for greater than or equal condition */
-   if (floatx80_lt(Fm,Fn))
+   if (floatx80_lt(Fm,Fn, &fpa11->fp_status))
    {
       flags |= CC_CARRY;
    }
-   
+
    writeConditionCodes(flags);
    return 1;
 }
 
 /* This instruction sets the flags N, Z, C, V in the FPSR. */
-   
+
 static unsigned int PerformComparison(const unsigned int opcode)
 {
+   FPA11 *fpa11 = GET_FPA11();
    unsigned int Fn, Fm;
    floatx80 rFn, rFm;
    int e_flag = opcode & 0x400000;	/* 1 if CxFE */
    int n_flag = opcode & 0x200000;	/* 1 if CNxx */
    unsigned int flags = 0;
 
-   //fp_printk("PerformComparison(0x%08x)\n",opcode);
+   //printk("PerformComparison(0x%08x)\n",opcode);
 
    Fn = getFn(opcode);
    Fm = getFm(opcode);
@@ -225,65 +196,65 @@ static unsigned int PerformComparison(const unsigned int opcode)
       ?? Might be some mileage in avoiding this conversion if possible.
       Eg, if both operands are 32-bit, detect this and do a 32-bit
       comparison (cheaper than an 80-bit one).  */
-   switch (fpa11->fpreg[Fn].fType)
+   switch (fpa11->fType[Fn])
    {
-      case typeSingle: 
-        //fp_printk("single.\n");
-	if (float32_is_nan(fpa11->fpreg[Fn].fValue.fSingle))
+      case typeSingle:
+        //printk("single.\n");
+	if (float32_is_any_nan(fpa11->fpreg[Fn].fSingle))
 	   goto unordered;
-        rFn = float32_to_floatx80(fpa11->fpreg[Fn].fValue.fSingle);
+        rFn = float32_to_floatx80(fpa11->fpreg[Fn].fSingle, &fpa11->fp_status);
       break;
 
-      case typeDouble: 
-        //fp_printk("double.\n");
-	if (float64_is_nan(fpa11->fpreg[Fn].fValue.fDouble))
+      case typeDouble:
+        //printk("double.\n");
+	if (float64_is_any_nan(fpa11->fpreg[Fn].fDouble))
 	   goto unordered;
-        rFn = float64_to_floatx80(fpa11->fpreg[Fn].fValue.fDouble);
+        rFn = float64_to_floatx80(fpa11->fpreg[Fn].fDouble, &fpa11->fp_status);
       break;
-      
-      case typeExtended: 
-        //fp_printk("extended.\n");
-	if (floatx80_is_nan(fpa11->fpreg[Fn].fValue.fExtended))
+
+      case typeExtended:
+        //printk("extended.\n");
+	if (floatx80_is_any_nan(fpa11->fpreg[Fn].fExtended))
 	   goto unordered;
-        rFn = fpa11->fpreg[Fn].fValue.fExtended;
+        rFn = fpa11->fpreg[Fn].fExtended;
       break;
-      
+
       default: return 0;
    }
 
    if (CONSTANT_FM(opcode))
    {
-     //fp_printk("Fm is a constant: #%d.\n",Fm);
+     //printk("Fm is a constant: #%d.\n",Fm);
      rFm = getExtendedConstant(Fm);
-     if (floatx80_is_nan(rFm))
+     if (floatx80_is_any_nan(rFm))
         goto unordered;
    }
    else
    {
-     //fp_printk("Fm = r%d which contains a ",Fm);
-      switch (fpa11->fpreg[Fm].fType)
+     //printk("Fm = r%d which contains a ",Fm);
+      switch (fpa11->fType[Fm])
       {
-         case typeSingle: 
-           //fp_printk("single.\n");
-	   if (float32_is_nan(fpa11->fpreg[Fm].fValue.fSingle))
+         case typeSingle:
+           //printk("single.\n");
+	   if (float32_is_any_nan(fpa11->fpreg[Fm].fSingle))
 	      goto unordered;
-           rFm = float32_to_floatx80(fpa11->fpreg[Fm].fValue.fSingle);
+           rFm = float32_to_floatx80(fpa11->fpreg[Fm].fSingle, &fpa11->fp_status);
          break;
 
-         case typeDouble: 
-           //fp_printk("double.\n");
-	   if (float64_is_nan(fpa11->fpreg[Fm].fValue.fDouble))
+         case typeDouble:
+           //printk("double.\n");
+	   if (float64_is_any_nan(fpa11->fpreg[Fm].fDouble))
 	      goto unordered;
-           rFm = float64_to_floatx80(fpa11->fpreg[Fm].fValue.fDouble);
+           rFm = float64_to_floatx80(fpa11->fpreg[Fm].fDouble, &fpa11->fp_status);
          break;
-      
-         case typeExtended: 
-           //fp_printk("extended.\n");
-	   if (floatx80_is_nan(fpa11->fpreg[Fm].fValue.fExtended))
+
+         case typeExtended:
+           //printk("extended.\n");
+	   if (floatx80_is_any_nan(fpa11->fpreg[Fm].fExtended))
 	      goto unordered;
-           rFm = fpa11->fpreg[Fm].fValue.fExtended;
+           rFm = fpa11->fpreg[Fm].fExtended;
          break;
-      
+
          default: return 0;
       }
    }
@@ -302,10 +273,11 @@ static unsigned int PerformComparison(const unsigned int opcode)
       the data sheet, observation of how the Acorn emulator actually
       behaves (and how programs expect it to) and guesswork.  */
    flags |= CC_OVERFLOW;
+   flags &= ~(CC_ZERO | CC_NEGATIVE);
 
    if (BIT_AC & readFPSR()) flags |= CC_CARRY;
 
-   if (e_flag) float_raise(float_flag_invalid);
+   if (e_flag) float_raise(float_flag_invalid, &fpa11->fp_status);
 
    writeConditionCodes(flags);
    return 1;
