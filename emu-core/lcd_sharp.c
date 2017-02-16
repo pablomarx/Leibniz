@@ -189,7 +189,7 @@ static inline void lcd_sharp_write_pixels(lcd_sharp_t *c, uint8_t val) {
     if (c->fillMode == SharpLCDFillModeInvert) {
       // Invert existing pixels...
       pixel = c->displayFramebuffer[offset];
-      pixel = (pixel == BLACK_COLOR) ? WHITE_COLOR : BLACK_COLOR;
+      pixel = (pixel == WHITE_COLOR) ? BLACK_COLOR : WHITE_COLOR;
     }
     else if (c->fillMode == SharpLCDFillModeOnlySetBits) {
       // Only use the pixel if it's set (black), otherwise
@@ -228,6 +228,11 @@ static inline void lcd_sharp_write_pixels(lcd_sharp_t *c, uint8_t val) {
   c->writeY = y;
   
   c->displayDirty = true;
+}
+
+static inline void lcd_sharp_flush_framebuffer(lcd_sharp_t *c) {
+  newton_display_set_framebuffer((const char *)c->displayFramebuffer, SCREEN_WIDTH, SCREEN_HEIGHT);
+  c->displayDirty = false;
 }
 
 uint32_t lcd_sharp_set_mem32(lcd_sharp_t *c, uint32_t addr, uint32_t val) {
@@ -314,8 +319,7 @@ uint32_t lcd_sharp_set_mem32(lcd_sharp_t *c, uint32_t addr, uint32_t val) {
       
     case SharpLCDFlush:
       if (c->displayDirty == true) {
-        newton_display_set_framebuffer((const char *)c->displayFramebuffer, SCREEN_WIDTH, SCREEN_HEIGHT);
-        c->displayDirty = false;
+        lcd_sharp_flush_framebuffer(c);
       }
       break;
   }
@@ -412,6 +416,16 @@ uint32_t lcd_sharp_get_mem32(lcd_sharp_t *c, uint32_t addr) {
   }
   
   return (result << 24);
+}
+
+void lcd_sharp_set_powered (lcd_sharp_t *c, bool powered) {
+  uint8_t blackColor = (powered ? BLACK_COLOR : SLEEP_COLOR);
+  for (int i=0; i<(SCREEN_WIDTH*SCREEN_HEIGHT);i++) {
+    if (c->displayFramebuffer[i] != 0xff) {
+      c->displayFramebuffer[i] = blackColor;
+    }
+  }
+  lcd_sharp_flush_framebuffer(c);
 }
 
 void lcd_sharp_set_log_file (lcd_sharp_t *c, FILE *file) {

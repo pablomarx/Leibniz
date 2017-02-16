@@ -445,6 +445,10 @@ void runt_switch_state(runt_t *c, int switchNum, int state) {
 #pragma mark - Power
 void runt_power_state_set(runt_t *c, uint32_t val) {
   uint32_t oldVal = runt_register_get(c, RuntPower);
+  if (oldVal == val) {
+    return;
+  }
+    
   if ((c->logFlags & RuntLogPower) == RuntLogPower) {
     fprintf(c->logFile, " => power on: 0x%08x -> 0x%08x: ", oldVal, val);
     for (int i=0; i<32; i++) {
@@ -460,6 +464,12 @@ void runt_power_state_set(runt_t *c, uint32_t val) {
       }
     }
     fprintf(c->logFile, "\n");
+  }
+
+  if ((val & RuntPowerLCD) != (oldVal & RuntPowerLCD)) {
+    if (c->lcd_powered != NULL) {
+      c->lcd_powered(c->lcd_driver, (val & RuntPowerLCD));
+    }
   }
 }
 
@@ -695,13 +705,14 @@ void runt_set_log_file (runt_t *c, FILE *file) {
 #pragma mark -
 #pragma mark
 void runt_set_lcd_fct(runt_t *c, void *ext,
-            void *get32, void *set32, void *getname, void *step)
+            void *get32, void *set32, void *getname, void *step, void *powered)
 {
   c->lcd_driver = ext;
   c->lcd_get_uint32 = get32;
   c->lcd_set_uint32 = set32;
   c->lcd_get_address_name = getname;
   c->lcd_step = step;
+  c->lcd_powered = powered;
 }
 
 void runt_init (runt_t *c, int machineType) {
@@ -720,12 +731,12 @@ void runt_init (runt_t *c, int machineType) {
   //
   if (machineType == kGestalt_MachineType_Lindy) {
     lcd_squirt_t *squirt = lcd_squirt_new();
-    runt_set_lcd_fct(c, squirt, lcd_squirt_get_mem32, lcd_squirt_set_mem32, lcd_squirt_get_address_name, lcd_squirt_step);
+    runt_set_lcd_fct(c, squirt, lcd_squirt_get_mem32, lcd_squirt_set_mem32, lcd_squirt_get_address_name, lcd_squirt_step, NULL);
     c->lcd_driver = squirt;
   }
   else {
     lcd_sharp_t *sharp = lcd_sharp_new();
-    runt_set_lcd_fct(c, sharp, lcd_sharp_get_mem32, lcd_sharp_set_mem32, lcd_sharp_get_address_name, NULL);
+    runt_set_lcd_fct(c, sharp, lcd_sharp_get_mem32, lcd_sharp_set_mem32, lcd_sharp_get_address_name, NULL, lcd_sharp_set_powered);
     c->lcd_driver = sharp;
   }
   

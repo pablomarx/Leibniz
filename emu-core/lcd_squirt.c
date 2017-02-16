@@ -14,6 +14,7 @@ enum {
   SquirtLCDNotBusy = 0x00,
   SquirtLCDDataRead = 0x08,
   SquirtLCDBacklight = 0x30,
+  SquirtLCDPower = 0x44,
   SquirtLCDDataWrite = 0x48,
   SquirtLCDCursorHigh = 0x4c,
   SquirtLCDCursorLow = 0x50,
@@ -75,8 +76,23 @@ const char *lcd_squirt_get_address_name(lcd_squirt_t *c, uint32_t addr) {
   return prefix;
 }
 
+static inline void lcd_squirt_flush_framebuffer(lcd_squirt_t *c) {
+    newton_display_set_framebuffer((const char *)c->displayFramebuffer, SCREEN_WIDTH, SCREEN_HEIGHT);
+    c->displayDirty = 0;
+    c->stepsSinceLastFlush = 0;
+}
+
+void lcd_squirt_set_powered(lcd_squirt_t *c, bool powered) {
+    uint8_t blackColor = (powered ? BLACK_COLOR : SLEEP_COLOR);
+    for (int i=0; i<(SCREEN_WIDTH*SCREEN_HEIGHT);i++) {
+        if (c->displayFramebuffer[i] != 0xff) {
+            c->displayFramebuffer[i] = blackColor;
+        }
+    }
+    lcd_squirt_flush_framebuffer(c);
+}
+
 uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
-  c->memory[addr/4] = val;
   
   switch(addr) {
     case SquirtLCDCursorLow: // Values written are 0x00 through 0xff
@@ -90,6 +106,14 @@ uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
       break;
     case SquirtLCDOrientation: {
       c->orientation = (val >> 24);
+      break;
+    }
+    case SquirtLCDPower:
+    {
+      uint32_t oldVal = c->memory[addr/4];
+      if (oldVal != val) {
+        lcd_squirt_set_powered(c, val != 0x00);
+      }
       break;
     }
     case SquirtLCDDataWrite:
@@ -130,9 +154,12 @@ uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
     case SquirtLCDMCount:
       break;
     default:
-      fprintf(c->logFile, "[SQUIRT LCD] unknown read %02x => %08x\n", addr, val);
+      fprintf(c->logFile, "[SQUIRT LCD] unknown write %02x => %08x\n", addr, val);
       break;
   }
+  
+  c->memory[addr/4] = val;
+
   return val;
 }
 
@@ -141,9 +168,7 @@ void lcd_squirt_step(lcd_squirt_t *c) {
     c->stepsSinceLastFlush++;
     
     if (c->stepsSinceLastFlush >= 500) {
-      newton_display_set_framebuffer((const char *)c->displayFramebuffer, SCREEN_WIDTH, SCREEN_HEIGHT);
-      c->displayDirty = 0;
-      c->stepsSinceLastFlush = 0;
+        lcd_squirt_flush_framebuffer(c);
     }
   }
 }
@@ -172,7 +197,7 @@ uint32_t lcd_squirt_get_mem32(lcd_squirt_t *c, uint32_t addr) {
       }
       result = 0;
       for (int j=7; j>=0; j--) {
-        int pixel = (c->displayFramebuffer[framebufferIdx] != BLACK_COLOR) ? 0 : 1;
+        int pixel = (c->displayFramebuffer[framebufferIdx] == WHITE_COLOR) ? 0 : 1;
         result |= (pixel << j);
         framebufferIdx++;
       }

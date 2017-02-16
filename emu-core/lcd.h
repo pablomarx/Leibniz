@@ -10,6 +10,7 @@
 #define lcd_h
 
 #define BLACK_COLOR 0x00
+#define SLEEP_COLOR 0xcc
 #define WHITE_COLOR 0xff
 
 extern void newton_display_open(int width, int height);

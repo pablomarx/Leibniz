@@ -47,6 +47,8 @@ void lcd_sharp_del (lcd_sharp_t *c);
 
 void lcd_sharp_set_log_file (lcd_sharp_t *c, FILE *file);
 
+void lcd_sharp_set_powered (lcd_sharp_t *c, bool powered);
+
 uint32_t lcd_sharp_set_mem32(lcd_sharp_t *c, uint32_t addr, uint32_t val);
 uint32_t lcd_sharp_get_mem32(lcd_sharp_t *c, uint32_t addr);
 

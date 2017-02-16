@@ -37,7 +37,7 @@ enum {
 
 enum {
   RuntPowerADC    = (1 << 0),
-  RuntPowerLCD    = (1 << 1),
+  RuntPowerLCD    = (1 << 1),  // Used on Junior, but not Lindy
   RuntPowerVPP2   = (1 << 2),  // X12V_CONT_2 - enable voltage vpp2, from +5VTRM to +12V
   RuntPowerVPP1   = (1 << 3),  // X12V_CONT_1 - enable voltage vpp1, from +5VTRM to +12V
   RuntPowerSound  = (1 << 4),  // X5VSOUND_ON - enable sound out supply
@@ -79,6 +79,7 @@ enum {
 typedef uint32_t (*lcd_get_uint32_f) (void *ext, uint32_t addr);
 typedef uint32_t (*lcd_set_uint32_f) (void *ext, uint32_t addr, uint32_t val);
 typedef const char * (*lcd_get_address_name_f) (void *ext, uint32_t addr);
+typedef void (*lcd_set_powered_f)(void *ext, bool powered);
 typedef void (*lcd_step_f)(void *ext);
 
 typedef struct runt_s {
@@ -109,6 +110,7 @@ typedef struct runt_s {
   lcd_set_uint32_f   lcd_set_uint32;
   lcd_get_address_name_f lcd_get_address_name;
   lcd_step_f          lcd_step;
+  lcd_set_powered_f   lcd_powered;
   
   // Switches
   int8_t switches[3];
@@ -125,9 +127,6 @@ void runt_free (runt_t *c);
 void runt_del (runt_t *c);
 void runt_set_arm (runt_t *c, arm_t *arm);
 void runt_step(runt_t *c);
-
-void runt_set_lcd_fct(runt_t *c, void *ext,
-            void *get32, void *set32, void *getname, void *step);
 
 void runt_set_log_flags (runt_t *c, unsigned flags, int val);
 void runt_set_log_file (runt_t *c, FILE *file);
