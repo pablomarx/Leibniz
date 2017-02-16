@@ -19,9 +19,7 @@ enum {
   SquirtLCDCursorHigh = 0x4c,
   SquirtLCDCursorLow = 0x50,
   SquirtLCDDisplayMode = 0x54,
-  
-  SquirtLCDOrientation = 0x70,
-  
+    
   // Not sure what these are, but see them
   // being written when invoking:
   // Evaluation -> LCD Blanking
@@ -66,9 +64,6 @@ const char *lcd_squirt_get_address_name(lcd_squirt_t *c, uint32_t addr) {
     case SquirtLCDMCount:
       prefix = "lcd-m-count";
       break;
-    case SquirtLCDOrientation:
-      prefix = "lcd-orientation";
-      break;
     default:
       prefix = "lcd-unknown";
       break;
@@ -104,10 +99,6 @@ uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
     case SquirtLCDDisplayMode:
       c->displayMode = (val >> 24);
       break;
-    case SquirtLCDOrientation: {
-      c->orientation = (val >> 24);
-      break;
-    }
     case SquirtLCDPower:
     {
       uint32_t oldVal = c->memory[addr/4];
@@ -134,15 +125,16 @@ uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
       }
       
       // Advance the cursor
-      int8_t horizontal = (c->orientation & 0xf) != 0;
-      int8_t vertical   = (c->orientation >> 4) != 0;
-      if (vertical == 0) {
+      if (c->displayMode == 0xd8) {
         displayCursor -= SCREEN_WIDTH/8;
       }
-      else if (horizontal == 1) {
+      else if (c->displayMode == 0x01) {
         displayCursor++;
       }
-      
+      else if (c->displayMode != 0x00) {
+        fprintf(c->logFile, "[SQUIRT LCD] unhandled display mode: 0x%02x\n", c->displayMode);
+      }
+
       c->cursorHigh = displayCursor >> 8;
       c->cursorLow = displayCursor & 0xff;
       
@@ -185,9 +177,6 @@ uint32_t lcd_squirt_get_mem32(lcd_squirt_t *c, uint32_t addr) {
       break;
     case SquirtLCDDisplayMode:
       result = (c->displayMode << 24);
-      break;
-    case SquirtLCDOrientation:
-      result = (c->orientation << 24);
       break;
     case SquirtLCDDataRead: {
       int32_t displayCursor = (c->cursorHigh << 8) | c->cursorLow;

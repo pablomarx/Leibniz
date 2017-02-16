@@ -23,7 +23,6 @@ typedef struct lcd_squirt_s {
   int displayOrientation;
   int displayInverse;
   
-  uint8_t orientation;
   uint8_t cursorLow;
   uint8_t cursorHigh;
   uint8_t displayMode;
