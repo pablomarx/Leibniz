@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "arm.h"
 #include "fpa.h"
@@ -1081,46 +1082,54 @@ void newton_emulate(newton_t *c, int32_t count) {
   int32_t remaining = count;
   c->stop = false;
   
+  bool armAwake = true;
   while (remaining > 0 && c->stop == false) {
     if (c->instructionTrace == true) {
       newton_print_state(c);
     }
     
-    arm_execute(c->arm);
-    
-    if (count != INT32_MAX) {
-      remaining--;
+    if (armAwake == false) {
+      usleep(10);
     }
-    
-    runt_step(c->runt);
-    
-    uint32_t pc = arm_get_pc (c->arm);
-    if (pc != c->lastPc + 4) {
-      if (c->pcSpy) {
-        const char *symbol = newton_get_symbol_for_address(c, pc);
-        if (symbol == NULL) {
-          symbol = "";
+    else {
+      arm_execute(c->arm);
+      
+      if (count != INT32_MAX) {
+        remaining--;
+      }
+      
+      uint32_t pc = arm_get_pc (c->arm);
+      if (pc != c->lastPc + 4) {
+        if (c->pcSpy) {
+          const char *symbol = newton_get_symbol_for_address(c, pc);
+          if (symbol == NULL) {
+            symbol = "";
+          }
+          
+          fprintf(c->logFile, "PC changed to 0x%08x %s (from 0x%08x)\n", pc, symbol, c->lastPc);
+          fflush(c->logFile);
         }
+      }
         
-        fprintf(c->logFile, "PC changed to 0x%08x %s (from 0x%08x)\n", pc, symbol, c->lastPc);
+      if (c->lastSp != c->arm->reg[13] && c->spSpy) {
+        fprintf(c->logFile, "SP changed from 0x%08x to 0x%08x (at PC 0x%08x)\n", c->lastSp, c->arm->reg[13], pc);
+        fflush(c->logFile);
+        c->lastSp = c->arm->reg[13];
       }
-    }
-    if (c->lastSp != c->arm->reg[13] && c->spSpy) {
-      fprintf(c->logFile, "SP changed from 0x%08x to 0x%08x (at PC 0x%08x)\n", c->lastSp, c->arm->reg[13], pc);
-      c->lastSp = c->arm->reg[13];
-    }
-    
-    bp_entry_t *bp = c->breakpoints;
-    while(bp != NULL) {
-      if (bp->addr == pc && bp->type == BP_PC) {
-        remaining = 0;
-        break;
+      
+      bp_entry_t *bp = c->breakpoints;
+      while(bp != NULL) {
+        if (bp->addr == pc && bp->type == BP_PC) {
+          remaining = 0;
+          break;
+        }
+        bp = bp->next;
       }
-      bp = bp->next;
+      
+      c->lastPc = pc;
     }
-    
-    c->lastPc = pc;
-    fflush(c->logFile);
+      
+    armAwake = runt_step(c->runt);
   }
 }
 

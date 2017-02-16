@@ -86,6 +86,8 @@ typedef struct runt_s {
   arm_t *arm;
   uint32_t *memory;
   uint32_t ticks;
+  bool runtAwake;
+  bool armAwake;
   int machineType;
 
   uint32_t rtcAlarm;
@@ -126,7 +128,7 @@ runt_t *runt_new (int machineType);
 void runt_free (runt_t *c);
 void runt_del (runt_t *c);
 void runt_set_arm (runt_t *c, arm_t *arm);
-void runt_step(runt_t *c);
+bool runt_step(runt_t *c);
 
 void runt_set_log_flags (runt_t *c, unsigned flags, int val);
 void runt_set_log_file (runt_t *c, FILE *file);
@@ -137,7 +139,7 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr, uint32_t pc);
 void runt_interrupt_raise(runt_t *c, uint32_t interrupt);
 void runt_interrupt_lower(runt_t *c, uint32_t interrupt);
 
-bool runt_power_state_get(runt_t *c, uint32_t subsystem);
+bool runt_power_state_get_subsystem(runt_t *c, uint32_t subsystem);
 
 void runt_switch_state(runt_t *c, int switchNum, int state);
 

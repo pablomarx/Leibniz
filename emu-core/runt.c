@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
+#include <unistd.h>
 
 #include "newton.h"
 #include "lcd_sharp.h"
@@ -280,7 +281,7 @@ void runt_set_adc_source(runt_t *c, uint32_t val) {
 }
 
 uint32_t runt_get_adc_value(runt_t *c) {
-  if (runt_power_state_get(c, RuntPowerADC) == false) {
+  if (runt_power_state_get_subsystem(c, RuntPowerADC) == false) {
     return 0;
   }
   
@@ -318,7 +319,7 @@ uint32_t runt_get_adc_value(runt_t *c) {
     case RuntADCSourceTabletPositionY:
     case RuntADCSourceTabletPositionX:
     {
-      if (c->touchActive == true && runt_power_state_get(c, RuntPowerTablet) == true) {
+      if (c->touchActive == true && runt_power_state_get_subsystem(c, RuntPowerTablet) == true) {
         switch (c->adcSource) {
           case RuntADCSourceTabletPositionX:
             result = 0xf15 - (c->touchX * 10);
@@ -326,10 +327,10 @@ uint32_t runt_get_adc_value(runt_t *c) {
           case RuntADCSourceTabletPositionY:
             result = 0xf25 - (c->touchY * 15);
             break;
-
-          // These two values need to differ by
-          // 0x03e8 in order for Newton alignment
-          // to accept the positions...
+            
+            // These two values need to differ by
+            // 0x03e8 in order for Newton alignment
+            // to accept the positions...
           case RuntADCSourceTabletUnknownX:
             result = 0xfff;
             break;
@@ -373,6 +374,9 @@ void runt_interrupt_raise(runt_t *c, uint32_t interrupt) {
     return;
   }
   
+  c->runtAwake = true;
+  c->armAwake = true;
+    
   if ((c->interrupt & interrupt) != interrupt) {
     c->interrupt |= interrupt;
     
@@ -438,8 +442,36 @@ void runt_touch_up(runt_t *c) {
   c->touchActive = false;
 }
 
-void runt_switch_state(runt_t *c, int switchNum, int state) {
-  c->switches[switchNum] = state;
+#pragma mark -
+bool runt_cpu_paused(runt_t *c) {
+  if ((runt_register_get(c, 0) & 2) == 2) {
+    return false;
+  }
+  return (runt_register_get(c, RuntCPUControl) != 0x00);
+}
+
+void runt_cpu_state_update(runt_t *c) {
+  if (runt_power_state_get_subsystem(c, RuntPowerSleep) == true) {
+    c->armAwake = false;
+    c->runtAwake = false;
+  }
+  else if (runt_cpu_paused(c) == true) {
+    c->armAwake = false;
+    c->runtAwake = true;
+  }
+  else {
+    c->armAwake = true;
+    c->runtAwake = true;
+  }
+}
+
+void runt_cpu_control_set(runt_t *c, uint32_t val) {
+  if (val == runt_register_get(c, RuntCPUControl)) {
+    return;
+  }
+
+  runt_register_set(c, RuntCPUControl, val);
+  runt_cpu_state_update(c);
 }
 
 #pragma mark - Power
@@ -448,7 +480,7 @@ void runt_power_state_set(runt_t *c, uint32_t val) {
   if (oldVal == val) {
     return;
   }
-    
+  
   if ((c->logFlags & RuntLogPower) == RuntLogPower) {
     fprintf(c->logFile, " => power on: 0x%08x -> 0x%08x: ", oldVal, val);
     for (int i=0; i<32; i++) {
@@ -465,7 +497,13 @@ void runt_power_state_set(runt_t *c, uint32_t val) {
     }
     fprintf(c->logFile, "\n");
   }
-
+    
+  runt_register_set(c, RuntPower, val);
+  
+  if ((val & RuntPowerSleep) != (oldVal & RuntPowerSleep)) {
+    runt_cpu_state_update(c);
+  }
+    
   if ((val & RuntPowerLCD) != (oldVal & RuntPowerLCD)) {
     if (c->lcd_powered != NULL) {
       c->lcd_powered(c->lcd_driver, (val & RuntPowerLCD));
@@ -473,13 +511,40 @@ void runt_power_state_set(runt_t *c, uint32_t val) {
   }
 }
 
-bool runt_power_state_get(runt_t *c, uint32_t subsystem) {
+void runt_power_state_set_subsystem(runt_t *c, uint32_t subsystem, bool powered) {
+  uint32_t val = runt_register_get(c, RuntPowerLCD);
+  val &= ~subsystem;
+  if (powered == true) {
+    val |= subsystem;
+  }
+  runt_power_state_set(c, val);
+}
+
+bool runt_power_state_get_subsystem(runt_t *c, uint32_t subsystem) {
   uint32_t val = runt_register_get(c, RuntPower);
   return ((val & subsystem) == subsystem);
 }
 
 #pragma mark -
-#pragma mark
+void runt_switch_state(runt_t *c, int switchNum, int state) {
+  c->switches[switchNum] = state;
+  switch (switchNum) {
+    case RuntSwitchNicad:
+      break;
+    case RuntSwitchPower:
+      runt_interrupt_raise(c, RuntInterruptPowerSwitch);
+      if (runt_power_state_get_subsystem(c, RuntPowerSleep) == true) {
+        runt_power_state_set_subsystem(c, RuntPowerSleep, false);
+        runt_cpu_control_set(c, 0);
+      }
+      break;
+    case RuntSwitchCardLock:
+      runt_interrupt_raise(c, RuntInterruptCardLockSwitch);
+      break;
+  }
+}
+
+#pragma mark -
 uint32_t runt_get_ticks(runt_t *c) {
   return c->ticks;
 }
@@ -514,7 +579,9 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val, uint32_t pc) {
         runt_interrupt_lower(c, val);
       }
       break;
-      
+    case RuntCPUControl:
+      runt_cpu_control_set(c, val);
+      break;
     case RuntSound:
       // To get diagnostics moving, we'll set the interrupt...
       runt_interrupt_raise(c, RuntInterruptSound);
@@ -629,7 +696,12 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr, uint32_t pc) {
   return result;
 }
 
-void runt_step(runt_t *c) {
+bool runt_step(runt_t *c) {
+  if (c->runtAwake == false) {
+    usleep(100);
+    return false;
+  }
+    
   c->ticks += 10;
   
   if (c->rtcAlarm != 0 && runt_get_rtc(c) >= c->rtcAlarm) {
@@ -652,17 +724,10 @@ void runt_step(runt_t *c) {
     c->ticksAlarm3 = 0;
   }
   
-  if (c->switches[RuntSwitchCardLock] == 1) {
-    runt_interrupt_raise(c, RuntInterruptCardLockSwitch);
-  }
-  if (c->switches[RuntSwitchPower] == 1) {
-    runt_interrupt_raise(c, RuntInterruptPowerSwitch);
-  }
-  
   if (c->touchActive == true) {
     runt_interrupt_raise(c, RuntInterruptTablet);
   }
-    
+  
   uint32_t sampleSource = c->adcSource;
   switch (sampleSource) {
     case RuntADCSourceUnknownA:
@@ -676,7 +741,7 @@ void runt_step(runt_t *c) {
     case RuntADCSourceTabletPositionY:
     case RuntADCSourceTabletUnknownX:
     case RuntADCSourceTabletUnknownY:
-      if (runt_interrupt_is_enabled(c, RuntInterruptADC) == true && runt_power_state_get(c, RuntPowerADC) == true) {
+      if (runt_interrupt_is_enabled(c, RuntInterruptADC) == true && runt_power_state_get_subsystem(c, RuntPowerADC) == true) {
         runt_interrupt_raise(c, RuntInterruptADC);
       }
       break;
@@ -685,6 +750,8 @@ void runt_step(runt_t *c) {
   if (c->lcd_step != NULL) {
     c->lcd_step(c->lcd_driver);
   }
+    
+  return c->armAwake;
 }
 
 #pragma mark -
@@ -718,7 +785,9 @@ void runt_set_lcd_fct(runt_t *c, void *ext,
 void runt_init (runt_t *c, int machineType) {
   c->memory = calloc(0xffff, 1);
   c->machineType = machineType;
-  
+  c->runtAwake = true;
+  c->armAwake = true;
+    
   //
   // Tablet
   //
@@ -757,7 +826,7 @@ void runt_init (runt_t *c, int machineType) {
   runt_set_log_flags(c, RuntLogFaults, 0);
   runt_set_log_flags(c, RuntLogSerial, 0);
   runt_set_log_flags(c, RuntLogIR, 0);
-	
+  
   c->bootTime = time(NULL);
 }
 
