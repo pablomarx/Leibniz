@@ -619,7 +619,7 @@ int32_t newton_do_sys_open(newton_t *c) {
   else {
     fp = c->do_sys_open(c->tapfilecntl_ext, name, mode);
   }
-
+  
   if ((c->logFlags & NewtonLogTapFileCntl) == NewtonLogTapFileCntl) {
     fprintf(c->logFile, "Open: name='%s', mode=", name);
     switch(mode) {
@@ -635,8 +635,14 @@ int32_t newton_do_sys_open(newton_t *c) {
     }
     fprintf(c->logFile, ", fp=%i", fp);
   }
-
+  
   c->memTrace = memTrace;
+  
+  /*
+   On exit, R0 contains:
+   • a nonzero handle if the call is successful
+   • -1 if the call is not successful.
+   */
   return fp;
 }
 
@@ -656,6 +662,11 @@ int32_t newton_do_sys_close(newton_t *c) {
     fprintf(c->logFile, "close fp=%i => %i", fp, result);
   }
   
+  /*
+   On exit, R0 contains:
+   • 0 if the call is successful
+   • -1 if the call is not successful.
+   */
   return result;
 }
 
@@ -674,6 +685,12 @@ int32_t newton_do_sys_istty(newton_t *c) {
     fprintf(c->logFile, "istty, fp=%i, result=%i", fp, result);
   }
   
+  /*
+   On exit, R0 contains:
+   • 1 if the handle identifies an interactive device
+   • 0 if the handle identifies a file
+   • a value other than 1 or 0 if an error occurs.
+   */
   return result;
 }
 
@@ -696,15 +713,31 @@ int32_t newton_do_sys_read(newton_t *c) {
   uint8_t *buffer = calloc(len, sizeof(uint8_t));
   result = c->do_sys_read(c->tapfilecntl_ext, fp, buffer, len);
   
+  if (result == 0) {
+    buffer[0] = 0x00;
+    result = 1;
+  }
+  
   for (int32_t i=0; i<result; i++) {
     newton_set_mem8(c, addr + i, buffer[i]);
   }
   free(buffer);
-
+  
   if ((c->logFlags & NewtonLogTapFileCntl) == NewtonLogTapFileCntl) {
     fprintf(c->logFile, "read fp=%i => %i", fp, result);
   }
-  return result;
+  
+  /*
+   On exit:
+   • R0 contains zero if the call is successful.
+   • If R0 contains the same value as word 3, the call has failed and EOF is assumed.
+   • If R0 contains a smaller value than word 3, the call was partially successful. No error is assumed, but the buffer has not been filled.
+   */
+  
+  if (result == -1) {
+    return len;
+  }
+  return len - result;
 }
 
 int32_t newton_do_sys_write(newton_t *c) {
@@ -719,7 +752,7 @@ int32_t newton_do_sys_write(newton_t *c) {
   arm_get_mem32(c->arm, c->arm->reg[1], 0, &fp);
   arm_get_mem32(c->arm, c->arm->reg[1] + 4, 0, &addr);
   arm_get_mem32(c->arm, c->arm->reg[1] + 8, 0, &len);
-	
+  
   char *msg = newton_get_string(c, addr, len);
   
   uint32_t result = c->do_sys_write(c->tapfilecntl_ext, fp, msg, len);
@@ -730,6 +763,12 @@ int32_t newton_do_sys_write(newton_t *c) {
   }
   
   free(msg);
+  /*
+   On exit, R0 contains:
+   • 0 if the call is successful
+   • the number of bytes that are not written, if there is an error.
+   */
+  
   return result;
 }
 
@@ -799,7 +838,7 @@ void newton_tap_file_control(newton_t *c)
       result = newton_do_sys_set_input_notify(c);
       break;
   }
-
+  
   c->arm->reg[0] = result;
 }
 
