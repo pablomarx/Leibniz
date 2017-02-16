@@ -131,7 +131,7 @@ uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
       else if (c->displayMode == 0x01) {
         displayCursor++;
       }
-      else if (c->displayMode != 0x00) {
+      else if (c->displayMode != 0x00 && c->displayMode != 0xff) {
         fprintf(c->logFile, "[SQUIRT LCD] unhandled display mode: 0x%02x\n", c->displayMode);
       }
 
@@ -142,12 +142,6 @@ uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
       c->stepsSinceLastFlush = 0;
       break;
     }
-    case SquirtLCDBlanking:
-    case SquirtLCDMCount:
-      break;
-    default:
-      fprintf(c->logFile, "[SQUIRT LCD] unknown write %02x => %08x\n", addr, val);
-      break;
   }
   
   c->memory[addr/4] = (val >> 24);
