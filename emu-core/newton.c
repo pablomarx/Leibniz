@@ -714,20 +714,18 @@ int32_t newton_do_sys_write(newton_t *c) {
   
   uint32_t fp = 0;
   uint32_t len = 0;
-  uint32_t buf = 0;
+  uint32_t addr = 0;
   
   arm_get_mem32(c->arm, c->arm->reg[1], 0, &fp);
-  arm_get_mem32(c->arm, c->arm->reg[1] + 4, 0, &buf);
+  arm_get_mem32(c->arm, c->arm->reg[1] + 4, 0, &addr);
   arm_get_mem32(c->arm, c->arm->reg[1] + 8, 0, &len);
-  
-  arm_translate_extern(c->arm, &buf, 0, NULL, NULL);
-  
-  char *msg = newton_get_string(c, buf, len);
+	
+  char *msg = newton_get_string(c, addr, len);
   
   uint32_t result = c->do_sys_write(c->tapfilecntl_ext, fp, msg, len);
   
   if ((c->logFlags & NewtonLogTapFileCntl) == NewtonLogTapFileCntl) {
-    fprintf(c->logFile, "write(fp=%i, len=0x%08x, buf=0x%08x)\n", fp, len, buf);
+    fprintf(c->logFile, "write(fp=%i, len=0x%08x, buf=0x%08x)\n", fp, len, addr);
     fprintf(c->logFile, "msg: %s\n", msg);
   }
   
