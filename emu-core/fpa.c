@@ -28,7 +28,10 @@ static arm_copr_t fpa_bridge;
 int fpa_exec(arm_t *arm, arm_copr_t *copro) 
 {
 	int r;
-	r = EmulateAll(arm->ir, qemufpa);
+
+    FPA_Debug("[FPA] %s executing 0x%08x at PC:0x%08x\n", __PRETTY_FUNCTION__, arm->ir, arm_get_pc(arm));
+
+    r = EmulateAll(arm->ir, qemufpa);
 	if (r) {
 		arm_set_clk (arm, 4, 1);
 	}
@@ -59,81 +62,42 @@ void fpa_delete(void)
 }
 
 // Previously implemented in fpmodule.inl
-unsigned int readRegister(const unsigned int nReg)
+uint32_t readRegister(const unsigned int nReg)
 {
-	FPA_Debug("[FPA] %s %i\n", __PRETTY_FUNCTION__, nReg);
 	arm_t *arm = (arm_t *)fpa_bridge.ext;
-	return arm_get_gpr(arm, nReg);
+	uint32_t result = arm_get_gpr(arm, nReg);
+    FPA_Debug("[FPA] %s %i => 0x%08x\n", __PRETTY_FUNCTION__, nReg, result);
+    return result;
 }
 
-void writeRegister(const unsigned int nReg, const unsigned int val)
+void writeRegister(const unsigned int nReg, const uint32_t val)
 {
-	FPA_Debug("[FPA] %s %i %x\n", __PRETTY_FUNCTION__, nReg, val);
+	FPA_Debug("[FPA] %s %i 0x%08x\n", __PRETTY_FUNCTION__, nReg, val);
 	arm_t *arm = (arm_t *)fpa_bridge.ext;
 	arm_set_gpr(arm, nReg, val);
 }
 
-unsigned int readCPSR(void) 
-{
-	FPA_Debug("[FPA] %s\n", __PRETTY_FUNCTION__);
-	arm_t *arm = (arm_t *)fpa_bridge.ext;
-	return arm_get_cpsr(arm);
-}
-
-void writeCPSR(const unsigned int val)
-{
-	FPA_Debug("[FPA] %s %x\n", __PRETTY_FUNCTION__, val);
-	arm_t *arm = (arm_t *)fpa_bridge.ext;
-	arm_set_cpsr(arm, val);
-}
-
-unsigned int readConditionCodes(void)
-{
-	FPA_Debug("[FPA] %s\n", __PRETTY_FUNCTION__);
-    return(readCPSR() & ARM_PSR_CC);
-}
-
 void writeConditionCodes(const unsigned int val)
 {
-	FPA_Debug("[FPA] %s %i\n", __PRETTY_FUNCTION__, val);
-	arm_t *arm = (arm_t *)fpa_bridge.ext;
-	unsigned rval = readCPSR() & ~ARM_PSR_CC;
-	writeCPSR(rval | (val & ARM_PSR_CC));
+	FPA_Debug("[FPA] %s 0x%08x\n", __PRETTY_FUNCTION__, val);
+    arm_t *arm = (arm_t *)fpa_bridge.ext;
+    uint32_t cpsr = arm_get_cpsr(arm);
+    cpsr &= ~ARM_PSR_CC;
+    cpsr |= val;
+    arm_set_cpsr(arm, cpsr);
 }
 
-unsigned int readMode(void)
+void get_user_u32(uint32_t *val, uint32_t addr)
 {
-	FPA_Debug("[FPA] %s\n", __PRETTY_FUNCTION__);
-	arm_t *arm = (arm_t *)fpa_bridge.ext;
-	return arm_get_cpsr_m (arm);
-}
-
-// Previously in the Linux kernel
-void get_user_u32(unsigned int *val, const unsigned int *addr)
-{
-	FPA_Debug("[FPA] %s %08x %08x\n", __PRETTY_FUNCTION__, addr, val);
 	arm_t *arm = (arm_t *)fpa_bridge.ext;
 	arm_dload32_t(arm, addr, val);
+    FPA_Debug("[FPA] %s %08x %08x\n", __PRETTY_FUNCTION__, addr, *val);
 }
 
-void put_user_u32(unsigned int val, unsigned int *addr)
+void put_user_u32(uint32_t val, uint32_t addr)
 {
 	FPA_Debug("[FPA] %s %08x %08x\n", __PRETTY_FUNCTION__, addr, val);
 	arm_t *arm = (arm_t *)fpa_bridge.ext;
 	arm_dstore32_t(arm, addr, val);
 }
 
-/*
- * Enable IRQs
- */
-void sti(void) {}
-
-/*
- * Save the current interrupt enable state & disable IRQs
- */
-void save_flags(unsigned int flags) {}
-
-/*
- * restore saved IRQ & FIQ state
- */
-void restore_flags(unsigned int flags) {}
