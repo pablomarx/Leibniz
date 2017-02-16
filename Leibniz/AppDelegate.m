@@ -33,7 +33,7 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
 @property (strong) NSMutableData *inputBuffer;
 @end
 
-@interface AppDelegate () {
+@interface AppDelegate ()<ListenerWindowDelegate> {
   dispatch_queue_t _emulatorQueue;
   newton_t *_newton;
 }
@@ -218,7 +218,7 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode) {
   if (isTTY == NO) {
     return -1;
   }
-  NSLog(@"%s %@ %i", __PRETTY_FUNCTION__, name, mode);
+  
   int32_t fp = 0;
   LeibnizFile *file = nil;
   for (LeibnizFile *aFile in self.files) {
@@ -239,6 +239,7 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode) {
     if (isTTY == YES) {
       ListenerWindowController *listener = [[ListenerWindowController alloc] init];
       listener.window.title = [name substringFromIndex:1];
+      listener.delegate = self;
       [listener showWindow:self];
       file.listener = listener;
     }
@@ -284,15 +285,15 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode) {
 - (int32_t) readForFileWithDescriptor:(uint32_t)fp intoBuffer:(void *)buffer maxLength:(uint32_t)maxLength {
   LeibnizFile *file = [self fileWithDescriptor:fp];
   if (file == nil) {
-    return 0;
+    return -1;
   }
-
+  
   NSData *inputBuffer = file.inputBuffer;
   if (inputBuffer == nil || [inputBuffer length] == 0) {
     return 0;
   }
   
-  const void *input = [inputBuffer bytes];
+  const uint8_t *input = [inputBuffer bytes];
   int32_t length = MIN(maxLength, (int32_t)[inputBuffer length]);
   memcpy(buffer, input, length);
   
@@ -309,7 +310,7 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode) {
   if (file == nil) {
     return -1;
   }
-
+  
   file.notifyAddress = address;
   return 0;
 }
@@ -374,6 +375,46 @@ int32_t leibniz_sys_set_input_notify(void *ext, uint32_t fildes, uint32_t addr) 
   return result;
 }
 
+#pragma mark -
+- (LeibnizFile *) fileForListenerWindow:(ListenerWindowController *)listener {
+  for (LeibnizFile *aFile in self.files) {
+    if (aFile.listener == listener) {
+      return aFile;
+    }
+  }
+  return nil;
+}
+
+- (NSInteger) listenerWindow:(ListenerWindowController *)listener deleteForProposedLength:(NSInteger)characterCount {
+  LeibnizFile *file = [self fileForListenerWindow:listener];
+  if (file == nil) {
+    return 0;
+  }
+  
+  NSInteger inputBufferLen = [file.inputBuffer length];
+  
+  NSRange deletionRange;
+  deletionRange.length = MIN(inputBufferLen, characterCount);
+  deletionRange.location = inputBufferLen - deletionRange.length;
+  [file.inputBuffer replaceBytesInRange:deletionRange withBytes:NULL length:0];
+  
+  return deletionRange.length;
+}
+
+- (void) listenerWindow:(ListenerWindowController *)listener insertedText:(NSString *)text {
+  LeibnizFile *file = [self fileForListenerWindow:listener];
+  if (file == nil) {
+    return;
+  }
+  
+  [file.inputBuffer appendData:[text dataUsingEncoding:NSASCIIStringEncoding]];
+  
+  NSRange newLineRange = [text rangeOfString:@"\n"];
+  if (newLineRange.location != NSNotFound) {
+    newton_file_input_notify(_newton, file.notifyAddress, 1);
+  }
+}
+
 @end
 
 @implementation LeibnizFile
@@ -381,7 +422,7 @@ int32_t leibniz_sys_set_input_notify(void *ext, uint32_t fildes, uint32_t addr) 
 - (instancetype) init {
   self = [super init];
   if (self != nil) {
-    self.inputBuffer = [NSMutableData data];
+  self.inputBuffer = [NSMutableData data];
   }
   return self;
 }

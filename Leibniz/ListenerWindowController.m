@@ -58,7 +58,7 @@
     if (NSMaxRange(affectedCharRange) == NSMaxRange(eofRange) && [replacementString length] == 0) {
         NSInteger toDelete = 0;
         if (self.delegate != nil) {
-            [self.delegate listenerWindow:self deleteForProposedLength:affectedCharRange.length];
+            toDelete = [self.delegate listenerWindow:self deleteForProposedLength:affectedCharRange.length];
         }
         else {
             toDelete = affectedCharRange.length;
