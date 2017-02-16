@@ -69,6 +69,7 @@ enum {
   RuntADCSourceUnknownA,
   RuntADCSourceUnknownB,
   RuntADCSourceUnknownC,
+  RuntADCSourceUnknownD,
 
   RuntADCSourceTabletPositionX,
   RuntADCSourceTabletPositionY,
@@ -87,6 +88,7 @@ static runt_adc_source_t runt_adc_sources[] = {
   { .mask = 0xffffffff, .test = 0x00000202, .val = RuntADCSourceUnknownA, .name = "UnknownA" },
   { .mask = 0xffffffff, .test = 0x00000402, .val = RuntADCSourceUnknownB, .name = "UnknownB" },
   { .mask = 0xffffffff, .test = 0x00000802, .val = RuntADCSourceUnknownC, .name = "UnknownC" },
+  { .mask = 0xffffffff, .test = 0x00001202, .val = RuntADCSourceUnknownD, .name = "UnknownD" },
 
   { .mask = 0xffffffff, .test = 0x00001402, .val = RuntADCSourceNicad, .name = "Nicad" },
   { .mask = 0xffffffff, .test = 0x00003202, .val = RuntADCSourceThermistor, .name = "Thermistor" },
@@ -313,6 +315,15 @@ uint32_t runt_get_adc_value(runt_t *c) {
       break;
     case RuntADCSourceUnknownC:
       result = 0xaaa;
+      break;
+    case RuntADCSourceUnknownD:
+      // J1 logs:
+      // the voltage =  57.15 . ADC = ccc
+      // the voltage =  34.56 . ADC = 999
+      // the voltage =  19.50 . ADC = 777
+      // the voltage =  11.96 . ADC = 666
+      // the voltage = 32764.90 . ADC = 444
+      result = 0x666;
       break;
     case RuntADCSourceTabletUnknownY:
     case RuntADCSourceTabletUnknownX:
