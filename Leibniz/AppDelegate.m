@@ -8,6 +8,7 @@
 
 #import "AppDelegate.h"
 #import "EmulatorView.h"
+#import "LeibnizFile.h"
 #import "ListenerWindowController.h"
 
 #include "newton.h"
@@ -24,14 +25,6 @@ int32_t leibniz_sys_set_input_notify(void *ext, uint32_t fildes, uint32_t addr);
 void leibniz_system_panic(newton_t *newton, const char *msg);
 void leibniz_debugstr(newton_t *newton, const char *msg);
 void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
-
-@interface LeibnizFile : NSObject
-@property (strong) ListenerWindowController *listener;
-@property (strong) NSString *name;
-@property (strong) NSArray *openDescriptors;
-@property (assign) uint32_t notifyAddress;
-@property (strong) NSMutableData *inputBuffer;
-@end
 
 @interface AppDelegate ()<ListenerWindowDelegate> {
   dispatch_queue_t _emulatorQueue;
@@ -417,14 +410,3 @@ int32_t leibniz_sys_set_input_notify(void *ext, uint32_t fildes, uint32_t addr) 
 
 @end
 
-@implementation LeibnizFile
-
-- (instancetype) init {
-  self = [super init];
-  if (self != nil) {
-  self.inputBuffer = [NSMutableData data];
-  }
-  return self;
-}
-
-@end
