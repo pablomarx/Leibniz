@@ -17,7 +17,7 @@
 
 typedef struct lcd_squirt_s {
   FILE *logFile;
-  uint32_t *memory;
+  uint8_t *memory;
   
   int displayFillMode;
   int displayOrientation;

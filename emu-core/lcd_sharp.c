@@ -331,7 +331,7 @@ uint32_t lcd_sharp_get_mem32(lcd_sharp_t *c, uint32_t addr) {
     addr -= 0x80;
   }
   
-  uint32_t result = c->memory[addr/4];
+  uint8_t result = c->memory[addr/4];
   
   switch (addr) {
     case SharpLCDNotBusy:
@@ -433,7 +433,7 @@ void lcd_sharp_set_log_file (lcd_sharp_t *c, FILE *file) {
 }
 
 void lcd_sharp_init (lcd_sharp_t *c) {
-  c->memory = calloc(0xff, sizeof(uint32_t));
+  c->memory = calloc(32, sizeof(uint8_t));
   
   c->windowRight = SCREEN_WIDTH - 1;
   c->windowBottom = SCREEN_HEIGHT - 1;

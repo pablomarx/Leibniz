@@ -17,7 +17,7 @@
 
 typedef struct lcd_sharp_s {
   FILE *logFile;
-  uint32_t *memory;
+  uint8_t *memory;
   
   int16_t writeX;
   int16_t writeY;

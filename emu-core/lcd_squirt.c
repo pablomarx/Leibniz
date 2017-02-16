@@ -150,7 +150,7 @@ uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
       break;
   }
   
-  c->memory[addr/4] = val;
+  c->memory[addr/4] = (val >> 24);
 
   return val;
 }
@@ -166,7 +166,7 @@ void lcd_squirt_step(lcd_squirt_t *c) {
 }
 
 uint32_t lcd_squirt_get_mem32(lcd_squirt_t *c, uint32_t addr) {
-  uint32_t result = c->memory[addr/4];
+  uint32_t result = (c->memory[addr/4] << 24);
   
   switch (addr) {
     case SquirtLCDCursorHigh:
@@ -207,7 +207,7 @@ void lcd_squirt_set_log_file (lcd_squirt_t *c, FILE *file) {
 }
 
 void lcd_squirt_init (lcd_squirt_t *c) {
-  c->memory = calloc(0xff, 1);
+  c->memory = calloc(0xff, sizeof(uint8_t));
   
   //
   // Display
