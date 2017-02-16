@@ -684,22 +684,23 @@ int32_t newton_do_sys_read(newton_t *c) {
   
   uint32_t fp = 0;
   uint32_t len = 0;
-  uint32_t buf = 0;
+  uint32_t addr = 0;
   int32_t result = 0;
   
   arm_get_mem32(c->arm, c->arm->reg[1], 0, &fp);
-  arm_get_mem32(c->arm, c->arm->reg[1] + 4, 0, &buf);
+  arm_get_mem32(c->arm, c->arm->reg[1] + 4, 0, &addr);
   arm_get_mem32(c->arm, c->arm->reg[1] + 8, 0, &len);
   
-  arm_translate_extern(c->arm, &buf, 0, NULL, NULL);
+  arm_translate_extern(c->arm, &addr, 0, NULL, NULL);
   
   uint8_t *buffer = calloc(len, sizeof(uint8_t));
   result = c->do_sys_read(c->tapfilecntl_ext, fp, buffer, len);
   
   for (int32_t i=0; i<result; i++) {
-    newton_set_mem8(c, buf + i, buffer[i]);
+    newton_set_mem8(c, addr + i, buffer[i]);
   }
   free(buffer);
+
   if ((c->logFlags & NewtonLogTapFileCntl) == NewtonLogTapFileCntl) {
     fprintf(c->logFile, "read fp=%i => %i", fp, result);
   }
