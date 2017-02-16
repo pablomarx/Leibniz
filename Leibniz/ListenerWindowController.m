@@ -47,23 +47,18 @@
 
 - (BOOL)textView:(NSTextView *)textView shouldChangeTextInRange:(NSRange)affectedCharRange replacementString:(NSString *)replacementString;
 {
+    if (self.delegate == nil) {
+        return NO;
+    }
+    
     NSRange eofRange = NSMakeRange([textView.textStorage length], 0);
     if (NSEqualRanges(affectedCharRange, eofRange) == YES) {
-        if (self.delegate != nil) {
-            [self.delegate listenerWindow:self insertedText:replacementString];
-        }
+        [self.delegate listenerWindow:self insertedText:replacementString];
         return YES;
     }
     
     if (NSMaxRange(affectedCharRange) == NSMaxRange(eofRange) && [replacementString length] == 0) {
-        NSInteger toDelete = 0;
-        if (self.delegate != nil) {
-            toDelete = [self.delegate listenerWindow:self deleteForProposedLength:affectedCharRange.length];
-        }
-        else {
-            toDelete = affectedCharRange.length;
-        }
-        
+        NSInteger toDelete = [self.delegate listenerWindow:self deleteForProposedLength:affectedCharRange.length];        
         if (toDelete == 0) {
             NSBeep();
             return NO;
