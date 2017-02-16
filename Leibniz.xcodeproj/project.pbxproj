@@ -43,6 +43,8 @@
 		F1E4AF1719C1327F00D8EFB4 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F1E4AF1619C1327F00D8EFB4 /* Images.xcassets */; };
 		F1E4AF1A19C1327F00D8EFB4 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = F1E4AF1819C1327F00D8EFB4 /* MainMenu.xib */; };
 		F1E4AF2619C1328000D8EFB4 /* LeibnizTests.m in Sources */ = {isa = PBXBuildFile; fileRef = F1E4AF2519C1328000D8EFB4 /* LeibnizTests.m */; };
+		F1F02C4E1E56672D0061B21E /* FileStream.m in Sources */ = {isa = PBXBuildFile; fileRef = F1F02C4D1E56672D0061B21E /* FileStream.m */; };
+		F1F02C511E566C6D0061B21E /* LeibnizFile.m in Sources */ = {isa = PBXBuildFile; fileRef = F1F02C501E566C6D0061B21E /* LeibnizFile.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -119,6 +121,10 @@
 		F1E4AF1F19C1327F00D8EFB4 /* LeibnizTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LeibnizTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F1E4AF2419C1328000D8EFB4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F1E4AF2519C1328000D8EFB4 /* LeibnizTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LeibnizTests.m; sourceTree = "<group>"; };
+		F1F02C4C1E56672D0061B21E /* FileStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileStream.h; sourceTree = "<group>"; };
+		F1F02C4D1E56672D0061B21E /* FileStream.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FileStream.m; sourceTree = "<group>"; };
+		F1F02C4F1E566C6D0061B21E /* LeibnizFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LeibnizFile.h; sourceTree = "<group>"; };
+		F1F02C501E566C6D0061B21E /* LeibnizFile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LeibnizFile.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -220,6 +226,10 @@
 				F19548AE1E4E7E59001772E8 /* EmulatorView.m */,
 				F19548B01E4E7EE9001772E8 /* TouchView.h */,
 				F19548B11E4E7EE9001772E8 /* TouchView.m */,
+				F1F02C4F1E566C6D0061B21E /* LeibnizFile.h */,
+				F1F02C501E566C6D0061B21E /* LeibnizFile.m */,
+				F1F02C4C1E56672D0061B21E /* FileStream.h */,
+				F1F02C4D1E56672D0061B21E /* FileStream.m */,
 				F19548A31E4E52C5001772E8 /* ListenerWindowController.h */,
 				F19548A41E4E52C5001772E8 /* ListenerWindowController.m */,
 				F19548A51E4E52C5001772E8 /* ListenerWindowController.xib */,
@@ -372,11 +382,13 @@
 				F19548B21E4E7EE9001772E8 /* TouchView.m in Sources */,
 				F195489F1E47B170001772E8 /* fpa11.c in Sources */,
 				F1E09AEE1B2D2AB000004CC8 /* lcd_squirt.c in Sources */,
+				F1F02C511E566C6D0061B21E /* LeibnizFile.m in Sources */,
 				F19548A11E47B170001772E8 /* single_cpdo.c in Sources */,
 				F123BD6319C4FC8800EC994F /* disasm.c in Sources */,
 				F10F099D19C651A700C8C8FD /* hexdump.c in Sources */,
 				F195489C1E47B170001772E8 /* fpa11_cpdo.c in Sources */,
 				F19548AF1E4E7E59001772E8 /* EmulatorView.m in Sources */,
+				F1F02C4E1E56672D0061B21E /* FileStream.m in Sources */,
 				F123BD6819C4FC8800EC994F /* mmu.c in Sources */,
 				F123BD5F19C4FC8800EC994F /* copr14.c in Sources */,
 				F195489A1E47B170001772E8 /* extended_cpdo.c in Sources */,

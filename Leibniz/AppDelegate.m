@@ -8,6 +8,7 @@
 
 #import "AppDelegate.h"
 #import "EmulatorView.h"
+#import "FileStream.h"
 #import "LeibnizFile.h"
 #import "ListenerWindowController.h"
 
@@ -26,9 +27,11 @@ void leibniz_system_panic(newton_t *newton, const char *msg);
 void leibniz_debugstr(newton_t *newton, const char *msg);
 void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
 
-@interface AppDelegate ()<ListenerWindowDelegate> {
+@interface AppDelegate ()<FileStreamDelegate, ListenerWindowDelegate> {
   dispatch_queue_t _emulatorQueue;
   newton_t *_newton;
+  FileStream *_fileStream;
+  ListenerWindowController *_consoleWindow;
 }
 
 @property (weak) IBOutlet NSWindow *window;
@@ -39,6 +42,7 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
 - (IBAction) toggleNicdSwitch:(id)sender;
 - (IBAction) toggleCardLockSwitch:(id)sender;
 - (IBAction) togglePowerSwitch:(id)sender;
+- (IBAction) showConsole:(id)sender;
 
 @end
 
@@ -47,6 +51,73 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
   self.files = @[];
   
+  [self createConsoleWindowAndFileStream];
+  [self showOpenROMPanel];
+}
+
+- (void) createConsoleWindowAndFileStream {
+  _consoleWindow = [[ListenerWindowController alloc] init];
+  _consoleWindow.window.title = NSLocalizedString(@"Console", @"Console");
+  _consoleWindow.window.frameAutosaveName = @"Console";
+  
+  _fileStream = [[FileStream alloc] init];
+  _fileStream.delegate = self;
+}
+
+- (void) createEmulatorWithROMFile:(NSString *)romFile {
+  _newton = newton_new();
+  newton_set_logfile(_newton, _fileStream.file);
+  
+  int success = newton_load_rom(_newton, [romFile fileSystemRepresentation]);
+  if (success != 0) {
+    newton_del(_newton);
+    _newton = NULL;
+    [self showErrorAlertWithTitle:NSLocalizedString(@"Unsupported file", @"Unsupported file")
+                          message:NSLocalizedString(@"The file does not appear to be a supported ROM.", @"The file does not appear to be a supported ROM.")];
+    return;
+  }
+  
+  NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+  uint32_t newtonLogFlags = (uint32_t)[userDefaults integerForKey:@"newtonLogFlags"];
+  uint32_t runtLogFlags = (uint32_t)[userDefaults integerForKey:@"runtLogFlags"];
+  
+  newton_set_log_flags(_newton, newtonLogFlags, 1);
+  runt_set_log_flags(newton_get_runt(_newton), runtLogFlags, 1);
+  
+  newton_set_newt_config(_newton, kConfigBit11 | kConfigBit3 | /*kDontPauseCPU |*/ kEnableStdout | kDefaultStdioOn | kEnableListener);
+  newton_set_debugger_bits(_newton, 1);
+  newton_set_bootmode(_newton, NewtonBootModeDiagnostics);
+  newton_set_undefined_opcode(_newton, leibniz_undefined_opcode);
+  newton_set_system_panic(_newton, leibniz_system_panic);
+  newton_set_debugstr(_newton, leibniz_debugstr);
+  newton_set_tapfilecntl_funtcions(_newton,
+                                   (__bridge void *)self,
+                                   leibniz_sys_open,
+                                   leibniz_sys_close,
+                                   leibniz_sys_istty,
+                                   leibniz_sys_read,
+                                   leibniz_sys_write,
+                                   leibniz_sys_set_input_notify);
+  
+  _emulatorQueue = dispatch_queue_create("org.swhite.leibniz.emulator", NULL);
+}
+
+- (void) beginEmulatingWithROMFile:(NSString *)romFile {
+  [self createEmulatorWithROMFile:romFile];
+  [self runEmulator];
+}
+
+- (void) runEmulator {
+  if (_emulatorQueue == NULL || _newton == NULL) {
+    return;
+  }
+  
+  dispatch_async(_emulatorQueue, ^{
+    newton_emulate(_newton, INT32_MAX);
+  });
+}
+
+- (void) showOpenROMPanel {
   NSOpenPanel *openPanel = [NSOpenPanel openPanel];
   NSInteger result = [openPanel runModal];
   if (result == NSFileHandlingPanelOKButton) {
@@ -60,38 +131,7 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
   }
 }
 
-- (void) createEmulatorWithROMFile:(NSString *)romFile {
-  _newton = newton_new();
-  newton_load_rom(_newton, [romFile fileSystemRepresentation]);
-  newton_set_newt_config(_newton, kConfigBit3 | kDontPauseCPU | kEnableStdout | kDefaultStdioOn | kEnableListener);
-  newton_set_debugger_bits(_newton, 1);
-  newton_set_bootmode(_newton, NewtonBootModeDiagnostics);
-  newton_set_undefined_opcode(_newton, leibniz_undefined_opcode);
-  newton_set_system_panic(_newton, leibniz_system_panic);
-  newton_set_debugstr(_newton, leibniz_debugstr);
-  newton_set_tapfilecntl_funtcions(_newton,
-                   (__bridge void *)self,
-                   leibniz_sys_open,
-                   leibniz_sys_close,
-                   leibniz_sys_istty,
-                   leibniz_sys_read,
-                   leibniz_sys_write,
-                   leibniz_sys_set_input_notify);
-  
-  _emulatorQueue = dispatch_queue_create("org.swhite.leibniz.emulator", NULL);
-}
-
-- (void) beginEmulatingWithROMFile:(NSString *)romFile {
-  [self createEmulatorWithROMFile:romFile];
-  [self runEmulator];
-}
-
-- (void) runEmulator {
-  dispatch_async(_emulatorQueue, ^{
-    newton_emulate(_newton, INT32_MAX);
-  });
-}
-
+#pragma mark - Actions
 - (IBAction) toggleNicdSwitch:(id)sender {
   BOOL on = ([sender state] == NSOnState ? 0 : 1);
   runt_switch_state(_newton->runt, RuntSwitchNicad, on);
@@ -109,6 +149,12 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
   runt_switch_state(_newton->runt, RuntSwitchPower, on);
   [sender setState:(!on ? NSOffState : NSOnState)];
 }
+
+- (IBAction) showConsole:(id)sender {
+  [_consoleWindow showWindow:sender];
+}
+
+#pragma mark - Tablet
 
 - (void) tabletTouchedDownAtPoint:(NSPoint)point {
   runt_touch_down(_newton->runt, point.x, point.y);
@@ -157,7 +203,7 @@ void newton_display_set_framebuffer(const uint8_t *display, int width, int heigh
 
 #pragma mark - Errors
 - (void) showErrorAlertWithTitle:(NSString *)title
-             message:(NSString *)message
+                         message:(NSString *)message
 {
   if ([NSThread isMainThread] == NO) {
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -167,11 +213,11 @@ void newton_display_set_framebuffer(const uint8_t *display, int width, int heigh
   }
   
   NSInteger result = NSRunAlertPanel(title,
-                     @"%@",
-                     NSLocalizedString(@"Continue", @"Continue"),
-                     NSLocalizedString(@"Stop", @"Stop"),
-                     nil,
-                     message);
+                                     @"%@",
+                                     NSLocalizedString(@"Continue", @"Continue"),
+                                     NSLocalizedString(@"Stop", @"Stop"),
+                                     nil,
+                                     message);
   if (result == NSOKButton) {
     [self runEmulator];
   }
@@ -180,19 +226,19 @@ void newton_display_set_framebuffer(const uint8_t *display, int width, int heigh
 void leibniz_system_panic(newton_t *newton, const char *msg) {
   NSString *message = [NSString stringWithCString:msg encoding:NSASCIIStringEncoding];
   [(AppDelegate *)[NSApp delegate] showErrorAlertWithTitle:NSLocalizedString(@"System Panic", @"System Panic")
-                           message:message];
+                                                   message:message];
 }
 
 void leibniz_debugstr(newton_t *newton, const char *msg) {
-	NSString *message = [NSString stringWithCString:msg encoding:NSASCIIStringEncoding];
-	[(AppDelegate *)[NSApp delegate] showErrorAlertWithTitle:NSLocalizedString(@"DebugStr", @"DebugStr")
-													 message:message];
+  NSString *message = [NSString stringWithCString:msg encoding:NSASCIIStringEncoding];
+  [(AppDelegate *)[NSApp delegate] showErrorAlertWithTitle:NSLocalizedString(@"DebugStr", @"DebugStr")
+                                                   message:message];
 }
 
 void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode) {
   NSString *message = [NSString stringWithFormat:@"0x%08x", opcode];
   [(AppDelegate *)[NSApp delegate] showErrorAlertWithTitle:NSLocalizedString(@"Undefined Opcode", @"Undefined Opcode")
-                           message:message];
+                                                   message:message];
 }
 
 
@@ -406,6 +452,16 @@ int32_t leibniz_sys_set_input_notify(void *ext, uint32_t fildes, uint32_t addr) 
   if (newLineRange.location != NSNotFound) {
     newton_file_input_notify(_newton, file.notifyAddress, 1);
   }
+}
+
+#pragma mark -
+- (void) fileStream:(FileStream *)fileStream wroteData:(NSData *)data {
+  NSString *string = [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding];
+  [_consoleWindow appendOutput:string];
+}
+
+- (void) fileStreamClosed:(FileStream *)fileStream {
+  
 }
 
 @end
