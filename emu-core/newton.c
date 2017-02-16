@@ -443,7 +443,7 @@ uint32_t newton_get_newt_tests(newton_t *c) {
 
 
 void newton_parse_aif_debug_data(newton_t *c, void *debugData, uint32_t length) {
-  printf("%s debugData=%p, length=%i\n", __PRETTY_FUNCTION__, debugData, length);
+  fprintf(c->logFile, "%s debugData=%p, length=%i\n", __PRETTY_FUNCTION__, debugData, length);
   
   uint32_t *bytes = (uint32_t *)debugData;
   bytes += 8; // skip past header
@@ -470,7 +470,7 @@ void newton_parse_aif_debug_data(newton_t *c, void *debugData, uint32_t length) 
     entry++;
   }
   
-  printf("Parsed %i symbols from AIF debug data\n", entry);
+  fprintf(c->logFile, "Parsed %i symbols from AIF debug data\n", entry);
 }
 
 void newton_load_mapfile(newton_t *c, const char *mapfile) {
@@ -1434,51 +1434,51 @@ int newton_load_rom(newton_t *c, const char *path) {
   }
   fclose(romFP);
   
-  printf("Loaded ROM: %s => %i bytes\n", path, romSize);
+  fprintf(c->logFile, "Loaded ROM: %s => %i bytes\n", path, romSize);
   
   c->machineType = memory_get_uint32(rom, 0x000013ec, 0);
-  printf("Machine Type  : 0x%08x => ", c->machineType);
+  fprintf(c->logFile, "Machine Type  : 0x%08x => ", c->machineType);
   switch (c->machineType) {
     case kGestalt_MachineType_MessagePad:
-      printf("Junior");
+      fprintf(c->logFile, "Junior");
       break;
     case kGestalt_MachineType_Lindy:
-      printf("Lindy");
+      fprintf(c->logFile, "Lindy");
       break;
     case kGestalt_MachineType_Bic:
-      printf("Bic");
+      fprintf(c->logFile, "Bic");
       break;
     case kGestalt_MachineType_Senior:
-      printf("Senior");
+      fprintf(c->logFile, "Senior");
       break;
     case kGestalt_MachineType_Emate:
-      printf("eMate");
+      fprintf(c->logFile, "eMate");
       break;
     default:
-      printf("UNKNOWN - Defaulting to Junior");
+      fprintf(c->logFile, "UNKNOWN - Defaulting to Junior");
       c->machineType = kGestalt_MachineType_MessagePad;
       break;
   }
-  printf("\n");
+  fprintf(c->logFile, "\n");
   
   c->romManufacturer = memory_get_uint32(rom, 0x000013f0, 0);
-  printf("ROM Manufacturer: 0x%08x => ", c->romManufacturer);
+  fprintf(c->logFile, "ROM Manufacturer: 0x%08x => ", c->romManufacturer);
   switch (c->romManufacturer) {
     case kGestalt_Manufacturer_Apple:
-      printf("Apple");
+      fprintf(c->logFile, "Apple");
       break;
     case kGestalt_Manufacturer_Sharp:
-      printf("Sharp");
+      fprintf(c->logFile, "Sharp");
       break;
     case kGestalt_Manufacturer_Motorola:
-      printf("Motorola");
+      fprintf(c->logFile, "Motorola");
       break;
     default:
-      printf("UNKNOWN - Defaulting to Apple");
+      fprintf(c->logFile, "UNKNOWN - Defaulting to Apple");
       c->romManufacturer = kGestalt_Manufacturer_Apple;
       break;
   }
-  printf("\n");
+  fprintf(c->logFile, "\n");
   
   uint32_t romVersion = memory_get_uint32(rom, 0x13dc, 0);
   if (romVersion == 0x06290000) {
