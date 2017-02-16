@@ -12,13 +12,13 @@
 #include <string.h>
 
 memory_t *memory_new(char *name, uint32_t length) {
-  memory_t *mem = calloc(sizeof(memory_t), 1);
-  mem->contents = calloc(sizeof(uint8_t), length);
+  memory_t *mem = calloc(1, sizeof(memory_t));
+  mem->contents = calloc(length, sizeof(uint8_t));
   mem->length = length;
   mem->logFile = stdout;
 
   if (name != NULL) {
-    mem->name = calloc(sizeof(char), strlen(name) + 1);
+    mem->name = calloc(strlen(name) + 1, sizeof(char));
     strcpy(mem->name, name);
   }
   

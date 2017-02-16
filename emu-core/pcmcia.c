@@ -15,7 +15,7 @@ enum {
 
 void pcmcia_init (pcmcia_t *c)
 {
-    c->memory = calloc(0xffff, 4);
+    c->memory = calloc(0xffff, sizeof(uint32_t));
     c->logFile = stdout;
 }
 

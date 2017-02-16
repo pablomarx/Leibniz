@@ -38,9 +38,9 @@ uint32_t newton_address_for_symbol(newton_t *c, const char *symbol) {
 }
 
 void newton_add_symbol(newton_t *c, uint32_t address, const char *name) {
-  symbol_t *sym = calloc(sizeof(symbol_t), 1);
+  symbol_t *sym = calloc(1, sizeof(symbol_t));
   sym->address = address;
-  sym->name = calloc(strlen(name)+1, 1);
+  sym->name = calloc(strlen(name)+1, sizeof(char));
   strcpy(sym->name, name);
   sym->next = c->symbols;
   c->symbols = sym;
@@ -355,7 +355,7 @@ void newton_print_state(newton_t *newt) {
 #pragma mark -
 #pragma mark
 void newton_breakpoint_add(newton_t *c, uint32_t address, bp_type type) {
-  bp_entry_t *bp = calloc(sizeof(bp_entry_t), 1);
+  bp_entry_t *bp = calloc(1, sizeof(bp_entry_t));
   bp->addr = address;
   bp->type = type;
   bp->next = c->breakpoints;
@@ -546,7 +546,7 @@ char *newton_get_string(newton_t *c, uint32_t address, uint32_t length) {
   uint32_t translated = address;
   arm_translate_extern(c->arm, &translated, 0, NULL, NULL);
   
-  char *msg = calloc(1024, 1);
+  char *msg = calloc(1024, sizeof(char));
   uint32_t value;
   int index = 0;
   while (1) {
@@ -568,7 +568,7 @@ char *newton_get_cstring(newton_t *c, uint32_t address) {
   uint32_t translated = address;
   arm_translate_extern(c->arm, &translated, 0, NULL, NULL);
   
-  char *msg = calloc(1024, 1);
+  char *msg = calloc(1024, sizeof(char));
   uint32_t value;
   int index = 0;
   while (1) {

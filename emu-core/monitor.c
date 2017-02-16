@@ -42,7 +42,7 @@ void monitor_init (monitor_t *c) {
 monitor_t *monitor_new (void) {
   monitor_t *c;
   
-  c = calloc(1, sizeof (monitor_t));
+  c = calloc(sizeof (monitor_t), 1);
   if (c == NULL) {
     return (NULL);
   }
