@@ -333,10 +333,10 @@ uint32_t runt_get_adc_value(runt_t *c) {
       if (c->touchActive == true && runt_power_state_get_subsystem(c, RuntPowerTablet) == true) {
         switch (c->adcSource) {
           case RuntADCSourceTabletPositionX:
-            result = 0xf15 - (c->touchX * 10);
+            result = 0xf30 - (c->touchX * 9.6);
             break;
           case RuntADCSourceTabletPositionY:
-            result = 0xf25 - (c->touchY * 15);
+            result = 0xef0 - (c->touchY * 14.6);
             break;
             
             // These two values need to differ by
