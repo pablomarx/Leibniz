@@ -111,7 +111,7 @@ static const char *runt_power_names[] = {
 static const char *runt_interrupt_names[] = {
   "rtc", "ticks", "ticks2", NULL, NULL, NULL, NULL, NULL,
   NULL, "adc", "serialA", "sound", "pcmcia", "diags", "cardlock", "powerswitch",
-  "serial", "tablet", NULL, NULL, NULL, NULL, NULL, NULL,
+  "serial", "tablet", "sound-dma", NULL, NULL, NULL, NULL, NULL,
   "power-fault", "battery-removed", NULL, NULL, NULL, NULL, NULL, NULL,
 };
 
