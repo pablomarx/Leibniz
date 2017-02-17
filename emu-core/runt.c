@@ -713,7 +713,7 @@ bool runt_step(runt_t *c) {
     return false;
   }
     
-  c->ticks += 10;
+  c->ticks += 5;
   
   if (c->rtcAlarm != 0 && runt_get_rtc(c) >= c->rtcAlarm) {
     runt_interrupt_raise(c, RuntInterruptRTC);
