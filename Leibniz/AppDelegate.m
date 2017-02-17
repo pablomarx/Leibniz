@@ -11,6 +11,8 @@
 #import "FileStream.h"
 #import "LeibnizFile.h"
 #import "ListenerWindowController.h"
+#import "NSWindow+AccessoryView.h"
+#import "PowerButtonAccessoryController.h"
 
 #include "newton.h"
 #include "runt.h"
@@ -51,6 +53,7 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
   self.files = @[];
   
+  [self setupTitlebarAccessory];
   [self createConsoleWindowAndFileStream];
   [self showOpenROMPanel];
 }
@@ -129,6 +132,24 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
   else {
     [NSApp terminate:self];
   }
+}
+
+- (void) setupTitlebarAccessory {
+  PowerButton *button = nil;
+  if ([NSWindow instancesRespondToSelector:@selector(addTitlebarAccessoryViewController:)] == YES) {
+    PowerButtonAccessoryController *titlebarAccessory = [[PowerButtonAccessoryController alloc] init];
+    button = titlebarAccessory.powerButton;
+    [self.window addTitlebarAccessoryViewController:titlebarAccessory];
+  }
+  else {
+    button = [[PowerButton alloc] init];
+    [button sizeToFit];
+    CGFloat xPos = self.window.frame.size.width - button.frame.size.width - 10;
+    [self.window addViewToTitleBar:button atXPosition:xPos];
+  }
+  
+  [button setTarget:self];
+  [button setAction:@selector(togglePowerSwitch:)];
 }
 
 #pragma mark - Actions

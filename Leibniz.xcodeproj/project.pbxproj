@@ -45,6 +45,11 @@
 		F1E4AF2619C1328000D8EFB4 /* LeibnizTests.m in Sources */ = {isa = PBXBuildFile; fileRef = F1E4AF2519C1328000D8EFB4 /* LeibnizTests.m */; };
 		F1F02C4E1E56672D0061B21E /* FileStream.m in Sources */ = {isa = PBXBuildFile; fileRef = F1F02C4D1E56672D0061B21E /* FileStream.m */; };
 		F1F02C511E566C6D0061B21E /* LeibnizFile.m in Sources */ = {isa = PBXBuildFile; fileRef = F1F02C501E566C6D0061B21E /* LeibnizFile.m */; };
+		F1F02C541E567C1C0061B21E /* NSWindow+AccessoryView.m in Sources */ = {isa = PBXBuildFile; fileRef = F1F02C531E567C1C0061B21E /* NSWindow+AccessoryView.m */; };
+		F1F02C561E567E320061B21E /* button_power.png in Resources */ = {isa = PBXBuildFile; fileRef = F1F02C551E567E320061B21E /* button_power.png */; };
+		F1F02C581E567EFA0061B21E /* button_power_on.png in Resources */ = {isa = PBXBuildFile; fileRef = F1F02C571E567EFA0061B21E /* button_power_on.png */; };
+		F1F02C5B1E5681470061B21E /* PowerButton.m in Sources */ = {isa = PBXBuildFile; fileRef = F1F02C5A1E5681470061B21E /* PowerButton.m */; };
+		F1F02C5E1E5687E00061B21E /* PowerButtonAccessoryController.m in Sources */ = {isa = PBXBuildFile; fileRef = F1F02C5D1E5687E00061B21E /* PowerButtonAccessoryController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -125,6 +130,14 @@
 		F1F02C4D1E56672D0061B21E /* FileStream.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FileStream.m; sourceTree = "<group>"; };
 		F1F02C4F1E566C6D0061B21E /* LeibnizFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LeibnizFile.h; sourceTree = "<group>"; };
 		F1F02C501E566C6D0061B21E /* LeibnizFile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LeibnizFile.m; sourceTree = "<group>"; };
+		F1F02C521E567C1C0061B21E /* NSWindow+AccessoryView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSWindow+AccessoryView.h"; sourceTree = "<group>"; };
+		F1F02C531E567C1C0061B21E /* NSWindow+AccessoryView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSWindow+AccessoryView.m"; sourceTree = "<group>"; };
+		F1F02C551E567E320061B21E /* button_power.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = button_power.png; sourceTree = "<group>"; };
+		F1F02C571E567EFA0061B21E /* button_power_on.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = button_power_on.png; sourceTree = "<group>"; };
+		F1F02C591E5681470061B21E /* PowerButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerButton.h; sourceTree = "<group>"; };
+		F1F02C5A1E5681470061B21E /* PowerButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerButton.m; sourceTree = "<group>"; };
+		F1F02C5C1E5687E00061B21E /* PowerButtonAccessoryController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerButtonAccessoryController.h; sourceTree = "<group>"; };
+		F1F02C5D1E5687E00061B21E /* PowerButtonAccessoryController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerButtonAccessoryController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -230,11 +243,19 @@
 				F1F02C501E566C6D0061B21E /* LeibnizFile.m */,
 				F1F02C4C1E56672D0061B21E /* FileStream.h */,
 				F1F02C4D1E56672D0061B21E /* FileStream.m */,
+				F1F02C591E5681470061B21E /* PowerButton.h */,
+				F1F02C5A1E5681470061B21E /* PowerButton.m */,
+				F1F02C5C1E5687E00061B21E /* PowerButtonAccessoryController.h */,
+				F1F02C5D1E5687E00061B21E /* PowerButtonAccessoryController.m */,
+				F1F02C521E567C1C0061B21E /* NSWindow+AccessoryView.h */,
+				F1F02C531E567C1C0061B21E /* NSWindow+AccessoryView.m */,
 				F19548A31E4E52C5001772E8 /* ListenerWindowController.h */,
 				F19548A41E4E52C5001772E8 /* ListenerWindowController.m */,
 				F19548A51E4E52C5001772E8 /* ListenerWindowController.xib */,
 				F1E4AF1619C1327F00D8EFB4 /* Images.xcassets */,
 				F1E4AF1819C1327F00D8EFB4 /* MainMenu.xib */,
+				F1F02C551E567E320061B21E /* button_power.png */,
+				F1F02C571E567EFA0061B21E /* button_power_on.png */,
 				F1853F751CBD87B800CFA4F4 /* newton-buttons.png */,
 				F1E4AF0F19C1327F00D8EFB4 /* Supporting Files */,
 			);
@@ -347,9 +368,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F1F02C581E567EFA0061B21E /* button_power_on.png in Resources */,
 				F1853F761CBD87B800CFA4F4 /* newton-buttons.png in Resources */,
 				F1E4AF1719C1327F00D8EFB4 /* Images.xcassets in Resources */,
 				F1E4AF1A19C1327F00D8EFB4 /* MainMenu.xib in Resources */,
+				F1F02C561E567E320061B21E /* button_power.png in Resources */,
 				F19548A71E4E52C6001772E8 /* ListenerWindowController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -369,6 +392,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11F0DE31E43CB4800B963C2 /* pcmcia.c in Sources */,
+				F1F02C5B1E5681470061B21E /* PowerButton.m in Sources */,
 				F195489B1E47B170001772E8 /* fpa.c in Sources */,
 				F123BD7319C508C200EC994F /* runt.c in Sources */,
 				F19548A61E4E52C6001772E8 /* ListenerWindowController.m in Sources */,
@@ -379,6 +403,7 @@
 				F1E4AF1519C1327F00D8EFB4 /* AppDelegate.m in Sources */,
 				F19548991E47B170001772E8 /* double_cpdo.c in Sources */,
 				F19548A21E47B170001772E8 /* softfloat.c in Sources */,
+				F1F02C5E1E5687E00061B21E /* PowerButtonAccessoryController.m in Sources */,
 				F19548B21E4E7EE9001772E8 /* TouchView.m in Sources */,
 				F195489F1E47B170001772E8 /* fpa11.c in Sources */,
 				F1E09AEE1B2D2AB000004CC8 /* lcd_squirt.c in Sources */,
@@ -396,6 +421,7 @@
 				F123BD6119C4FC8800EC994F /* copr15.c in Sources */,
 				F123BD6B19C4FC8800EC994F /* newton.c in Sources */,
 				F123BD6E19C4FC8800EC994F /* opcodes.c in Sources */,
+				F1F02C541E567C1C0061B21E /* NSWindow+AccessoryView.m in Sources */,
 				F195489E1E47B170001772E8 /* fpa11_cprt.c in Sources */,
 				F19548A01E47B170001772E8 /* fpopcode.c in Sources */,
 				F19548AA1E4E5922001772E8 /* AMR_ANSIEscapeHelper.m in Sources */,
@@ -472,7 +498,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "-DHOST_WORDS_BIGENDIAN=1";
@@ -512,7 +538,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_CFLAGS = "-DHOST_WORDS_BIGENDIAN=1";
 				SDKROOT = macosx;
