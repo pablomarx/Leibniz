@@ -53,8 +53,9 @@ enum {
 enum {
   RuntInterruptRTC            = (1 << 1),
   RuntInterruptTicks          = (1 << 2),
-  RuntInterruptTicks2         = (1 << 3),
-  RuntInterruptUnknown1       = (1 << 4),
+  RuntInterruptTicks3         = (1 << 3),
+  RuntInterruptTicks2         = (1 << 4),
+  RuntInterruptUnknown2       = (1 << 5),  // Happens around sound regs
   RuntInterruptADC            = (1 << 10),
   RuntInterruptSerialA        = (1 << 11),
   RuntInterruptSound          = (1 << 12),
@@ -65,7 +66,7 @@ enum {
   RuntInterruptSerial         = (1 << 17),
   RuntInterruptTablet         = (1 << 18),
   RuntInterruptSoundDMA       = (1 << 19),
-  RuntInterruptUnknown5       = (1 << 24),
+  RuntInterruptUnknown3       = (1 << 24),
   RuntInterruptPowerFault     = (1 << 25),
   RuntInterruptBatteryRemoved = (1 << 26),
 };
