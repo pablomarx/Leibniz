@@ -403,6 +403,9 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode) {
   
   NSData *inputBuffer = file.inputBuffer;
   if (inputBuffer == nil || [inputBuffer length] == 0) {
+    if (file.listener == nil) {
+      return -1;
+    }
     return 0;
   }
   
@@ -411,7 +414,7 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode) {
   memcpy(buffer, input, length);
   
   [file.inputBuffer replaceBytesInRange:NSMakeRange(0, length) withBytes:NULL length:0];
-  if ([file.inputBuffer length] == 0) {
+  if ([file.inputBuffer length] == 0 && file.notifyAddress != 0) {
     newton_file_input_notify(_newton, file.notifyAddress, 0);
   }
   
