@@ -1326,7 +1326,22 @@ void newton_configure_runt(newton_t *c, memory_t *rom) {
   arm_set_id(c->arm, ARM_C15_ID_610);
   
   // Configure 16MB ROM space
-  newton_install_memory(c, rom, 0x00000000, 0x01000000);
+  if (rom->length == 0x00800000) {
+    // For 8MB ROMs, don't repeat the ROM twice in the 16MB
+    // space.  Instead, repeat the last 4MB after the full 8MB.
+    // MP130 v1.2 diagnostics wants to read a lot from
+    // addresses like 0x00abe0ac. With the default mirroring,
+    // this would point back at 0x002bdfbc, which isn't part of the
+    // diagnostics region.  With this mapping, it ends up
+    // pointing at 0x006be0ac, which is in diagnostics region
+    // and happens to be the string "DIAGNOSTICS".
+    // (Without this, diagnostics didn't work. With it, it does)
+    newton_install_memory(c, rom, 0x00000000, 0x00800000);
+    newton_install_memory(c, rom, 0x00400000, 0x00800000);
+  }
+  else {
+    newton_install_memory(c, rom, 0x00000000, 0x01000000);
+  }
   
   uint32_t ramSize = 0;
   uint32_t flashSize = 0;
