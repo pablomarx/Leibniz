@@ -278,6 +278,7 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode) {
     if (isTTY == YES) {
       ListenerWindowController *listener = [[ListenerWindowController alloc] init];
       listener.window.title = [name substringFromIndex:1];
+      listener.window.frameAutosaveName = [name substringFromIndex:1];
       listener.delegate = self;
       [listener showWindow:self];
       file.listener = listener;
