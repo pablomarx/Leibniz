@@ -176,6 +176,7 @@ runt_t *newton_get_runt (newton_t *c);
 void newton_emulate(newton_t *c, int32_t count);
 void newton_stop(newton_t *c);
 void newton_set_bootmode(newton_t *c, NewtonBootMode bootMode);
+void newton_reboot(newton_t *c);
 
 void newton_set_debugger_bits(newton_t *c, uint32_t debugger_bits);
 uint32_t newton_get_debugger_bits(newton_t *c);

@@ -1116,6 +1116,10 @@ void newton_stop(newton_t *c) {
   c->stop = true;
 }
 
+void newton_reboot(newton_t *c) {
+  arm_reset(c->arm);
+}
+
 void newton_emulate(newton_t *c, int32_t count) {
   int32_t remaining = count;
   c->stop = false;

@@ -455,7 +455,7 @@ int cp15_reset (arm_t *c, arm_copr_t *p)
 		p15->reg[1] &= ~ARM_C15_CR_B;
 	}
 
-	for (i = 2; i < 16; i++) {
+	for (i = 0; i < 16; i++) {
 		p15->reg[i] = 0;
 	}
 

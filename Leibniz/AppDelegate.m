@@ -45,6 +45,7 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
 - (IBAction) toggleCardLockSwitch:(id)sender;
 - (IBAction) togglePowerSwitch:(id)sender;
 - (IBAction) showConsole:(id)sender;
+- (IBAction) reboot:(id)sender;
 
 @end
 
@@ -175,6 +176,18 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
 
 - (IBAction) showConsole:(id)sender {
   [_consoleWindow showWindow:sender];
+}
+
+- (IBAction) reboot:(id)sender {
+  if (_newton == NULL) {
+    return;
+  }
+  
+  newton_stop(_newton);
+  dispatch_async(_emulatorQueue, ^{
+    newton_reboot(_newton);
+    [self runEmulator];
+  });
 }
 
 #pragma mark - Tablet

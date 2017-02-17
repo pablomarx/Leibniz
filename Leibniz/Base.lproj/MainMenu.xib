@@ -372,6 +372,12 @@
                                     <action selector="togglePowerSwitch:" target="Voe-Tx-rLC" id="LDW-gy-KgS"/>
                                 </connections>
                             </menuItem>
+                            <menuItem title="Reboot" id="Ytw-b7-lqN">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="reboot:" target="Voe-Tx-rLC" id="AR7-UI-SaO"/>
+                                </connections>
+                            </menuItem>
                         </items>
                     </menu>
                 </menuItem>
