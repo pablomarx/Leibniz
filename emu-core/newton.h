@@ -108,6 +108,7 @@ struct newton_s {
   runt_t *runt;
   pcmcia_t *pcmcia;
   memory_t *sram;
+  memory_t *ram;
   
   membank_t *membanks;
   
@@ -154,6 +155,11 @@ typedef enum {
   NewtonBootModeAutoPWB,
 } NewtonBootMode;
 
+typedef enum {
+  NewtonRebootStyleCold,
+  NewtonRebootStyleWarm,
+} NewtonRebootStyle;
+
 void arm_dasm_str (char *dst, arm_dasm_t *op);
 
 void newton_init (newton_t *c);
@@ -176,7 +182,7 @@ runt_t *newton_get_runt (newton_t *c);
 void newton_emulate(newton_t *c, int32_t count);
 void newton_stop(newton_t *c);
 void newton_set_bootmode(newton_t *c, NewtonBootMode bootMode);
-void newton_reboot(newton_t *c);
+void newton_reboot(newton_t *c, NewtonRebootStyle style);
 
 void newton_set_debugger_bits(newton_t *c, uint32_t debugger_bits);
 uint32_t newton_get_debugger_bits(newton_t *c);

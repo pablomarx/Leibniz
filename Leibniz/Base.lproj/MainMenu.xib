@@ -372,10 +372,22 @@
                                     <action selector="togglePowerSwitch:" target="Voe-Tx-rLC" id="LDW-gy-KgS"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Reboot" id="Ytw-b7-lqN">
+                            <menuItem title="Warm Reboot" id="Ytw-b7-lqN">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
-                                    <action selector="reboot:" target="Voe-Tx-rLC" id="AR7-UI-SaO"/>
+                                    <action selector="warmReboot:" target="Voe-Tx-rLC" id="59E-Zp-WKS"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Cold Reboot" id="GIU-uV-I6B">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="coldReboot:" target="Voe-Tx-rLC" id="1Rw-Qd-bjb"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Diagnostics Reboot" id="e4R-Bs-Fx1">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="diagnosticsReboot:" target="Voe-Tx-rLC" id="9pO-9a-lDo"/>
                                 </connections>
                             </menuItem>
                         </items>

@@ -1116,9 +1116,12 @@ void newton_stop(newton_t *c) {
   c->stop = true;
 }
 
-void newton_reboot(newton_t *c) {
+void newton_reboot(newton_t *c, NewtonRebootStyle style) {
   arm_reset(c->arm);
   runt_reset(c->runt);
+  if (style == NewtonRebootStyleCold) {
+    memory_clear(c->ram);
+  }
 }
 
 void newton_emulate(newton_t *c, int32_t count) {
@@ -1334,6 +1337,7 @@ void newton_configure_runt(newton_t *c, memory_t *rom) {
   // Configure RAM
   memory_t *ram = memory_new("RAM", ramSize);
   newton_install_memory(c, ram, 0x01000000, 2 * 1024 * 1024);
+  c->ram = ram;
   
   if (flashSize > 0) {
     // Configure flash

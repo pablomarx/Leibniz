@@ -31,6 +31,10 @@ void memory_delete(memory_t *mem) {
   free(mem);
 }
 
+void memory_clear(memory_t *mem) {
+  memset(mem->contents, 0, mem->length);
+}
+
 void memory_set_readonly(memory_t *mem, bool readOnly) {
   mem->readOnly = readOnly;
 }

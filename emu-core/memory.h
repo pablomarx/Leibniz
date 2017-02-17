@@ -28,6 +28,8 @@ typedef struct memory_s {
 memory_t *memory_new(char *name, uint32_t length);
 void memory_delete(memory_t *mem);
 
+void memory_clear(memory_t *mem);
+
 void memory_set_readonly(memory_t *mem, bool readOnly);
 bool memory_get_readonly(memory_t *mem);
 

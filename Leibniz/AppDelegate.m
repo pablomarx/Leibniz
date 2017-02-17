@@ -45,7 +45,9 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
 - (IBAction) toggleCardLockSwitch:(id)sender;
 - (IBAction) togglePowerSwitch:(id)sender;
 - (IBAction) showConsole:(id)sender;
-- (IBAction) reboot:(id)sender;
+- (IBAction) diagnosticsReboot:(id)sender;
+- (IBAction) warmReboot:(id)sender;
+- (IBAction) coldReboot:(id)sender;
 
 @end
 
@@ -90,7 +92,6 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
   
   newton_set_newt_config(_newton, kConfigBit11 | kConfigBit3 | /*kDontPauseCPU |*/ kEnableStdout | kDefaultStdioOn | kEnableListener);
   newton_set_debugger_bits(_newton, 1);
-  newton_set_bootmode(_newton, NewtonBootModeDiagnostics);
   newton_set_undefined_opcode(_newton, leibniz_undefined_opcode);
   newton_set_system_panic(_newton, leibniz_system_panic);
   newton_set_debugstr(_newton, leibniz_debugstr);
@@ -120,6 +121,20 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
     newton_emulate(_newton, INT32_MAX);
   });
 }
+
+- (void) rebootNewtonWithStyle:(NewtonRebootStyle)style bootMode:(NewtonBootMode)bootMode {
+  if (_newton == NULL) {
+    return;
+  }
+  
+  newton_stop(_newton);
+  dispatch_async(_emulatorQueue, ^{
+    newton_reboot(_newton, style);
+    newton_set_bootmode(_newton, bootMode);
+    [self runEmulator];
+  });
+}
+
 
 - (void) showOpenROMPanel {
   NSOpenPanel *openPanel = [NSOpenPanel openPanel];
@@ -178,16 +193,16 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
   [_consoleWindow showWindow:sender];
 }
 
-- (IBAction) reboot:(id)sender {
-  if (_newton == NULL) {
-    return;
-  }
-  
-  newton_stop(_newton);
-  dispatch_async(_emulatorQueue, ^{
-    newton_reboot(_newton);
-    [self runEmulator];
-  });
+- (IBAction) diagnosticsReboot:(id)sender {
+  [self rebootNewtonWithStyle:NewtonRebootStyleCold bootMode:NewtonBootModeDiagnostics];
+}
+
+- (IBAction) coldReboot:(id)sender {
+  [self rebootNewtonWithStyle:NewtonRebootStyleCold bootMode:NewtonBootModeNormal];
+}
+
+- (IBAction) warmReboot:(id)sender {
+  [self rebootNewtonWithStyle:NewtonRebootStyleWarm bootMode:NewtonBootModeNormal];
 }
 
 #pragma mark - Tablet
