@@ -127,8 +127,10 @@ void runt_init (runt_t *c, int machineType);
 runt_t *runt_new (int machineType);
 void runt_free (runt_t *c);
 void runt_del (runt_t *c);
+
 void runt_set_arm (runt_t *c, arm_t *arm);
 bool runt_step(runt_t *c);
+void runt_reset(runt_t *c);
 
 void runt_set_log_flags (runt_t *c, unsigned flags, int val);
 void runt_set_log_file (runt_t *c, FILE *file);

@@ -47,7 +47,7 @@ void cp15_init (arm_copr15_t *p)
 	p->reg[0] = ARM_C15_ID;
 	p->reg[1] = ARM_C15_CR_P | ARM_C15_CR_D | ARM_C15_CR_L;
 
-	for (i = 2; i < 16; i++) {
+	for (i = 1; i < 16; i++) {
 		p->reg[i] = 0;
 	}
 

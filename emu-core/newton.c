@@ -1118,6 +1118,7 @@ void newton_stop(newton_t *c) {
 
 void newton_reboot(newton_t *c) {
   arm_reset(c->arm);
+  runt_reset(c->runt);
 }
 
 void newton_emulate(newton_t *c, int32_t count) {

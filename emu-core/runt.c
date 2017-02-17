@@ -794,6 +794,25 @@ void runt_set_lcd_fct(runt_t *c, void *ext,
   c->lcd_powered = powered;
 }
 
+void runt_reset(runt_t *c) {
+  memset(c->memory, 0, 0xffff * 4);
+
+  c->ticks = 0;
+  c->runtAwake = true;
+  c->armAwake = true;
+  
+  c->rtcAlarm = 0;
+  c->bootTime = time(NULL);
+  
+  c->ticksAlarm1 = 0;
+  c->ticksAlarm2 = 0;
+  c->ticksAlarm3 = 0;
+  c->adcSource = 0;
+  
+  c->interrupt = 0;
+  c->interruptStick = 0;
+}
+
 void runt_init (runt_t *c, int machineType) {
   c->memory = calloc(0xffff, sizeof(uint32_t));
   c->machineType = machineType;
