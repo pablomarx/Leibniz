@@ -233,14 +233,26 @@ void newton_display_set_framebuffer(const uint8_t *display, int width, int heigh
     return;
   }
   
+  NSString *okayButton = nil;
+  NSString *cancelButton = nil;
+  if (_newton != NULL) {
+    okayButton = NSLocalizedString(@"Continue", @"Continue");
+    cancelButton = NSLocalizedString(@"Stop", @"Stop");
+  }
+  
   NSInteger result = NSRunAlertPanel(title,
                                      @"%@",
-                                     NSLocalizedString(@"Continue", @"Continue"),
-                                     NSLocalizedString(@"Stop", @"Stop"),
+                                     okayButton,
+                                     cancelButton,
                                      nil,
                                      message);
   if (result == NSOKButton) {
-    [self runEmulator];
+    if (_newton != NULL) {
+      [self runEmulator];
+    }
+    else {
+      [self showOpenROMPanel];
+    }
   }
 }
 
