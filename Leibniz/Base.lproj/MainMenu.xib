@@ -372,6 +372,7 @@
                                     <action selector="togglePowerSwitch:" target="Voe-Tx-rLC" id="LDW-gy-KgS"/>
                                 </connections>
                             </menuItem>
+                            <menuItem isSeparatorItem="YES" id="4PE-EL-APM"/>
                             <menuItem title="Warm Reboot" id="Ytw-b7-lqN">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>

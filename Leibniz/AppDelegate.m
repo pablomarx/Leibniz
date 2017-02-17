@@ -131,7 +131,17 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
   dispatch_async(_emulatorQueue, ^{
     newton_reboot(_newton, style);
     newton_set_bootmode(_newton, bootMode);
-    [self runEmulator];
+    dispatch_async(dispatch_get_main_queue(), ^{
+      if (style == NewtonRebootStyleCold) {
+        for (LeibnizFile *aFile in self.files) {
+          if (aFile.listener != nil) {
+            [aFile.listener close];
+          }
+        }
+        self.files = @[];
+      }
+      [self runEmulator];
+    });
   });
 }
 
