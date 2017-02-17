@@ -744,6 +744,7 @@ bool runt_step(runt_t *c) {
     case RuntADCSourceUnknownA:
     case RuntADCSourceUnknownB:
     case RuntADCSourceUnknownC:
+    case RuntADCSourceUnknownD:
     case RuntADCSourceNicad:
     case RuntADCSourceBackupBattery:
     case RuntADCSourceMainBattery:
