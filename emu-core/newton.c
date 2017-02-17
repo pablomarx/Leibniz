@@ -131,7 +131,7 @@ uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
   }
   
   if (addr % 4 != 0) {
-    printf("misaligned read access: 0x%08x, PC: 0x%08x\n", addr, arm_get_pc(c->arm));
+    fprintf(c->logFile, "misaligned read access: 0x%08x, PC: 0x%08x\n", addr, arm_get_pc(c->arm));
   }
   
   uint32_t result = 0;
@@ -521,7 +521,7 @@ void newton_load_mapfile(newton_t *c, const char *mapfile) {
     }
   }
   
-  printf("Loaded %i symbols\n", symbolIndex);
+  fprintf(c->logFile, "Loaded %i symbols\n", symbolIndex);
   fclose(fp);
 }
 
@@ -1374,7 +1374,7 @@ void newton_configure_runt(newton_t *c, memory_t *rom) {
 int newton_load_rom(newton_t *c, const char *path) {
   FILE *romFP = fopen(path, "r");
   if (romFP == NULL) {
-    printf("Couldn't open ROM '%s': %s\n", path, strerror(errno));
+    fprintf(c->logFile, "Couldn't open ROM '%s': %s\n", path, strerror(errno));
     return -1;
   }
   
@@ -1383,7 +1383,7 @@ int newton_load_rom(newton_t *c, const char *path) {
   fseek(romFP, 0l, SEEK_SET);
     
   if (romSize % 4 != 0) {
-    printf("Bad ROM size: %i\n", romSize);
+    fprintf(c->logFile, "Bad ROM size: %i\n", romSize);
     return -1;
   }
 
@@ -1406,7 +1406,7 @@ int newton_load_rom(newton_t *c, const char *path) {
       debugSize = htonl(debugSize);
       
       if (readOnlySize + readWriteSize + debugSize != romSize) {
-        printf("readOnlySize:%i + readWriteSize:%i + debugSize:%i != romSize:%i\n", readOnlySize, readWriteSize, debugSize, romSize);
+        fprintf(c->logFile, "readOnlySize:%i + readWriteSize:%i + debugSize:%i != romSize:%i\n", readOnlySize, readWriteSize, debugSize, romSize);
       }
       else {
         void *debugData = malloc(debugSize);
