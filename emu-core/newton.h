@@ -114,6 +114,7 @@ struct newton_s {
   
   uint32_t machineType;
   uint32_t romManufacturer;
+  uint32_t romVersion;
   uint32_t debuggerBits;
   uint32_t newtConfig;
   uint32_t newtTests;

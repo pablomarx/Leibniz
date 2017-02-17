@@ -1103,6 +1103,12 @@ void newton_set_bootmode(newton_t *c, NewtonBootMode bootMode) {
       break;
     case NewtonBootModeDiagnostics:
       c->runt->interrupt = RuntInterruptDiagnostics;
+      if ((c->romVersion >> 16) == 2) {
+        c->runt->interruptStick = 1;
+      }
+      else {
+        c->runt->interruptStick = 0;
+      }
       break;
     case NewtonBootModeNormal:
     default:
@@ -1496,6 +1502,7 @@ int newton_load_rom(newton_t *c, const char *path) {
   else {
     c->supportsRegularFiles = true;
   }
+  c->romVersion = romVersion;
   
   if (c->machineType == kGestalt_MachineType_Senior || c->machineType == kGestalt_MachineType_Emate) {
     newton_configure_voyager(c, rom);
