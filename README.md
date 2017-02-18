@@ -1,6 +1,11 @@
 # Leibniz
 Work in progress emulator for RUNT based Newtons (OMP, Expert Pad, etc)
 
+## Download
+Alpha 1 can be downloaded from https://www.dropbox.com/s/uvltellluemz70e/Leibniz%20%28Alpha%201%29.zip?dl=0
+
+Requires an Intel Mac running Mac OS X 10.6 or above.
+
 ## Status
 
 ### NewtonOS 
@@ -13,6 +18,8 @@ The floating point emulation code doesn't work well -- it works well enough that
 
 1. Crash the Notepad ROM
 2. On all other ROMs, it will report "Number too large" for everything. 
+
+Text input in the listener windows ("&lt;stdin&gt;", "WallyScript Listener") is only working under the ARMistice and MP130 v2.0 ROM images.
 
 ### Diagnostics
 
