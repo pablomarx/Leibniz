@@ -17,6 +17,7 @@
 		F123BD6B19C4FC8800EC994F /* newton.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD5819C4FC8800EC994F /* newton.c */; };
 		F123BD6E19C4FC8800EC994F /* opcodes.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD5B19C4FC8800EC994F /* opcodes.c */; };
 		F123BD7319C508C200EC994F /* runt.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD7119C508C200EC994F /* runt.c */; };
+		F136EF861E58D4880013BA91 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = F136EF851E58D4880013BA91 /* Credits.rtf */; };
 		F1853F761CBD87B800CFA4F4 /* newton-buttons.png in Resources */ = {isa = PBXBuildFile; fileRef = F1853F751CBD87B800CFA4F4 /* newton-buttons.png */; };
 		F19548991E47B170001772E8 /* double_cpdo.c in Sources */ = {isa = PBXBuildFile; fileRef = F19548881E47B170001772E8 /* double_cpdo.c */; };
 		F195489A1E47B170001772E8 /* extended_cpdo.c in Sources */ = {isa = PBXBuildFile; fileRef = F19548891E47B170001772E8 /* extended_cpdo.c */; };
@@ -78,6 +79,7 @@
 		F123BD7019C4FCF500EC994F /* newton.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = newton.h; sourceTree = "<group>"; };
 		F123BD7119C508C200EC994F /* runt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = runt.c; sourceTree = "<group>"; };
 		F123BD7219C508C200EC994F /* runt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = runt.h; sourceTree = "<group>"; };
+		F136EF851E58D4880013BA91 /* Credits.rtf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.rtf; path = Credits.rtf; sourceTree = "<group>"; };
 		F1853F751CBD87B800CFA4F4 /* newton-buttons.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "newton-buttons.png"; sourceTree = "<group>"; };
 		F187B3091B24C4C6002F62E7 /* HammerConfigBits.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HammerConfigBits.h; sourceTree = "<group>"; };
 		F19548881E47B170001772E8 /* double_cpdo.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = double_cpdo.c; sourceTree = "<group>"; };
@@ -260,6 +262,7 @@
 		F1E4AF0F19C1327F00D8EFB4 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				F136EF851E58D4880013BA91 /* Credits.rtf */,
 				F1E4AF1019C1327F00D8EFB4 /* Info.plist */,
 				F1E4AF1119C1327F00D8EFB4 /* main.m */,
 			);
@@ -368,6 +371,7 @@
 				F1E4AF1719C1327F00D8EFB4 /* Images.xcassets in Resources */,
 				F1E4AF1A19C1327F00D8EFB4 /* MainMenu.xib in Resources */,
 				F1F02C561E567E320061B21E /* button_power.png in Resources */,
+				F136EF861E58D4880013BA91 /* Credits.rtf in Resources */,
 				F19548A71E4E52C6001772E8 /* ListenerWindowController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
