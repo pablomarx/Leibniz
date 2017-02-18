@@ -171,22 +171,8 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
 }
 
 #pragma mark - Actions
-- (IBAction) toggleNicdSwitch:(id)sender {
-  BOOL on = ([sender state] == NSOnState ? 0 : 1);
-  runt_switch_state(_newton->runt, RuntSwitchNicad, on);
-  [sender setState:(!on ? NSOffState : NSOnState)];
-}
-
-- (IBAction) toggleCardLockSwitch:(id)sender {
-  BOOL on = ([sender state] == NSOnState ? 0 : 1);
-  runt_switch_state(_newton->runt, RuntSwitchCardLock, on);
-  [sender setState:(!on ? NSOffState : NSOnState)];
-}
-
 - (IBAction) togglePowerSwitch:(id)sender {
-  BOOL on = ([sender state] == NSOnState ? 0 : 1);
-  runt_switch_state(_newton->runt, RuntSwitchPower, on);
-  [sender setState:(!on ? NSOffState : NSOnState)];
+  runt_switch_toggle(_newton->runt, RuntSwitchPower);
 }
 
 - (IBAction) showConsole:(id)sender {

@@ -30,8 +30,6 @@
 @property (assign) IBOutlet NSView *buttonBarView;
 @property (strong) NSArray *files;
 
-- (IBAction) toggleNicdSwitch:(id)sender;
-- (IBAction) toggleCardLockSwitch:(id)sender;
 - (IBAction) togglePowerSwitch:(id)sender;
 - (IBAction) showConsole:(id)sender;
 - (IBAction) diagnosticsReboot:(id)sender;

@@ -144,7 +144,8 @@ void runt_interrupt_lower(runt_t *c, uint32_t interrupt);
 
 bool runt_power_state_get_subsystem(runt_t *c, uint32_t subsystem);
 
-void runt_switch_state(runt_t *c, int switchNum, int state);
+void runt_switch_set_state(runt_t *c, int switchNum, int state);
+void runt_switch_toggle(runt_t *c, int switchNum);
 
 void runt_touch_down(runt_t *c, int x, int y);
 void runt_touch_up(runt_t *c);

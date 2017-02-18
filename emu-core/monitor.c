@@ -282,7 +282,7 @@ void monitor_parse_input(monitor_t *c, const char *input) {
   }
   else if (sscanf(input, "switch %i %i", &argValue, &arg2Value) == 2) {
     printf("Setting switch %i to %i\n", argValue, arg2Value);
-    runt_switch_state(newton_get_runt(c->newton), argValue, arg2Value);
+    runt_switch_set_state(newton_get_runt(c->newton), argValue, arg2Value);
     c->newton->arm->reg[argValue] = arg2Value;
   }
   else {

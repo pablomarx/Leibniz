@@ -537,7 +537,7 @@ bool runt_power_state_get_subsystem(runt_t *c, uint32_t subsystem) {
 }
 
 #pragma mark -
-void runt_switch_state(runt_t *c, int switchNum, int state) {
+void runt_switch_set_state(runt_t *c, int switchNum, int state) {
   c->switches[switchNum] = state;
   switch (switchNum) {
     case RuntSwitchNicad:
@@ -553,6 +553,10 @@ void runt_switch_state(runt_t *c, int switchNum, int state) {
       runt_interrupt_raise(c, RuntInterruptCardLockSwitch);
       break;
   }
+}
+
+void runt_switch_toggle(runt_t *c, int switchNum) {
+  runt_switch_set_state(c, switchNum, !c->switches[switchNum]);
 }
 
 #pragma mark -

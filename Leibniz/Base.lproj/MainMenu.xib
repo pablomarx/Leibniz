@@ -354,25 +354,6 @@
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <menu key="submenu" title="Hardware" id="uVc-Qu-puc">
                         <items>
-                            <menuItem title="Card Lock" keyEquivalent="1" id="guP-HG-nMb">
-                                <modifierMask key="keyEquivalentModifierMask" control="YES"/>
-                                <connections>
-                                    <action selector="toggleCardLockSwitch:" target="Voe-Tx-rLC" id="VTa-Ec-dQT"/>
-                                </connections>
-                            </menuItem>
-                            <menuItem title="NICD Switch" keyEquivalent="2" id="LKy-cp-4Tc">
-                                <modifierMask key="keyEquivalentModifierMask" control="YES"/>
-                                <connections>
-                                    <action selector="toggleNicdSwitch:" target="Voe-Tx-rLC" id="rHW-qb-emh"/>
-                                </connections>
-                            </menuItem>
-                            <menuItem title="Power" keyEquivalent="3" id="m35-zZ-4oT">
-                                <modifierMask key="keyEquivalentModifierMask" control="YES"/>
-                                <connections>
-                                    <action selector="togglePowerSwitch:" target="Voe-Tx-rLC" id="LDW-gy-KgS"/>
-                                </connections>
-                            </menuItem>
-                            <menuItem isSeparatorItem="YES" id="4PE-EL-APM"/>
                             <menuItem title="Warm Reboot" id="Ytw-b7-lqN">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
