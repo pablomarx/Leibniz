@@ -14,8 +14,10 @@
 - (void) tabletTouchedUpAtPoint:(NSPoint)point;
 @end
 
-@interface TouchView : NSView
+@interface TouchView : NSView {
+    id _delegate;
+}
 
-@property (weak) IBOutlet id delegate;
+@property (assign) IBOutlet id delegate;
 
 @end

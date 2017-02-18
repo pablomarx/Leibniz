@@ -9,7 +9,9 @@
 #import <Cocoa/Cocoa.h>
 #import "PowerButton.h"
 
-@interface PowerButtonAccessoryController : NSTitlebarAccessoryViewController
+@interface PowerButtonAccessoryController : NSTitlebarAccessoryViewController {
+    PowerButton *_powerButton;
+}
 
 @property (readonly) PowerButton *powerButton;
 

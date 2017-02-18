@@ -11,11 +11,12 @@
 asm(".weak_reference _OBJC_CLASS_$_NSTitlebarAccessoryViewController");
 asm(".weak_reference _OBJC_METACLASS_$_NSTitlebarAccessoryViewController");
 
-@interface PowerButtonAccessoryController()
-@property (strong, nonatomic) PowerButton *powerButton;
-@end
-
 @implementation PowerButtonAccessoryController
+
+- (void) dealloc {
+    [_powerButton release], _powerButton = nil;
+    [super dealloc];
+}
 
 - (PowerButton *) powerButton {
   if (_powerButton == nil) {
@@ -39,7 +40,7 @@ asm(".weak_reference _OBJC_METACLASS_$_NSTitlebarAccessoryViewController");
   
   [wrapper addSubview:button];
   self.view = wrapper;
-  self.powerButton = button;
+    [wrapper release];
 }
 
 @end

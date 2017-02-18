@@ -8,16 +8,23 @@
 
 #import "ListenerWindowController.h"
 
-@interface ListenerWindowController ()<NSTextViewDelegate>
-@property (strong) IBOutlet NSTextView *textView;
-@property (strong) NSFont *font;
-@property (strong) NSMutableDictionary *attributes;
-@end
-
 @implementation ListenerWindowController
+
+@synthesize textView = _textView;
+@synthesize font = _font;
+@synthesize attributes = _attributes;
+@synthesize delegate = _delegate;
 
 - (instancetype) init {
     return [self initWithWindowNibName:NSStringFromClass([self class])];
+}
+
+- (void) dealloc {
+    [_textView release], _textView = nil;
+    [_font release], _font = nil;
+    [_attributes release], _attributes = nil;
+    _delegate = nil;
+    [super dealloc];
 }
 
 - (void)windowDidLoad {
@@ -70,6 +77,7 @@
         NSString *chunk = [text substringToIndex:chunkLength];
         NSAttributedString *displayText = [[NSAttributedString alloc] initWithString:chunk attributes:self.attributes];
         [self.textView.textStorage appendAttributedString:displayText];
+        [displayText release];
     }
     
     if (ansiRange.location == NSNotFound) {

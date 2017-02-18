@@ -10,9 +10,17 @@
 
 @protocol ListenerWindowDelegate;
 
-@interface ListenerWindowController : NSWindowController
+@interface ListenerWindowController : NSWindowController<NSTextViewDelegate> {
+    NSTextView *_textView;
+    NSFont *_font;
+    NSMutableDictionary *_attributes;
+    id _delegate;
+}
 
-@property (weak) id<ListenerWindowDelegate> delegate;
+@property (strong) IBOutlet NSTextView *textView;
+@property (strong) NSFont *font;
+@property (strong) NSMutableDictionary *attributes;
+@property (assign) id<ListenerWindowDelegate> delegate;
 
 - (void) appendOutput:(NSString *)output;
 

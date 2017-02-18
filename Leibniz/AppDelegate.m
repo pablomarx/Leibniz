@@ -29,29 +29,18 @@ void leibniz_system_panic(newton_t *newton, const char *msg);
 void leibniz_debugstr(newton_t *newton, const char *msg);
 void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
 
-@interface AppDelegate ()<FileStreamDelegate, ListenerWindowDelegate> {
-  dispatch_queue_t _emulatorQueue;
-  newton_t *_newton;
-  FileStream *_fileStream;
-  ListenerWindowController *_consoleWindow;
-}
-
-@property (weak) IBOutlet NSWindow *window;
-@property (weak) IBOutlet EmulatorView *screenView;
-@property (weak) IBOutlet NSView *buttonBarView;
-@property (strong) NSArray *files;
-
-- (IBAction) toggleNicdSwitch:(id)sender;
-- (IBAction) toggleCardLockSwitch:(id)sender;
-- (IBAction) togglePowerSwitch:(id)sender;
-- (IBAction) showConsole:(id)sender;
-- (IBAction) diagnosticsReboot:(id)sender;
-- (IBAction) warmReboot:(id)sender;
-- (IBAction) coldReboot:(id)sender;
-
-@end
 
 @implementation AppDelegate
+
+@synthesize window = _window;
+@synthesize screenView = _screenView;
+@synthesize buttonBarView = _buttonBarView;
+@synthesize files = _files;
+
+- (void) dealloc {
+  [_files release], _files = nil;
+  [super dealloc];
+}
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
   self.files = @[];
@@ -168,6 +157,7 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
     PowerButtonAccessoryController *titlebarAccessory = [[PowerButtonAccessoryController alloc] init];
     button = titlebarAccessory.powerButton;
     [self.window addTitlebarAccessoryViewController:titlebarAccessory];
+    [titlebarAccessory release];
   }
   else {
     button = [[PowerButton alloc] init];
@@ -345,19 +335,21 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode) {
   fp = fp + 1;
   
   if (file == nil) {
-    file = [[LeibnizFile alloc] init];
+    file = [[[LeibnizFile alloc] init] autorelease];
     file.name = name;
     file.openDescriptors = @[];
+    self.files = [self.files arrayByAddingObject:file];
+
     if (isTTY == YES) {
-      ListenerWindowController *listener = [[ListenerWindowController alloc] init];
+      ListenerWindowController *listener = [[[ListenerWindowController alloc] init] autorelease];
       listener.window.title = [name substringFromIndex:1];
       listener.window.frameAutosaveName = [name substringFromIndex:1];
       listener.delegate = self;
       [listener showWindow:self];
       file.listener = listener;
     }
-    self.files = [self.files arrayByAddingObject:file];
   }
+  
   file.openDescriptors = [file.openDescriptors arrayByAddingObject:@(fp)];
   
   return fp;
@@ -392,6 +384,7 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode) {
   
   NSString *string = [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding];
   [file.listener appendOutput:string];
+  [string release];
   return (int32_t)[data length];
 }
 
@@ -473,12 +466,13 @@ int32_t leibniz_sys_read(void *ext, uint32_t fildes, void *buf, uint32_t nbyte) 
 }
 
 int32_t leibniz_sys_write(void *ext, uint32_t fildes, const void *buf, uint32_t nbyte) {
-  NSData *data = [NSData dataWithBytes:buf length:nbyte];
+  NSData *data = [[NSData alloc] initWithBytes:buf length:nbyte];
   __block int32_t result = 0;
   dispatch_sync(dispatch_get_main_queue(), ^{
     AppDelegate *self = (__bridge AppDelegate *)ext;
     result = [self writeData:data toFileWithDescriptor:fildes];
   });
+  [data release];
   return (nbyte - result);
 }
 
@@ -535,6 +529,7 @@ int32_t leibniz_sys_set_input_notify(void *ext, uint32_t fildes, uint32_t addr) 
 - (void) fileStream:(FileStream *)fileStream wroteData:(NSData *)data {
   NSString *string = [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding];
   [_consoleWindow appendOutput:string];
+  [string release];
 }
 
 - (void) fileStreamClosed:(FileStream *)fileStream {

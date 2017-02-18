@@ -10,6 +10,8 @@
 
 @implementation FileStream
 
+@synthesize delegate = _delegate;
+
 int fileStreamRead(void *handler, char *buf, int size) {
     return 0;
 }
@@ -19,7 +21,10 @@ int fileStreamWrite(void *handler, const char *buf, int size) {
 
     NSData *data = [[NSData alloc] initWithBytes:buf
                                           length:size];
-    [self fileWroteData:data];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.delegate fileStream:self wroteData:data];
+        [data release];
+    });
     return size;
 }
 
@@ -29,7 +34,9 @@ fpos_t fileStreamSeek(void *handler, fpos_t offset, int whence) {
 
 int fileStreamClose(void *handler) {
     FileStream *self = (__bridge FileStream *)handler;
-    [self fileClosed];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.delegate fileStreamClosed:self];
+    });
     return 0;
 }
 
@@ -45,16 +52,5 @@ int fileStreamClose(void *handler) {
     return _file;
 }
 
-- (void) fileWroteData:(NSData *)data {
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [self.delegate fileStream:self wroteData:data];
-    });
-}
-
-- (void) fileClosed {
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [self.delegate fileStreamClosed:self];
-    });
-}
 
 @end

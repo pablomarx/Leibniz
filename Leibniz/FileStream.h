@@ -12,9 +12,10 @@
 
 @interface FileStream : NSObject {
     FILE *_file;
+    id _delegate;
 }
 
-@property (weak) id<FileStreamDelegate> delegate;
+@property (assign) id<FileStreamDelegate> delegate;
 @property (assign, readonly) FILE *file;
 
 @end

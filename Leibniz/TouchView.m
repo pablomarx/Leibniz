@@ -10,6 +10,8 @@
 
 @implementation TouchView
 
+@synthesize delegate = _delegate;
+
 - (NSPoint) tabletPointFromEvent:(NSEvent *)theEvent {
     NSRect bounds = self.bounds;
     NSPoint location = [theEvent locationInWindow];

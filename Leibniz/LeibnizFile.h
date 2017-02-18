@@ -10,7 +10,13 @@
 
 @class ListenerWindowController;
 
-@interface LeibnizFile : NSObject
+@interface LeibnizFile : NSObject {
+    ListenerWindowController *_listener;
+    NSString *_name;
+    NSArray *_openDescriptors;
+    uint32_t _notifyAddress;
+    NSMutableData *_inputBuffer;
+}
 
 @property (strong) ListenerWindowController *listener;
 @property (strong) NSString *name;
