@@ -33,3 +33,13 @@ Known to work with the following ROM images:
 9. [Motorola Marco v1.3](http://www.unna.org/incoming/Motorola%20Marco%20v1.3%20(444347).rom)
 
 You can dump your own ROM images using [my fork of NewTen](https://github.com/pablomarx/NewTen). 
+
+## Screenshots
+
+The ARMistice J1 Image:
+
+![image](https://i.imgur.com/0xqhOgS.png)
+
+For comparison, the same ROM image in it's original environment (a Macintosh IIci with ARMistice NuBus board running the Egger software)
+
+![image](https://i.imgur.com/2zTGOB5.jpg)
