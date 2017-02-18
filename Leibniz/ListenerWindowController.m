@@ -7,11 +7,11 @@
 //
 
 #import "ListenerWindowController.h"
-#import "AMR_ANSIEscapeHelper.h"
 
 @interface ListenerWindowController ()<NSTextViewDelegate>
 @property (strong) IBOutlet NSTextView *textView;
-@property (strong) AMR_ANSIEscapeHelper *ansiHelper;
+@property (strong) NSFont *font;
+@property (strong) NSMutableDictionary *attributes;
 @end
 
 @implementation ListenerWindowController
@@ -22,8 +22,74 @@
 
 - (void)windowDidLoad {
     [super windowDidLoad];
-    self.ansiHelper = [[AMR_ANSIEscapeHelper alloc] init];
-    self.ansiHelper.font = [NSFont userFixedPitchFontOfSize:11];
+    self.font = [NSFont userFixedPitchFontOfSize:11];
+    self.attributes = [NSMutableDictionary dictionaryWithObject:self.font
+                                                         forKey:NSFontAttributeName];
+}
+
+- (NSRange) rangeOfFirstANSISequenceInString:(NSString *)text {
+    NSRange ansiStartRange = [text rangeOfString:@"\e["];
+    if (ansiStartRange.location == NSNotFound) {
+        return NSMakeRange(NSNotFound, 0);
+    }
+    
+    NSRange remainder;
+    remainder.location = NSMaxRange(ansiStartRange);
+    remainder.length = [text length] - remainder.location;
+    
+    NSRange ansiEndRange = [text rangeOfString:@"m"
+                                       options:0
+                                         range:remainder];
+    
+    if (ansiEndRange.location == NSNotFound) {
+        return NSMakeRange(NSNotFound, 0);
+    }
+    
+    NSRange ansiRange;
+    ansiRange.location = ansiStartRange.location;
+    ansiRange.length = NSMaxRange(ansiEndRange) - ansiRange.location;
+    return ansiRange;
+}
+
+- (void) parseAndAppendText:(NSString *)text {
+    if ([text length] == 0) {
+        return;
+    }
+    
+    NSRange ansiRange = [self rangeOfFirstANSISequenceInString:text];
+    NSInteger chunkLength;
+    if (ansiRange.location == NSNotFound) {
+        chunkLength = [text length];
+    }
+    else {
+        chunkLength = ansiRange.location;
+    }
+    
+    // Insert a chunk of text (stopping at the ANSI esc seq, if exists)
+    if (chunkLength > 0) {
+        NSString *chunk = [text substringToIndex:chunkLength];
+        NSAttributedString *displayText = [[NSAttributedString alloc] initWithString:chunk attributes:self.attributes];
+        [self.textView.textStorage appendAttributedString:displayText];
+    }
+    
+    if (ansiRange.location == NSNotFound) {
+        return;
+    }
+    
+    // Parse the ansi code... Newton only uses bold/plain.
+    // Update our attributes to match
+    NSString *ansiCode = [text substringWithRange:ansiRange];
+    NSString *remainder = [text substringFromIndex:NSMaxRange(ansiRange)];
+    if ([ansiCode isEqualToString:@"\e[0m"] == YES) {
+        [self.attributes setObject:self.font forKey:NSFontAttributeName];
+    }
+    else if ([ansiCode isEqualToString:@"\e[1m"] == YES) {
+        NSFont *boldFont = [[NSFontManager sharedFontManager] convertFont:self.font toHaveTrait:NSFontBoldTrait];
+        [self.attributes setObject:boldFont forKey:NSFontAttributeName];
+    }
+    
+    // Parse the remainder of the incoming text
+    [self parseAndAppendText:remainder];
 }
 
 - (void) appendOutput:(NSString *)output {
@@ -33,8 +99,7 @@
     NSRect documentVisibleRect = clipView.documentVisibleRect;
     BOOL atBottom = NSMaxY(documentRect) == NSMaxY(documentVisibleRect);
     
-    NSAttributedString *displayText = [self.ansiHelper attributedStringWithANSIEscapedString:output];
-    [textView.textStorage appendAttributedString:displayText];
+    [self parseAndAppendText:output];
     
     if (atBottom == YES) {
         documentRect = clipView.documentRect;
@@ -58,7 +123,7 @@
     }
     
     if (NSMaxRange(affectedCharRange) == NSMaxRange(eofRange) && [replacementString length] == 0) {
-        NSInteger toDelete = [self.delegate listenerWindow:self deleteForProposedLength:affectedCharRange.length];        
+        NSInteger toDelete = [self.delegate listenerWindow:self deleteForProposedLength:affectedCharRange.length];
         if (toDelete == 0) {
             NSBeep();
             return NO;
