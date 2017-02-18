@@ -40,6 +40,6 @@ The ARMistice J1 Image:
 
 ![image](https://i.imgur.com/0xqhOgS.png)
 
-For comparison, the same ROM image in it's original environment (a Macintosh IIci with ARMistice NuBus board running the Egger software)
+For comparison, the same ROM image in it's original environment (a Macintosh IIci with [ARMistice NuBus board](https://www.flickr.com/photos/pablo_marx/4683061782) running the Egger software)
 
 ![image](https://i.imgur.com/2zTGOB5.jpg)
