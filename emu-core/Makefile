@@ -42,8 +42,8 @@ all:	newton
 newton:	$(OBJS) main.o monitor.o
 	$(LD) $(LDFLAGS) -o $@ $^
 
-sdlnewton:	$(OBJS) sdlnewton.o 
-	$(LD) $(LDFLAGS) $(SDLLIBS) -o $@ $^
+sdlnewton:	$(OBJS) sdlnewton.o SDLMain.o
+	$(LD) $(LDFLAGS) -o $@ $^ $(SDLLIBS) 
 
 %.o:	%.c
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
