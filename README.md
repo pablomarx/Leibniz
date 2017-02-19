@@ -2,9 +2,19 @@
 Work in progress emulator for RUNT based Newtons (OMP, Expert Pad, etc)
 
 ## Download
+
+### Mac OS X
 Alpha 1 can be downloaded from https://www.dropbox.com/s/uvltellluemz70e/Leibniz%20%28Alpha%201%29.zip?dl=0
 
 Requires an Intel Mac running Mac OS X 10.6 or above.
+
+### UNIX
+No pre-built binaries are offered.  You should be able to clone this repo and:
+
+1. cd emu-core
+2. make sdlnewton
+3. ./sdlnewton &lt;path to rom&gt;
+
 
 ## Status
 
@@ -50,3 +60,8 @@ The ARMistice J1 Image:
 For comparison, the same ROM image in it's original environment (a Macintosh IIci with [ARMistice NuBus board](https://www.flickr.com/photos/pablo_marx/4683061782) running the Egger software)
 
 ![image](https://i.imgur.com/2zTGOB5.jpg)
+
+
+The Notepad 1.0b1 image running in SDL on Ubuntu
+
+![image](https://i.imgur.com/ieMcCnl.png)
