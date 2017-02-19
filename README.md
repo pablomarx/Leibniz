@@ -62,6 +62,10 @@ For comparison, the same ROM image in it's original environment (a Macintosh IIc
 ![image](https://i.imgur.com/2zTGOB5.jpg)
 
 
-The Notepad 1.0b1 image running in SDL on Ubuntu
+The Notepad 1.0b1 image running in SDL on Ubuntu:
 
 ![image](https://i.imgur.com/ieMcCnl.png)
+
+The same, on a Raspberry Pi 3 running Raspbian (execution speed could be considered 'glacial'):
+
+![image](http://i.imgur.com/7iBHnkp.png)
