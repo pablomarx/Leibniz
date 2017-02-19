@@ -1,7 +1,15 @@
 CC = gcc
-CFLAGS = -I. -g -std=c99 -DHOST_WORDS_BIGENDIAN=1
+CFLAGS = -I. -g -std=c99 -DHOST_WORDS_BIGENDIAN=1 
 LDFLAGS = -g
 LD = $(CC)
+
+UNAME := $(shell uname -s)
+ifeq ($(UNAME),Darwin)
+SDLLIBS = -F/Library/Frameworks -framework SDL -lSDLMain -framework Cocoa 
+CFLAGS = -F/Library/Frameworks 
+else
+SDLLIBS = -lSDL
+endif
 
 
 OBJS := arm.o \
@@ -16,8 +24,6 @@ OBJS := arm.o \
 		linenoise.o \
 		runt.o \
 		pcmcia.o \
-		main.o \
-		monitor.o \
 		hexdump.o \
 		lcd_sharp.o \
 		lcd_squirt.o \
@@ -33,8 +39,11 @@ OBJS := arm.o \
 
 all:	newton
 
-newton:	$(OBJS)
+newton:	$(OBJS) main.o monitor.o
 	$(LD) $(LDFLAGS) -o $@ $^
+
+sdlnewton:	$(OBJS) sdlnewton.o 
+	$(LD) $(LDFLAGS) $(SDLLIBS) -o $@ $^
 
 %.o:	%.c
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
