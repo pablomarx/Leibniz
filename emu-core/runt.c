@@ -61,15 +61,9 @@ enum {
 };
 
 enum {
-  RuntADCSourceNicad,
   RuntADCSourceThermistor,
   RuntADCSourceMainBattery,
   RuntADCSourceBackupBattery,
-
-  RuntADCSourceUnknownA,
-  RuntADCSourceUnknownB,
-  RuntADCSourceUnknownC,
-  RuntADCSourceUnknownD,
 
   RuntADCSourceTabletPositionX,
   RuntADCSourceTabletPositionY,
@@ -85,16 +79,10 @@ typedef struct {
 } runt_adc_source_t;
 
 static runt_adc_source_t runt_adc_sources[] = {
-  { .mask = 0xffffffff, .test = 0x00000202, .val = RuntADCSourceUnknownA, .name = "UnknownA" },
-  { .mask = 0xffffffff, .test = 0x00000402, .val = RuntADCSourceUnknownB, .name = "UnknownB" },
-  { .mask = 0xffffffff, .test = 0x00000802, .val = RuntADCSourceUnknownC, .name = "UnknownC" },
-  { .mask = 0xffffffff, .test = 0x00001202, .val = RuntADCSourceUnknownD, .name = "UnknownD" },
+  { .mask = 0xffff0fff, .test = 0x00000402, .val = RuntADCSourceMainBattery, .name = "MainBattery" },
+  { .mask = 0xffff0fff, .test = 0x00000802, .val = RuntADCSourceBackupBattery, .name = "BackupBattery" },
+  { .mask = 0xffff0fff, .test = 0x00000202, .val = RuntADCSourceThermistor, .name = "Thermistor" },
 
-  { .mask = 0xffffffff, .test = 0x00001402, .val = RuntADCSourceNicad, .name = "Nicad" },
-  { .mask = 0xffffffff, .test = 0x00003202, .val = RuntADCSourceThermistor, .name = "Thermistor" },
-  { .mask = 0xffffffff, .test = 0x00003402, .val = RuntADCSourceMainBattery, .name = "MainBattery" },
-  { .mask = 0xffffffff, .test = 0x00003802, .val = RuntADCSourceBackupBattery, .name = "BackupBattery" },
-  
   { .mask = 0x000000ff, .test = 0x00000032, .val = RuntADCSourceTabletPositionX, .name = "TabletPositionX" },
   { .mask = 0x000000ff, .test = 0x0000000e, .val = RuntADCSourceTabletPositionY, .name = "TabletPositionY" },
   { .mask = 0x000000ff, .test = 0x0000000a, .val = RuntADCSourceTabletUnknownY, .name = "TabletUnknownY" },
@@ -293,37 +281,22 @@ uint32_t runt_get_adc_value(runt_t *c) {
       // AD Main Battery, 0xaba = 6.0, 0xaca = 6.1, 0xa9a = 5.9
       // AutoPWB on Notepad 1.0b1 wants ~ 0x8ba.
       // AutoPWB on J1 & omp1.3 images wants ~ 0xaba
+      
+      // J1 logs:
+      // the voltage =   4.83 . ADC = 888
+      // Nicad Battery Level =  60%.
+      // the voltage =   4.94 . ADC = 8ba
+      // Nicad Battery Level =  80%.
       result = 0x8ba;
       break;
     case RuntADCSourceBackupBattery:
       // backup battery, 0xfc3 = 4.8, 0xfc7 = 4.9, 0x986 = 2.9, 0x686 = 2.0, 0x486 = 1.4
+      // the voltage =   2.95 . ADC = 986
       result = 0x986;
       break;
     case RuntADCSourceThermistor:
-      result = 0x765; // 19.0
-      break;
-    case RuntADCSourceNicad:
-      // the voltage =   4.83 . ADC = 888
-      // Nicad Battery Level =  60%.
-      result = 0x888;
-      break;
-    case RuntADCSourceUnknownA:
-      result = 0x888;
-      break;
-    case RuntADCSourceUnknownB:
-      result = 0xccc;
-      break;
-    case RuntADCSourceUnknownC:
-      result = 0xaaa;
-      break;
-    case RuntADCSourceUnknownD:
-      // J1 logs:
-      // the voltage =  57.15 . ADC = ccc
-      // the voltage =  34.56 . ADC = 999
-      // the voltage =  19.50 . ADC = 777
-      // the voltage =  11.96 . ADC = 666
-      // the voltage = 32764.90 . ADC = 444
-      result = 0x666;
+      //result = 0x666; // 11c, 53f
+      result = 0x765; // 19c, 66f
       break;
     case RuntADCSourceTabletUnknownY:
     case RuntADCSourceTabletUnknownX:
@@ -745,11 +718,6 @@ bool runt_step(runt_t *c) {
   
   uint32_t sampleSource = c->adcSource;
   switch (sampleSource) {
-    case RuntADCSourceUnknownA:
-    case RuntADCSourceUnknownB:
-    case RuntADCSourceUnknownC:
-    case RuntADCSourceUnknownD:
-    case RuntADCSourceNicad:
     case RuntADCSourceBackupBattery:
     case RuntADCSourceMainBattery:
     case RuntADCSourceThermistor:
