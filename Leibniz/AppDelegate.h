@@ -35,5 +35,6 @@
 - (IBAction) diagnosticsReboot:(id)sender;
 - (IBAction) warmReboot:(id)sender;
 - (IBAction) coldReboot:(id)sender;
+- (IBAction) insertSRAMCard:(id)sender;
 
 @end

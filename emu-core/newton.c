@@ -1189,6 +1189,10 @@ runt_t *newton_get_runt (newton_t *c) {
   return c->runt;
 }
 
+pcmcia_t *newton_get_pcmcia (newton_t *c) {
+  return c->pcmcia;
+}
+
 void newton_set_log_flags (newton_t *c, unsigned flags, int val) {
   if (val) {
     c->logFlags |= flags;

@@ -74,6 +74,13 @@ void pcmcia_set_runt (pcmcia_t *c, runt_t *runt) {
 }
 
 #pragma mark -
+void pcmcia_set_card_inserted (pcmcia_t *c, bool cardInserted) {
+  c->cardInserted = cardInserted;
+
+  runt_interrupt_raise(c->runt, RuntInterruptPCMCIA);
+}
+
+#pragma mark -
 static inline const char *pcmcia_get_adress_description(uint32_t addr) {
   if ((addr >> 24) == 0x70) {
     return "CONTROL";

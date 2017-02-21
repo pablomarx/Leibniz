@@ -372,6 +372,13 @@
                                     <action selector="diagnosticsReboot:" target="Voe-Tx-rLC" id="9pO-9a-lDo"/>
                                 </connections>
                             </menuItem>
+                            <menuItem isSeparatorItem="YES" id="kts-8e-Fcm"/>
+                            <menuItem title="Insert SRAM Card" id="aCr-D3-WDg">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="insertSRAMCard:" target="Voe-Tx-rLC" id="QAg-nH-JAT"/>
+                                </connections>
+                            </menuItem>
                         </items>
                     </menu>
                 </menuItem>

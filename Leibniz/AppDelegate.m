@@ -191,6 +191,14 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
   [self rebootNewtonWithStyle:NewtonRebootStyleWarm bootMode:NewtonBootModeNormal];
 }
 
+- (IBAction) insertSRAMCard:(id)sender {
+  BOOL inserted = ([sender state] == NSOnState ? 0 : 1);
+  [sender setState:(!inserted ? NSOffState : NSOnState)];
+
+  pcmcia_t *pcmcia = newton_get_pcmcia(_newton);
+  pcmcia_set_card_inserted(pcmcia, inserted);
+}
+
 #pragma mark - Tablet
 
 - (void) tabletTouchedDownAtPoint:(NSPoint)point {
