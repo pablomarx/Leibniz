@@ -52,7 +52,7 @@ enum {
   
   RuntSerial = 0x81,
     RuntSerialConfig = 0x08,
-    RuntSerialData   = 0x04,
+    RuntSerialTxByte = 0x04,
     
   RuntSoundDMA1Base = 0xb0,
   RuntSoundDMA1Length = 0xb4,
@@ -98,7 +98,7 @@ static const char *runt_power_names[] = {
 
 static const char *runt_interrupt_names[] = {
   "rtc", "ticks", "ticks3", "ticks2", NULL, NULL, NULL, NULL,
-  NULL, "adc", "serialA", "sound", "pcmcia", "diags", "cardlock", "powerswitch",
+  NULL, "adc", "infrared", "sound", "pcmcia", "diags", "cardlock", "powerswitch",
   "serial", "tablet", "sound-dma", NULL, NULL, NULL, NULL, NULL,
   "power-fault", "battery-removed", NULL, NULL, NULL, NULL, NULL, NULL,
 };
@@ -177,7 +177,7 @@ void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
         case RuntSerialConfig:
           prefix = "serial-config";
           break;
-        case RuntSerialData:
+        case RuntSerialTxByte:
           prefix = "serial-data";
           break;
         default:
@@ -371,7 +371,7 @@ void runt_interrupt_raise(runt_t *c, uint32_t interrupt) {
     }
   }
   
-  if (interrupt == RuntInterruptPowerFault || interrupt == RuntInterruptBatteryRemoved || interrupt == RuntInterruptSerialA) {
+  if (interrupt == RuntInterruptPowerFault || interrupt == RuntInterruptBatteryRemoved || interrupt == RuntInterruptIR) {
     arm_set_fiq(c->arm, 1);
   }
   else {
@@ -384,7 +384,7 @@ void runt_interrupt_lower(runt_t *c, uint32_t interrupt) {
     c->interrupt ^= interrupt;
   }
   
-  if ((c->interrupt & RuntInterruptPowerFault) == 0 && (c->interrupt & RuntInterruptBatteryRemoved) == 0 && (c->interrupt & RuntInterruptSerialA) == 0) {
+  if ((c->interrupt & RuntInterruptPowerFault) == 0 && (c->interrupt & RuntInterruptBatteryRemoved) == 0 && (c->interrupt & RuntInterruptIR) == 0) {
     arm_set_fiq(c->arm, 0);
   }
   
@@ -509,7 +509,7 @@ bool runt_power_state_get_subsystem(runt_t *c, uint32_t subsystem) {
   return ((val & subsystem) == subsystem);
 }
 
-#pragma mark -
+#pragma mark - Switches
 void runt_switch_set_state(runt_t *c, int switchNum, int state) {
   c->switches[switchNum] = state;
   switch (switchNum) {
@@ -530,6 +530,133 @@ void runt_switch_set_state(runt_t *c, int switchNum, int state) {
 
 void runt_switch_toggle(runt_t *c, int switchNum) {
   runt_switch_set_state(c, switchNum, !c->switches[switchNum]);
+}
+
+#pragma mark - Serial
+static inline bool runt_serial_should_log(runt_t *c, uint32_t addr) {
+  uint8_t port = ((addr >> 8) & 0xf);
+  if (port == 0) {
+    return ((c->logFlags & RuntLogIR) == RuntLogIR);
+  }
+  else {
+    return ((c->logFlags & RuntLogSerial) == RuntLogSerial);
+  }
+}
+
+const char *runt_serial_get_baud_description(uint8_t baud) {
+  // Observed via Lindy diags, Evaluation -> Serial Test
+  // Speeds greater than 57600 started writing to other
+  // serial registers (e.g. 0x01408xYY, where YY is:
+  // 0x10, 0x14, 0x18, 0x1c, 0x20, 0x24, 0x28, 0x2c)
+  switch (baud) {
+    case 0x7d: return "300";
+    case 0xbd: return "600";
+    case 0x5e: return "1200";
+    case 0x2e: return "2400";
+    case 0x16: return "4800";
+    case 0x0a: return "9600";
+    case 0x04: return "19200";
+    case 0x01: return "38400";
+    case 0x00: return "57600";
+    default: return "unknown!";
+  }
+}
+
+const char *runt_serial_get_parity_description(uint8_t val) {
+  // Observed via Lindy diags, Evaluation -> Serial Test
+  switch (val) {
+    case 0x44: return "parity: none, stop bits: 1";
+    case 0x45: return "parity: odd,  stop bits: 1";
+    case 0x47: return "parity: even, stop bits: 1";
+    case 0x4c: return "parity: none, stop bits: 2";
+    case 0x4d: return "parity: odd,  stop bits: 2";
+    case 0x4f: return "parity: even, stop bits: 2";
+    default: return "unknown!";
+  }
+}
+
+void runt_serial_raise_interrupt_for_port(runt_t *c, uint8_t port) {
+  if (port == 0) {
+    runt_interrupt_raise(c, RuntInterruptIR);
+  }
+  else {
+    runt_interrupt_raise(c, RuntInterruptSerial);
+  }
+}
+
+uint32_t runt_serial_get_value(runt_t *c, uint32_t addr) {
+  uint32_t result = 0;
+  uint8_t reg = (addr & 0xff);
+  
+  if (reg == RuntSerialTxByte) {
+    
+  }
+  else if (reg == RuntSerialConfig) {
+    if (result == 0x00) {
+      result = 0xff;
+    }
+  }
+  else {
+    result = 3;
+  }
+
+  return result;
+}
+
+uint32_t runt_serial_set_value(runt_t *c, uint32_t addr, uint32_t val) {
+  uint8_t reg = (addr & 0xff);
+  uint8_t port = ((addr >> 8) & 0xf);
+  uint8_t byteVal = (val & 0xff);
+
+  if (reg == RuntSerialTxByte) {
+    if (runt_serial_should_log(c, addr) == true) {
+      fprintf(c->logFile, "[%s:TXBYTE] 0x%02x = '%c'\n", port ? "SERIAL" : "IR", val & 0xff, val & 0xff);
+    }
+    
+    runt_serial_raise_interrupt_for_port(c, port);
+  }
+  else if (reg == RuntSerialConfig) {
+    uint32_t *configReg = NULL;
+    if (port == 0) {
+      configReg = &c->irConfigReg;
+    }
+    else {
+      configReg = &c->serialConfigReg;
+    }
+    
+    if (*configReg == 0) {
+      *configReg = byteVal;
+    }
+    else {
+      if (runt_serial_should_log(c, addr) == true) {
+        fprintf(c->logFile, "[%s:CONFIG] reg:0x%02x => 0x%02x ", port ? "SERIAL" : "IR", *configReg, byteVal);
+
+        switch (*configReg) {
+          case 0x0c:
+            fprintf(c->logFile, "baud rate? %s", runt_serial_get_baud_description(byteVal));
+            break;
+          case 0x04:
+            fprintf(c->logFile, "%s ?", runt_serial_get_parity_description(byteVal));
+            break;
+          case 0x08:
+            fprintf(c->logFile, "flush?");
+            break;
+        }
+        
+        fprintf(c->logFile, "\n");
+
+      }
+      *configReg = 0x00;
+    }
+  }
+  else if (reg == 0) {
+    if (byteVal == 0x05) {
+      val = 0x03;
+      runt_serial_raise_interrupt_for_port(c, port);
+    }
+  }
+  
+  return val;
 }
 
 #pragma mark -
@@ -577,18 +704,7 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val, uint32_t pc) {
       
     case RuntSerial:
     case RuntIR:
-      if ((addr & 0xff) == RuntSerialData) {
-        //fprintf(c->logFile, "serial_putc: 0x%02x '%c'\n", val & 0xff, val & 0xff);
-      }
-      else if ((addr & 0xff) == RuntSerialConfig) {
-        
-      }
-      else if ((addr & 0xff) == 0) {
-        if (val == 0x05) {
-          val = 0x03;
-          runt_interrupt_raise(c, RuntInterruptSerialA);
-        }
-      }
+      val = runt_serial_set_value(c, addr, val);
       break;
     case RuntADCSource:
       runt_set_adc_source(c, val);
@@ -649,18 +765,7 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr, uint32_t pc) {
       break;
     case RuntIR:
     case RuntSerial:
-      if ((addr & 0xff) == RuntSerialData) {
-        
-      }
-      else if ((addr & 0xff) == RuntSerialConfig) {
-        
-      }
-      else {
-        result = 3;
-      }
-      if ((result & 0xff) == 0x00) {
-        result = 0xffffffff;
-      }
+      result = runt_serial_get_value(c, addr);
       break;
     case RuntRTC:
       result = result + runt_get_rtc(c);

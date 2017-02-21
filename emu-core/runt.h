@@ -57,7 +57,7 @@ enum {
   RuntInterruptTicks2         = (1 << 4),
   RuntInterruptUnknown2       = (1 << 5),  // Happens around sound regs
   RuntInterruptADC            = (1 << 10),
-  RuntInterruptSerialA        = (1 << 11),
+  RuntInterruptIR             = (1 << 11),
   RuntInterruptSound          = (1 << 12),
   RuntInterruptPCMCIA         = (1 << 13),
   RuntInterruptDiagnostics    = (1 << 14),
@@ -98,6 +98,9 @@ typedef struct runt_s {
   uint32_t ticksAlarm2;
   uint32_t ticksAlarm3;
   int32_t adcSource;
+  
+  uint32_t irConfigReg;
+  uint32_t serialConfigReg;
   
   // Logging
   uint32_t logFlags;
