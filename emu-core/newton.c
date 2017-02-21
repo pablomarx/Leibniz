@@ -1515,22 +1515,25 @@ void newton_free (newton_t *c)
 {
   bp_entry_t *bp = c->breakpoints;
   while (bp != NULL) {
+    bp_entry_t *next = bp->next;
     free(bp);
-    bp = bp->next;
+    bp = next;
   }
   
   symbol_t *sym = c->symbols;
   while(sym != NULL) {
+    symbol_t *next = sym->next;
     free(sym->name);
     free(sym);
-    sym = sym->next;
+    sym = next;
   }
   
   membank_t *membank = c->membanks;
   while(membank != NULL) {
+    membank_t *next = membank->next;
     membank->del(membank->context);
     free(membank);
-    membank = membank->next;
+    membank = next;
   }
 
   arm_del(c->arm);
