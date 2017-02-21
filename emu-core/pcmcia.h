@@ -16,8 +16,11 @@
 
 typedef struct pcmcia_s {
   uint32_t *registers;
+  
   uint32_t cardCapacity;
   uint32_t *cardData;
+  bool cardInserted;
+  
   runt_t *runt;
   
   FILE *logFile;

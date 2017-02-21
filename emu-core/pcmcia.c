@@ -12,6 +12,10 @@
 
 enum {
   PCMCIAStatus = 0x7c,
+  
+  PCMCIAEnabledInterrupts = 0x74,
+  PCMCIAActiveInterrupts = 0x6c,
+  PCMCIAClearInterrupts = 0x64,
 };
 
 void pcmcia_init (pcmcia_t *c)
@@ -92,6 +96,21 @@ static inline bool pcmcia_should_log_address(pcmcia_t *c, uint32_t addr) {
 uint32_t pcmcia_set_status_mem32(pcmcia_t *c, uint32_t addr, uint32_t val) {
   uint32_t reg = ((addr & 0xff00) >> 8);
   c->registers[reg/4] = val;
+  
+  if (c->cardInserted == true) {
+    if (reg == PCMCIAEnabledInterrupts) {
+      if (val != 0) {
+        runt_interrupt_raise(c->runt, RuntInterruptPCMCIA);
+      }
+      else {
+        runt_interrupt_lower(c->runt, RuntInterruptPCMCIA);
+      }
+    }
+    else if (reg == PCMCIAClearInterrupts) {
+      runt_interrupt_lower(c->runt, RuntInterruptPCMCIA);
+    }
+  }
+
   return val;
 }
 
@@ -128,22 +147,57 @@ uint32_t pcmcia_get_status_mem32(pcmcia_t *c, uint32_t addr) {
     uint8_t reg58 = pcmcia_get_register(c, 0x58);
     // "LOAD DIAGS TO ICCARD" writes 0x1b, and will fail with the VPP results
     // "IC CARD CHECK"'s "VPP1 and "VPP2" writes 0x0b, and will fail without the VPP results.
-    if (reg58 == 0x0b) {
+    if (reg58 == 0x0b || reg == 0x1b) {
       bool vpp1 = runt_power_state_get_subsystem(c->runt, RuntPowerVPP1);
       bool vpp2 = runt_power_state_get_subsystem(c->runt, RuntPowerVPP2);
+
+      // Diags needs this to pass the VPP tests.  It's admittedly
+      // weird.  It came from inferred behavior of func 0x001d6e28 in the Notepad ROM.
+      // result = (vpp2 << 2) | (!vpp1 << 3) | (vpp1 << 4) | (!vpp2 << 5);
       
-      result = (vpp2 << 2) | (!vpp1 << 3) | (vpp1 << 4) | (!vpp2 << 5);
+      // However the inclusion of (!vpp2 << 5) causes diags to fail "IC CARD SRAM"
+      // and it causes NewtonOS to report  the card is write protected, refusing to
+      // format it.
+      // so bit6 certainly seems to be write protect...
+      result = (!vpp1 << 3) | (vpp1 << 4) | (vpp2 << 2);
+    }
+    else if (reg58 == 0x00 || reg58 == 0x0a) {
+      // Diags sets reg58 to 0x00 and reads here during
+      // card detect tests.
+      // NewtonOS sets reg58 to 0x0a and reads here after
+      // we fire a PCMCIA IRQ, provided we return 0xff for reg 0x6c
+      //
+      // In both instances, the results are &'ed with 2.
+      //
+      // 2 seems to indicate card present as NewtonOS will
+      // say the card is unreadable and offer to format it.
+      //
+      // For diagnostics, if we return 0 for it's first read
+      // and 2 for the subsequent two reads, we'll pass the CD LO test.
+
+      if (c->cardInserted == true) {
+        result = 2;
+      }
+      else {
+        result = 0;
+      }
     }
     else {
       result = 0;
     }
   }
-  else if (reg == 0x74) {
-    result = 16;
+  // When raising a PCMCIA IRQ, 0x74 and 0x6c are read
+  // If 0x6c=0xff, a lot of subsequent PCMCIA read/writes
+  // are performed.
+  else if (reg == PCMCIAActiveInterrupts) {
+    if (c->cardInserted == true) {
+      result = pcmcia_get_register(c, PCMCIAEnabledInterrupts);
+    }
+    else {
+      result = 0;
+    }
   }
-  else if (reg == 0x6c) {
-    result = 0xff;
-  }
+
   return result;
 }
 
