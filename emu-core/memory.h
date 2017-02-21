@@ -17,6 +17,7 @@ typedef struct memory_s {
   char *name;
   
   uint32_t *contents;
+  uint32_t base;
   uint32_t length;
   
   bool readOnly;
@@ -25,7 +26,7 @@ typedef struct memory_s {
   FILE *logFile;
 } memory_t;
 
-memory_t *memory_new(char *name, uint32_t length);
+memory_t *memory_new(char *name, uint32_t base, uint32_t length);
 void memory_delete(memory_t *mem);
 
 void memory_clear(memory_t *mem);

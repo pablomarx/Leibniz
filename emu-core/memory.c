@@ -11,8 +11,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-memory_t *memory_new(char *name, uint32_t length) {
+memory_t *memory_new(char *name, uint32_t base, uint32_t length) {
   memory_t *mem = calloc(1, sizeof(memory_t));
+  mem->base = base;
   mem->contents = calloc(length, sizeof(uint8_t));
   mem->length = length;
   mem->logFile = stdout;
@@ -68,7 +69,7 @@ FILE *memory_get_log_file(memory_t *mem) {
 }
 
 uint32_t memory_get_uint32(memory_t *mem, uint32_t address, uint32_t pc) {
-  uint32_t result = mem->contents[(address % mem->length)/4];
+  uint32_t result = mem->contents[((address - mem->base) % mem->length)/4];
   
   if (mem->logsReads == true) {
     fprintf(mem->logFile, "[%s:READ] PC:0x%08x addr:0x%08x => val:0x%08x\n", mem->name, pc, address, result);
@@ -86,7 +87,7 @@ uint32_t memory_set_uint32(memory_t *mem, uint32_t address, uint32_t val, uint32
     fprintf(mem->logFile, "[%s:WRITE] Attempted write to read-only memory! PC:0x%08x addr:0x%08x => val:0x%08x\n", mem->name, pc, address, val);
   }
   else {
-    mem->contents[(address % mem->length)/4] = val;
+    mem->contents[((address - mem->base) % mem->length)/4] = val;
   }
   
   return val;

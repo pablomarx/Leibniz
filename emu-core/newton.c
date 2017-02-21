@@ -148,7 +148,7 @@ uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
     membank_t *membank = c->membanks;
     while (membank != NULL) {
       if (addr >= membank->base && addr < membank->base + membank->length) {
-        result = membank->get_uint32(membank->context, addr - membank->base, arm_get_pc(c->arm));
+        result = membank->get_uint32(membank->context, addr, arm_get_pc(c->arm));
         break;
       }
       else {
@@ -227,7 +227,7 @@ uint32_t newton_set_mem32 (newton_t *c, uint32_t addr, uint32_t val) {
   membank_t *membank = c->membanks;
   while (membank != NULL) {
     if (addr >= membank->base && addr < membank->base + membank->length) {
-      val = membank->set_uint32(membank->context, addr - membank->base, val, arm_get_pc(c->arm));
+      val = membank->set_uint32(membank->context, addr, val, arm_get_pc(c->arm));
       break;
     }
     else {
@@ -1197,12 +1197,7 @@ void newton_set_log_flags (newton_t *c, unsigned flags, int val) {
     c->logFlags &= ~flags;
   }
 
-  bool logSRAM = ((c->logFlags & NewtonLogSRAM) == NewtonLogSRAM);
-  bool logPCMCIA = ((c->logFlags & NewtonLogPCMCIA) == NewtonLogPCMCIA);
-	
-  memory_set_logs_reads(c->sram, logSRAM);
-  memory_set_logs_writes(c->sram, logSRAM);
-  pcmcia_set_log_enabled(c->pcmcia, logPCMCIA);
+  pcmcia_set_log_flags(c->pcmcia, flags);
 }
 
 void newton_set_tapfilecntl_funtcions (newton_t *c, void *ext,
@@ -1356,36 +1351,18 @@ void newton_configure_runt(newton_t *c, memory_t *rom) {
   }
   
   // Configure RAM
-  memory_t *ram = memory_new("RAM", ramSize);
+  memory_t *ram = memory_new("RAM", 0x01000000, ramSize);
   newton_install_memory(c, ram, 0x01000000, 2 * 1024 * 1024);
   c->ram = ram;
   
   if (flashSize > 0) {
     // Configure flash
-    memory_t *flash = memory_new("FLASH", flashSize);
+    memory_t *flash = memory_new("FLASH", 0x01200000, flashSize);
     memory_set_uint32(flash, 0x04, 0x00a4a200, 0);
     //memory_set_logs_reads(flash, true);
     //memory_set_logs_writes(flash, true);
     newton_install_memory(c, flash, 0x01200000, 2 * 1024 * 1024);
   }
-  
-  // Configure SRAM
-  memory_t *sram = memory_new("SRAM", 0x00100000);
-  newton_install_memory(c, sram, 0x14000000, 0x00100000);
-  c->sram = sram;
-	
-  // This will cause diagnostics to copy the first 128KB
-  // of the SRAM card into the start of RAM
-  //memory_set_uint32(sram, 0x00, 'SERD', 0);
-  
-  // This seems to do some sort of SRAM card diagnostics
-  // This will change the first word from 'SEWR' to 'SERD'
-  // Then it fills the rest of SRAM with 0s
-  // Then it reads back the SRAM
-  //memory_set_uint32(sram, 0x00, 'SEWR', 0);
-  
-  
-  // XXX: What about the rest of I/O card space? 0x10000000 - 0x20000000
   
   // Configure the Runt ASIC
   c->runt = runt_new(c->machineType);
@@ -1398,7 +1375,12 @@ void newton_configure_runt(newton_t *c, memory_t *rom) {
   pcmcia_set_log_file(pcmcia, c->logFile);
   pcmcia_set_runt(pcmcia, c->runt);
   c->pcmcia = pcmcia;
-  newton_install_memory_handler(c, 0x70000000, 0x10000000, pcmcia, pcmcia_get_mem32, pcmcia_set_mem32, pcmcia_del);
+  
+  // For PCMCIA card access (yes, a 512MB region...)
+  newton_install_memory_handler(c, 0x10000000, 0x0fffffff, pcmcia, pcmcia_get_mem32, pcmcia_set_mem32, pcmcia_del);
+
+  // For PCMCIA control registers
+  newton_install_memory_handler(c, 0x70000000, 0x0fffffff, pcmcia, pcmcia_get_mem32, pcmcia_set_mem32, pcmcia_del);
 }
 
 int newton_load_rom(newton_t *c, const char *path) {
@@ -1453,7 +1435,7 @@ int newton_load_rom(newton_t *c, const char *path) {
     }
   }
   
-  memory_t *rom = memory_new("ROM", romSize);
+  memory_t *rom = memory_new("ROM", 0x0, romSize);
   memory_set_readonly(rom, true);
   uint32_t i=0;
   while (fread(&romWord, 1, sizeof(romWord), romFP) == sizeof(romWord)) {

@@ -544,7 +544,7 @@ uint32_t runt_get_rtc(runt_t *c) {
 uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val, uint32_t pc) {
   runt_log_access(c, addr, val, true);
   
-  uint32_t localAddr = (addr / 4);
+  uint32_t localAddr = ((addr - 0x01400000) / 4);
   switch ((addr >> 8) & 0xff) {
     case 0x00:
       // Observed bit 2 changing depending on gNewtConfig
@@ -628,7 +628,7 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val, uint32_t pc) {
 
 
 uint32_t runt_get_mem32(runt_t *c, uint32_t addr, uint32_t pc) {
-  uint32_t result = c->memory[addr / 4];
+  uint32_t result = c->memory[(addr - 0x01400000) / 4];
   
   switch ((addr >> 8) & 0xff) {
     case RuntLCD:

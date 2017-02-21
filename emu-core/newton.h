@@ -57,7 +57,7 @@ enum {
   NewtonLogVectorTable = (1 << 3),
   NewtonLogTapFileCntl = (1 << 4),
   NewtonLogUndefined   = (1 << 5),
-  NewtonLogSRAM        = (1 << 6),
+  NewtonLogCard        = (1 << 6),
   NewtonLogPCMCIA      = (1 << 7),
   NewtonLogAll         = 0xffffffff,
 };
@@ -107,7 +107,6 @@ struct newton_s {
   
   runt_t *runt;
   pcmcia_t *pcmcia;
-  memory_t *sram;
   memory_t *ram;
   
   membank_t *membanks;
