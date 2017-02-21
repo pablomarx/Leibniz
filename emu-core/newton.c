@@ -1305,7 +1305,7 @@ void newton_install_memory(newton_t *c, memory_t *memory, uint32_t base, uint32_
 }
 
 
-void newton_configure_voyager(newton_t *c, memory_t *rom) {
+int newton_configure_voyager(newton_t *c, memory_t *rom) {
   if (c->machineType == kGestalt_MachineType_Emate) {
     arm_set_id(c->arm, ARM_C15_ID_710);
   }
@@ -1314,10 +1314,10 @@ void newton_configure_voyager(newton_t *c, memory_t *rom) {
   }
   
   fprintf(stderr, "Voyager platform isn't supported yet...\n");
-  exit(EXIT_FAILURE);
+  return -1;
 }
 
-void newton_configure_runt(newton_t *c, memory_t *rom) {
+int newton_configure_runt(newton_t *c, memory_t *rom) {
   arm_set_id(c->arm, ARM_C15_ID_610);
   
   // Configure 16MB ROM space
@@ -1381,6 +1381,8 @@ void newton_configure_runt(newton_t *c, memory_t *rom) {
 
   // For PCMCIA control registers
   newton_install_memory_handler(c, 0x70000000, 0x0fffffff, pcmcia, pcmcia_get_mem32, pcmcia_set_mem32, pcmcia_del);
+  
+  return 0;
 }
 
 int newton_load_rom(newton_t *c, const char *path) {
@@ -1502,13 +1504,11 @@ int newton_load_rom(newton_t *c, const char *path) {
   c->romVersion = romVersion;
   
   if (c->machineType == kGestalt_MachineType_Senior || c->machineType == kGestalt_MachineType_Emate) {
-    newton_configure_voyager(c, rom);
+    return newton_configure_voyager(c, rom);
   }
   else {
-    newton_configure_runt(c, rom);
+    return newton_configure_runt(c, rom);
   }
-  
-  return 0;
 }
 
 void newton_free (newton_t *c)
