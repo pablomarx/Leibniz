@@ -382,7 +382,7 @@ void runt_interrupt_raise(runt_t *c, uint32_t interrupt) {
     }
   }
   
-  if (interrupt == RuntInterruptVCCFault || interrupt == RuntInterruptBatteryRemoved) {
+  if (interrupt == RuntInterruptVCCFault || interrupt == RuntInterruptBatteryRemoved || interrupt == RuntInterruptSerial) {
     arm_set_fiq(c->arm, 1);
   }
   else {
@@ -395,7 +395,7 @@ void runt_interrupt_lower(runt_t *c, uint32_t interrupt) {
     c->interrupt ^= interrupt;
   }
   
-  if ((c->interrupt & RuntInterruptVCCFault) == 0 && (c->interrupt & RuntInterruptBatteryRemoved) == 0) {
+  if ((c->interrupt & RuntInterruptVCCFault) == 0 && (c->interrupt & RuntInterruptBatteryRemoved) == 0 && (c->interrupt & RuntInterruptSerial) == 0) {
     arm_set_fiq(c->arm, 0);
   }
   
