@@ -105,10 +105,10 @@ static const char *runt_power_names[] = {
 };
 
 static const char *runt_interrupt_names[] = {
-  "rtc", "ticks", "ticks3", "ticks2", NULL, NULL, NULL, NULL,
-  NULL, "adc", "infrared", "sound", "pcmcia", "diags", "cardlock", "powerswitch",
-  "serial", "tablet", "sound-dma", NULL, NULL, NULL, NULL, NULL,
-  "power-fault", "battery-removed", NULL, NULL, NULL, NULL, NULL, NULL,
+  "Clock", "Alarm", "Timer1", "Timer3", "Timer2", "SoundDMA", "SerialDMATx",
+  "SerialDMARx", "IRDMATx", "IRDMARx", "ADConverter", "Serial", "Sound", "Tric",
+  "BatteryCover", "CardLock", "SysPower", "GeneralPurpose", "Tablet", "SoundDMAErr", "SerialDMATxErr",
+  "SerialMARxErr", "IRDMATxErr", "IRDMARxErr", "Timer0", "VCCFault", "BatteryRemoved",
 };
 
 #pragma mark -
@@ -347,7 +347,7 @@ void runt_print_description_for_interrupts(runt_t *c, uint32_t val) {
   for (int i=0; i<32; i++) {
     uint32_t bit = (1 << i);
     if ((val & bit) == bit) {
-      const char *name = runt_interrupt_names[i-1];
+      const char *name = runt_interrupt_names[i];
       if (name != NULL) {
         fprintf(c->logFile, "%s, ", name);
       }
@@ -381,7 +381,7 @@ void runt_interrupt_raise(runt_t *c, uint32_t interrupt) {
     }
   }
   
-  if (interrupt == RuntInterruptPowerFault || interrupt == RuntInterruptBatteryRemoved || interrupt == RuntInterruptIR) {
+  if (interrupt == RuntInterruptVCCFault || interrupt == RuntInterruptBatteryRemoved) {
     arm_set_fiq(c->arm, 1);
   }
   else {
@@ -394,7 +394,7 @@ void runt_interrupt_lower(runt_t *c, uint32_t interrupt) {
     c->interrupt ^= interrupt;
   }
   
-  if ((c->interrupt & RuntInterruptPowerFault) == 0 && (c->interrupt & RuntInterruptBatteryRemoved) == 0 && (c->interrupt & RuntInterruptIR) == 0) {
+  if ((c->interrupt & RuntInterruptVCCFault) == 0 && (c->interrupt & RuntInterruptBatteryRemoved) == 0) {
     arm_set_fiq(c->arm, 0);
   }
   
@@ -526,14 +526,14 @@ void runt_switch_set_state(runt_t *c, int switchNum, int state) {
     case RuntSwitchNicad:
       break;
     case RuntSwitchPower:
-      runt_interrupt_raise(c, RuntInterruptPowerSwitch);
+      runt_interrupt_raise(c, RuntInterruptSysPower);
       if (runt_power_state_get_subsystem(c, RuntPowerSleep) == true) {
         runt_power_state_set_subsystem(c, RuntPowerSleep, false);
         runt_cpu_control_set(c, 0);
       }
       break;
     case RuntSwitchCardLock:
-      runt_interrupt_raise(c, RuntInterruptCardLockSwitch);
+      runt_interrupt_raise(c, RuntInterruptCardLock);
       break;
   }
 }
@@ -585,12 +585,7 @@ const char *runt_serial_get_parity_description(uint8_t val) {
 }
 
 void runt_serial_raise_interrupt_for_port(runt_t *c, uint8_t port) {
-  if (port == 0) {
-    runt_interrupt_raise(c, RuntInterruptIR);
-  }
-  else {
-    runt_interrupt_raise(c, RuntInterruptSerial);
-  }
+
 }
 
 uint8_t runt_serial_port_get_config(runt_t *c, uint8_t port) {
@@ -836,7 +831,8 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val, uint32_t pc) {
       break;
     case RuntSoundDMA1Length:
     case RuntSoundDMA2Length:
-      runt_interrupt_raise(c, RuntInterruptSoundDMA);
+      // DMA error helps the boot process proceed...
+      runt_interrupt_raise(c, RuntInterruptSoundDMAErr);
       break;
     default:
       break;
@@ -948,22 +944,22 @@ bool runt_step(runt_t *c) {
   c->ticks += 2;
   
   if (c->rtcAlarm != 0 && runt_get_rtc(c) >= c->rtcAlarm) {
-    runt_interrupt_raise(c, RuntInterruptRTC);
+    runt_interrupt_raise(c, RuntInterruptAlarm);
     c->rtcAlarm = 0;
   }
   
   if (c->ticksAlarm1 != 0 && runt_get_ticks(c) >= c->ticksAlarm1) {
-    runt_interrupt_raise(c, RuntInterruptTicks);
+    runt_interrupt_raise(c, RuntInterruptTimer1);
     c->ticksAlarm1 = 0;
   }
   
   if (c->ticksAlarm2 != 0 && runt_get_ticks(c) >= c->ticksAlarm2) {
-    runt_interrupt_raise(c, RuntInterruptTicks2);
+    runt_interrupt_raise(c, RuntInterruptTimer2);
     c->ticksAlarm2 = 0;
   }
   
   if (c->ticksAlarm3 != 0 && runt_get_ticks(c) >= c->ticksAlarm3) {
-    runt_interrupt_raise(c, RuntInterruptTicks3);
+    runt_interrupt_raise(c, RuntInterruptTimer3);
     c->ticksAlarm3 = 0;
   }
   
@@ -980,8 +976,8 @@ bool runt_step(runt_t *c) {
     case RuntADCSourceTabletPositionY:
     case RuntADCSourceTabletUnknownX:
     case RuntADCSourceTabletUnknownY:
-      if (runt_interrupt_is_enabled(c, RuntInterruptADC) == true && runt_power_state_get_subsystem(c, RuntPowerADC) == true) {
-        runt_interrupt_raise(c, RuntInterruptADC);
+      if (runt_interrupt_is_enabled(c, RuntInterruptADConverter) == true && runt_power_state_get_subsystem(c, RuntPowerADC) == true) {
+        runt_interrupt_raise(c, RuntInterruptADConverter);
       }
       break;
   }

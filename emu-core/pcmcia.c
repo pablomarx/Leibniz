@@ -77,7 +77,7 @@ void pcmcia_set_runt (pcmcia_t *c, runt_t *runt) {
 void pcmcia_set_card_inserted (pcmcia_t *c, bool cardInserted) {
   c->cardInserted = cardInserted;
 
-  runt_interrupt_raise(c->runt, RuntInterruptPCMCIA);
+  runt_interrupt_raise(c->runt, RuntInterruptTric);
 }
 
 #pragma mark -
@@ -107,14 +107,14 @@ uint32_t pcmcia_set_status_mem32(pcmcia_t *c, uint32_t addr, uint32_t val) {
   if (c->cardInserted == true) {
     if (reg == PCMCIAEnabledInterrupts) {
       if (val != 0) {
-        runt_interrupt_raise(c->runt, RuntInterruptPCMCIA);
+        runt_interrupt_raise(c->runt, RuntInterruptTric);
       }
       else {
-        runt_interrupt_lower(c->runt, RuntInterruptPCMCIA);
+        runt_interrupt_lower(c->runt, RuntInterruptTric);
       }
     }
     else if (reg == PCMCIAClearInterrupts) {
-      runt_interrupt_lower(c->runt, RuntInterruptPCMCIA);
+      runt_interrupt_lower(c->runt, RuntInterruptTric);
     }
   }
 

@@ -48,28 +48,40 @@ enum {
   // Can verify in Lindy Diags: Manufacturing -> Main Board Test -> Current Test
 };
 
-// Unknown interrupts were observed being registered
-// via RegisterInterrupt() in a MP130 v2.0 ROM.
+/* Register listing grabbed from the Newt J1 image,
+ * at offset 0x0020760c.
+ * For the previously known ones, they were all in
+ * agreement */
 enum {
-  RuntInterruptRTC            = (1 << 1),
-  RuntInterruptTicks          = (1 << 2),
-  RuntInterruptTicks3         = (1 << 3),
-  RuntInterruptTicks2         = (1 << 4),
-  RuntInterruptUnknown2       = (1 << 5),  // Happens around sound regs
-  RuntInterruptADC            = (1 << 10),
-  RuntInterruptIR             = (1 << 11),
-  RuntInterruptSound          = (1 << 12),
-  RuntInterruptPCMCIA         = (1 << 13),
-  RuntInterruptDiagnostics    = (1 << 14),
-  RuntInterruptCardLockSwitch = (1 << 15),
-  RuntInterruptPowerSwitch    = (1 << 16),
-  RuntInterruptSerial         = (1 << 17),
-  RuntInterruptTablet         = (1 << 18),
-  RuntInterruptSoundDMA       = (1 << 19),
-  RuntInterruptUnknown3       = (1 << 24),
-  RuntInterruptPowerFault     = (1 << 25),
-  RuntInterruptBatteryRemoved = (1 << 26),
+  RuntInterruptClock          = 1<<0,
+  RuntInterruptAlarm          = 1<<1,
+  RuntInterruptTimer1         = 1<<2,
+  RuntInterruptTimer3         = 1<<3,
+  RuntInterruptTimer2         = 1<<4,
+  RuntInterruptSoundDMA       = 1<<5,
+  RuntInterruptSerialDMATx    = 1<<6,
+  RuntInterruptSerialDMARx    = 1<<7,
+  RuntInterruptIRDMATx        = 1<<8,
+  RuntInterruptIRDMARx        = 1<<9,
+  RuntInterruptADConverter    = 1<<10,
+  RuntInterruptSerial         = 1<<11,
+  RuntInterruptSound          = 1<<12,
+  RuntInterruptTric           = 1<<13,
+  RuntInterruptBatteryCover   = 1<<14,
+  RuntInterruptCardLock       = 1<<15,
+  RuntInterruptSysPower       = 1<<16,
+  RuntInterruptGeneralPurpose = 1<<17,
+  RuntInterruptTablet         = 1<<18,
+  RuntInterruptSoundDMAErr    = 1<<19,
+  RuntInterruptSerialDMATxErr = 1<<20,
+  RuntInterruptSerialMARxErr  = 1<<21,
+  RuntInterruptIRDMATxErr     = 1<<22,
+  RuntInterruptIRDMARxErr     = 1<<23,
+  RuntInterruptTimer0         = 1<<24,
+  RuntInterruptVCCFault       = 1<<25,
+  RuntInterruptBatteryRemoved = 1<<26,
 };
+
 
 enum {
   RuntSwitchNicad,
