@@ -41,9 +41,9 @@ void lcd_squirt_set_log_file (lcd_squirt_t *c, FILE *file);
 
 void lcd_squirt_step(lcd_squirt_t *c);
 
-uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val);
-uint32_t lcd_squirt_get_mem32(lcd_squirt_t *c, uint32_t addr);
+uint8_t lcd_squirt_set_mem8(lcd_squirt_t *c, uint8_t addr, uint8_t val);
+uint8_t lcd_squirt_get_mem8(lcd_squirt_t *c, uint8_t addr);
 
-const char *lcd_squirt_get_address_name(lcd_squirt_t *c, uint32_t addr);
+const char *lcd_squirt_get_address_name(lcd_squirt_t *c, uint8_t addr);
 
 #endif

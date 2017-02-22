@@ -77,9 +77,9 @@ enum {
   RuntSwitchCardLock,
 };
 
-typedef uint32_t (*lcd_get_uint32_f) (void *ext, uint32_t addr);
-typedef uint32_t (*lcd_set_uint32_f) (void *ext, uint32_t addr, uint32_t val);
-typedef const char * (*lcd_get_address_name_f) (void *ext, uint32_t addr);
+typedef uint8_t (*lcd_get_uint8_f) (void *ext, uint8_t addr);
+typedef uint8_t (*lcd_set_uint8_f) (void *ext, uint8_t addr, uint8_t val);
+typedef const char * (*lcd_get_address_name_f) (void *ext, uint8_t addr);
 typedef void (*lcd_set_powered_f)(void *ext, bool powered);
 typedef void (*lcd_step_f)(void *ext);
 
@@ -111,12 +111,12 @@ typedef struct runt_s {
   uint32_t interruptStick;
   
   // Display
-  void               *lcd_driver;
-  lcd_get_uint32_f   lcd_get_uint32;
-  lcd_set_uint32_f   lcd_set_uint32;
+  void                  *lcd_driver;
+  lcd_get_uint8_f        lcd_get_uint8;
+  lcd_set_uint8_f        lcd_set_uint8;
   lcd_get_address_name_f lcd_get_address_name;
-  lcd_step_f          lcd_step;
-  lcd_set_powered_f   lcd_powered;
+  lcd_step_f             lcd_step;
+  lcd_set_powered_f      lcd_powered;
   
   // Switches
   int8_t switches[3];
@@ -141,6 +141,8 @@ void runt_set_log_file (runt_t *c, FILE *file);
 
 uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val, uint32_t pc);
 uint32_t runt_get_mem32(runt_t *c, uint32_t addr, uint32_t pc);
+uint8_t runt_set_mem8(runt_t *c, uint32_t addr, uint8_t val, uint32_t pc);
+uint8_t runt_get_mem8(runt_t *c, uint32_t addr, uint32_t pc);
 
 void runt_interrupt_raise(runt_t *c, uint32_t interrupt);
 void runt_interrupt_lower(runt_t *c, uint32_t interrupt);

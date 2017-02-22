@@ -37,7 +37,7 @@ enum {
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
 
-const char *lcd_squirt_get_address_name(lcd_squirt_t *c, uint32_t addr) {
+const char *lcd_squirt_get_address_name(lcd_squirt_t *c, uint8_t addr) {
   const char *prefix = NULL;
   switch(addr) {
     case SquirtLCDNotBusy:
@@ -87,17 +87,17 @@ void lcd_squirt_set_powered(lcd_squirt_t *c, bool powered) {
     lcd_squirt_flush_framebuffer(c);
 }
 
-uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
+uint8_t lcd_squirt_set_mem8(lcd_squirt_t *c, uint8_t addr, uint8_t val) {
   
   switch(addr) {
     case SquirtLCDCursorLow: // Values written are 0x00 through 0xff
-      c->cursorLow = (val >> 24);
+      c->cursorLow = val;
       break;
     case SquirtLCDCursorHigh: // Values written are 0x00 through 0x24
-      c->cursorHigh = (val >> 24);
+      c->cursorHigh = val;
       break;
     case SquirtLCDDisplayMode:
-      c->displayMode = (val >> 24);
+      c->displayMode = val;
       break;
     case SquirtLCDPower:
     {
@@ -117,7 +117,7 @@ uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
       }
       
       // Splat the pixels
-      uint8_t pixels = ((uint8_t)(val >> 24));
+      uint8_t pixels = val;
       for (int bitIdx=7; bitIdx>=0; bitIdx--) {
         uint8_t bitVal = ((pixels>>bitIdx) & 1);
         c->displayFramebuffer[framebufferIdx] = (bitVal ? BLACK_COLOR : WHITE_COLOR);
@@ -144,7 +144,7 @@ uint32_t lcd_squirt_set_mem32(lcd_squirt_t *c, uint32_t addr, uint32_t val) {
     }
   }
   
-  c->memory[addr/4] = (val >> 24);
+  c->memory[addr/4] = val;
 
   return val;
 }
@@ -159,18 +159,18 @@ void lcd_squirt_step(lcd_squirt_t *c) {
   }
 }
 
-uint32_t lcd_squirt_get_mem32(lcd_squirt_t *c, uint32_t addr) {
-  uint32_t result = (c->memory[addr/4] << 24);
+uint8_t lcd_squirt_get_mem8(lcd_squirt_t *c, uint8_t addr) {
+  uint8_t result = c->memory[addr/4];
   
   switch (addr) {
     case SquirtLCDCursorHigh:
-      result = (c->cursorHigh << 24);
+      result = c->cursorHigh;
       break;
     case SquirtLCDCursorLow:
-      result = (c->cursorLow << 24);
+      result = c->cursorLow;
       break;
     case SquirtLCDDisplayMode:
-      result = (c->displayMode << 24);
+      result = c->displayMode;
       break;
     case SquirtLCDDataRead: {
       int32_t displayCursor = (c->cursorHigh << 8) | c->cursorLow;
@@ -184,12 +184,12 @@ uint32_t lcd_squirt_get_mem32(lcd_squirt_t *c, uint32_t addr) {
         result |= (pixel << j);
         framebufferIdx++;
       }
-      result = result << 24;
+      result = result;
       break;
     }
     case SquirtLCDNotBusy:
       // We're never busy...
-      result = (0x20 << 24);
+      result = 0x20;
       break;
   }
   

@@ -1416,7 +1416,7 @@ int newton_configure_runt(newton_t *c, memory_t *rom) {
   c->runt = runt_new(c->machineType);
   runt_set_arm(c->runt, c->arm);
   runt_set_log_file(c->runt, c->logFile);
-  newton_install_memory_handler(c, 0x01400000, 0x00400000, c->runt, runt_get_mem32, runt_set_mem32, NULL, NULL, runt_del);
+  newton_install_memory_handler(c, 0x01400000, 0x00400000, c->runt, runt_get_mem32, runt_set_mem32, runt_get_mem8, runt_set_mem8, runt_del);
   
   // Configure pcmcia handler
   pcmcia_t *pcmcia = pcmcia_new();

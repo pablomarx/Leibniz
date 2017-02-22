@@ -659,7 +659,7 @@ uint32_t runt_serial_set_value(runt_t *c, uint32_t addr, uint32_t val) {
   return val;
 }
 
-#pragma mark -
+#pragma mark - Clocks
 uint32_t runt_get_ticks(runt_t *c) {
   return c->ticks;
 }
@@ -668,6 +668,7 @@ uint32_t runt_get_rtc(runt_t *c) {
   return (uint32_t)(time(NULL) - c->bootTime);
 }
 
+#pragma mark - Memory access
 uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val, uint32_t pc) {
   runt_log_access(c, addr, val, true);
   
@@ -684,7 +685,12 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val, uint32_t pc) {
       }
       break;
     case RuntLCD:
-      c->lcd_set_uint32(c->lcd_driver, (addr & 0xff), val);
+      fprintf(stderr, "Unsupported word set for Runt LCD (0x%08x) at PC:0x%08x\n", addr, pc);
+      abort();
+      break;
+    case RuntSerial:
+    case RuntIR:
+      runt_serial_set_value(c, addr, val);
       break;
     case RuntClearInterrupt:
       if (c->interruptStick > 0) {
@@ -702,10 +708,6 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val, uint32_t pc) {
       runt_interrupt_raise(c, RuntInterruptSound);
       break;
       
-    case RuntSerial:
-    case RuntIR:
-      val = runt_serial_set_value(c, addr, val);
-      break;
     case RuntADCSource:
       runt_set_adc_source(c, val);
       break;
@@ -748,7 +750,12 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr, uint32_t pc) {
   
   switch ((addr >> 8) & 0xff) {
     case RuntLCD:
-      result = c->lcd_get_uint32(c->lcd_driver, (addr & 0xff));
+      fprintf(stderr, "Unsupported word set for Runt LCD (0x%08x) at PC:0x%08x\n", addr, pc);
+      abort();
+      break;
+    case RuntIR:
+    case RuntSerial:
+      result = runt_serial_get_value(c, addr);
       break;
     case RuntTicks:
       result = runt_get_ticks(c);
@@ -762,10 +769,6 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr, uint32_t pc) {
       result = c->interrupt;
       break;
     case RuntPower:
-      break;
-    case RuntIR:
-    case RuntSerial:
-      result = runt_serial_get_value(c, addr);
       break;
     case RuntRTC:
       result = result + runt_get_rtc(c);
@@ -789,6 +792,49 @@ uint32_t runt_get_mem32(runt_t *c, uint32_t addr, uint32_t pc) {
   return result;
 }
 
+// Byte access seems to be used solely in the LCD+serial subsystems.
+uint8_t runt_set_mem8(runt_t *c, uint32_t addr, uint8_t val, uint32_t pc) {
+  switch ((addr >> 8) & 0xff) {
+    case RuntLCD:
+      val = c->lcd_set_uint8(c->lcd_driver, (addr & 0xff), val);
+      break;
+    case RuntSerial:
+    case RuntIR:
+      val = runt_serial_set_value(c, addr, val);
+      break;
+    default:
+      fprintf(stderr, "Unsupported byte set in Runt for address:0x%08x\n", addr);
+      abort();
+      break;
+  }
+  
+  runt_log_access(c, addr, val, true);
+
+  return val;
+}
+
+uint8_t runt_get_mem8(runt_t *c, uint32_t addr, uint32_t pc) {
+  uint8_t result = 0;
+  switch ((addr >> 8) & 0xff) {
+    case RuntLCD:
+      result = c->lcd_get_uint8(c->lcd_driver, (addr & 0xff));
+      break;
+    case RuntSerial:
+    case RuntIR:
+      result = runt_serial_get_value(c, addr);
+      break;
+    default:
+      fprintf(stderr, "Unsupported byte set in Runt for address:0x%08x\n", addr);
+      abort();
+      break;
+  }
+
+  runt_log_access(c, addr, result, false);
+  return result;
+}
+
+
+#pragma mark -
 bool runt_step(runt_t *c) {
   if (c->runtAwake == false) {
     usleep(100);
@@ -861,11 +907,11 @@ void runt_set_log_file (runt_t *c, FILE *file) {
 #pragma mark -
 #pragma mark
 void runt_set_lcd_fct(runt_t *c, void *ext,
-            void *get32, void *set32, void *getname, void *step, void *powered)
+            void *get8, void *set8, void *getname, void *step, void *powered)
 {
   c->lcd_driver = ext;
-  c->lcd_get_uint32 = get32;
-  c->lcd_set_uint32 = set32;
+  c->lcd_get_uint8 = get8;
+  c->lcd_set_uint8 = set8;
   c->lcd_get_address_name = getname;
   c->lcd_step = step;
   c->lcd_powered = powered;
@@ -908,12 +954,12 @@ void runt_init (runt_t *c, int machineType) {
   //
   if (machineType == kGestalt_MachineType_Lindy) {
     lcd_squirt_t *squirt = lcd_squirt_new();
-    runt_set_lcd_fct(c, squirt, lcd_squirt_get_mem32, lcd_squirt_set_mem32, lcd_squirt_get_address_name, lcd_squirt_step, NULL);
+    runt_set_lcd_fct(c, squirt, lcd_squirt_get_mem8, lcd_squirt_set_mem8, lcd_squirt_get_address_name, lcd_squirt_step, NULL);
     c->lcd_driver = squirt;
   }
   else {
     lcd_sharp_t *sharp = lcd_sharp_new();
-    runt_set_lcd_fct(c, sharp, lcd_sharp_get_mem32, lcd_sharp_set_mem32, lcd_sharp_get_address_name, NULL, lcd_sharp_set_powered);
+    runt_set_lcd_fct(c, sharp, lcd_sharp_get_mem8, lcd_sharp_set_mem8, lcd_sharp_get_address_name, NULL, lcd_sharp_set_powered);
     c->lcd_driver = sharp;
   }
   

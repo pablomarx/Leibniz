@@ -61,7 +61,7 @@ enum {
 #define SCREEN_WIDTH 336
 #define SCREEN_HEIGHT 240
 
-const char *lcd_sharp_get_address_name(lcd_sharp_t *c, uint32_t addr) {
+const char *lcd_sharp_get_address_name(lcd_sharp_t *c, uint8_t addr) {
   if (addr >= 0x80) {
     addr -= 0x80;
   }
@@ -235,86 +235,85 @@ static inline void lcd_sharp_flush_framebuffer(lcd_sharp_t *c) {
   c->displayDirty = false;
 }
 
-uint32_t lcd_sharp_set_mem32(lcd_sharp_t *c, uint32_t addr, uint32_t val) {
+uint8_t lcd_sharp_set_mem8(lcd_sharp_t *c, uint8_t addr, uint8_t val) {
   if (addr >= 0x80) {
     addr -= 0x80;
   }
   
-  uint8_t byteVal = (val >> 24) & 0xff;
-  c->memory[addr/4] = byteVal;
+  c->memory[addr/4] = val;
   
   switch (addr) {
     case SharpLCDFillMode:
-      c->fillMode = byteVal;
+      c->fillMode = val;
       break;
       
     case SharpLCDContrast:
-      c->contrast = byteVal;
+      c->contrast = val;
       break;
     case SharpLCDBitMask:
-      c->bitMask = byteVal;
+      c->bitMask = val;
       break;
     case SharpLCDIDR:
-      c->idr = byteVal;
+      c->idr = val;
       break;
     case SharpLCDIDW:
-      c->idw = byteVal;
+      c->idw = val;
       break;
       
     case SharpLCDWriteX_l:
-      c->writeX = (c->writeX & 0xff00) | byteVal;
+      c->writeX = (c->writeX & 0xff00) | val;
       break;
     case SharpLCDWriteX_h:
-      c->writeX = (c->writeX & 0x00ff) | (byteVal << 8);
+      c->writeX = (c->writeX & 0x00ff) | (val << 8);
       break;
     case SharpLCDWriteY_l:
-      c->writeY = (c->writeY & 0xff00) | byteVal;
+      c->writeY = (c->writeY & 0xff00) | val;
       break;
     case SharpLCDWriteY_h:
-      c->writeY = (c->writeY & 0x00ff) | (byteVal << 8);
+      c->writeY = (c->writeY & 0x00ff) | (val << 8);
       break;
       
     case SharpLCDReadX_l:
-      c->readX = (c->readX & 0xff00) | byteVal;
+      c->readX = (c->readX & 0xff00) | val;
       break;
     case SharpLCDReadX_h:
-      c->readX = (c->readX & 0x00ff) | (byteVal << 8);
+      c->readX = (c->readX & 0x00ff) | (val << 8);
       break;
     case SharpLCDReadY_l:
-      c->readY = (c->readY & 0xff00) | byteVal;
+      c->readY = (c->readY & 0xff00) | val;
       break;
     case SharpLCDReadY_h:
-      c->readY = (c->readY & 0x00ff) | (byteVal << 8);
+      c->readY = (c->readY & 0x00ff) | (val << 8);
       break;
       
     case SharpLCDWindowLeft_l:
-      c->windowLeft = (c->windowLeft & 0xff00) | byteVal;
+      c->windowLeft = (c->windowLeft & 0xff00) | val;
       break;
     case SharpLCDWindowLeft_h:
-      c->windowLeft = (c->windowLeft & 0x00ff) | (byteVal << 8);
+      c->windowLeft = (c->windowLeft & 0x00ff) | (val << 8);
       break;
     case SharpLCDWindowTop_l:
-      c->windowTop = (c->windowTop & 0xff00) | byteVal;
+      c->windowTop = (c->windowTop & 0xff00) | val;
       break;
     case SharpLCDWindowTop_h:
-      c->windowTop = (c->windowTop & 0x00ff) | (byteVal << 8);
+      c->windowTop = (c->windowTop & 0x00ff) | (val << 8);
       break;
       
     case SharpLCDWindowRight_l:
-      c->windowRight = (c->windowRight & 0xff00) | byteVal;
+      c->windowRight = (c->windowRight & 0xff00) | val;
       break;
     case SharpLCDWindowRight_h:
-      c->windowRight = (c->windowRight & 0x00ff) | (byteVal << 8);
+      c->windowRight = (c->windowRight & 0x00ff) | (val << 8);
       break;
     case SharpLCDWindowBottom_l:
-      c->windowBottom = (c->windowBottom & 0xff00) | byteVal;
+      c->windowBottom = (c->windowBottom & 0xff00) | val;
       break;
     case SharpLCDWindowBottom_h:
-      c->windowBottom = (c->windowBottom & 0x00ff) | (byteVal << 8);
+      c->windowBottom = (c->windowBottom & 0x00ff) | (val << 8);
       break;
       
     case SharpLCDPixelData:
-      lcd_sharp_write_pixels(c, byteVal);
+      lcd_sharp_write_pixels(c, val);
       break;
       
     case SharpLCDFlush:
@@ -326,7 +325,7 @@ uint32_t lcd_sharp_set_mem32(lcd_sharp_t *c, uint32_t addr, uint32_t val) {
   return val;
 }
 
-uint32_t lcd_sharp_get_mem32(lcd_sharp_t *c, uint32_t addr) {
+uint8_t lcd_sharp_get_mem8(lcd_sharp_t *c, uint8_t addr) {
   if (addr >= 0x80) {
     addr -= 0x80;
   }
@@ -415,7 +414,7 @@ uint32_t lcd_sharp_get_mem32(lcd_sharp_t *c, uint32_t addr) {
       
   }
   
-  return (result << 24);
+  return result;
 }
 
 void lcd_sharp_set_powered (lcd_sharp_t *c, bool powered) {
