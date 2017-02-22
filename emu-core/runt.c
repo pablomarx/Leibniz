@@ -76,8 +76,8 @@ enum {
 
   RuntADCSourceTabletPositionX,
   RuntADCSourceTabletPositionY,
-  RuntADCSourceTabletUnknownX,
-  RuntADCSourceTabletUnknownY,
+  RuntADCSourceTabletPressureX,
+  RuntADCSourceTabletPressureY,
 };
 
 typedef struct {
@@ -94,8 +94,8 @@ static runt_adc_source_t runt_adc_sources[] = {
 
   { .mask = 0x000000ff, .test = 0x00000032, .val = RuntADCSourceTabletPositionX, .name = "TabletPositionX" },
   { .mask = 0x000000ff, .test = 0x0000000e, .val = RuntADCSourceTabletPositionY, .name = "TabletPositionY" },
-  { .mask = 0x000000ff, .test = 0x0000000a, .val = RuntADCSourceTabletUnknownY, .name = "TabletUnknownY" },
-  { .mask = 0x000000ff, .test = 0x000000a2, .val = RuntADCSourceTabletUnknownX, .name = "TabletUnknownX" },
+  { .mask = 0x000000ff, .test = 0x0000000a, .val = RuntADCSourceTabletPressureY, .name = "TabletPressureY" },
+  { .mask = 0x000000ff, .test = 0x000000a2, .val = RuntADCSourceTabletPressureX, .name = "TabletPressureX" },
 };
 
 static const char *runt_power_names[] = {
@@ -309,8 +309,8 @@ uint32_t runt_get_adc_value(runt_t *c) {
       //result = 0x666; // 11c, 53f
       result = 0x765; // 19c, 66f
       break;
-    case RuntADCSourceTabletUnknownY:
-    case RuntADCSourceTabletUnknownX:
+    case RuntADCSourceTabletPressureY:
+    case RuntADCSourceTabletPressureX:
     case RuntADCSourceTabletPositionY:
     case RuntADCSourceTabletPositionX:
     {
@@ -326,10 +326,10 @@ uint32_t runt_get_adc_value(runt_t *c) {
             // These two values need to differ by
             // 0x03e8 in order for Newton alignment
             // to accept the positions...
-          case RuntADCSourceTabletUnknownX:
+          case RuntADCSourceTabletPressureX:
             result = 0xfff;
             break;
-          case RuntADCSourceTabletUnknownY:
+          case RuntADCSourceTabletPressureY:
             result = 0xc17;
             break;
         }
@@ -969,8 +969,8 @@ bool runt_step(runt_t *c) {
     case RuntADCSourceThermistor:
     case RuntADCSourceTabletPositionX:
     case RuntADCSourceTabletPositionY:
-    case RuntADCSourceTabletUnknownX:
-    case RuntADCSourceTabletUnknownY:
+    case RuntADCSourceTabletPressureX:
+    case RuntADCSourceTabletPressureY:
       if (runt_interrupt_is_enabled(c, RuntInterruptADConverter) == true && runt_power_state_get_subsystem(c, RuntPowerADC) == true) {
         runt_interrupt_raise(c, RuntInterruptADConverter);
       }
