@@ -1428,7 +1428,8 @@ int newton_configure_runt(newton_t *c, memory_t *rom) {
   newton_install_memory_handler(c, 0x10000000, 0x0fffffff, pcmcia, pcmcia_get_mem32, pcmcia_set_mem32, NULL, NULL, pcmcia_del);
 
   // For PCMCIA control registers
-  newton_install_memory_handler(c, 0x70000000, 0x0fffffff, pcmcia, pcmcia_get_mem32, pcmcia_set_mem32, NULL, NULL, pcmcia_del);
+  // No delete, as the above will get it.
+  newton_install_memory_handler(c, 0x70000000, 0x0fffffff, pcmcia, pcmcia_get_mem32, pcmcia_set_mem32, NULL, NULL, NULL);
   
   return 0;
 }
@@ -1579,7 +1580,9 @@ void newton_free (newton_t *c)
   membank_t *membank = c->membanks;
   while(membank != NULL) {
     membank_t *next = membank->next;
-    membank->del(membank->context);
+    if (membank->del != NULL) {
+      membank->del(membank->context);
+    }
     free(membank);
     membank = next;
   }
