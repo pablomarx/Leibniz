@@ -8,6 +8,7 @@
 
 #include "runt.h"
 
+#include <ctype.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -585,7 +586,7 @@ const char *runt_serial_get_parity_description(uint8_t val) {
 }
 
 void runt_serial_raise_interrupt_for_port(runt_t *c, uint8_t port) {
-
+  runt_interrupt_raise(c, RuntInterruptSerial);
 }
 
 uint8_t runt_serial_port_get_config(runt_t *c, uint8_t port) {
@@ -636,9 +637,6 @@ uint32_t runt_serial_get_value(runt_t *c, uint32_t addr) {
     if (runt_serial_should_log_port(c, port) == true) {
       fprintf(c->logFile, "[%s:TXBYTE] Unexpected read from TX register\n", port ? "SERIAL" : "IR");
     }
-  }
-  else if (reg == 0) {
-    result = 3;
   }
   else if (reg == RuntSerialConfig) {
     result = runt_serial_port_get_config(c, port);
@@ -715,7 +713,7 @@ uint32_t runt_serial_port_set_config(runt_t *c, uint8_t port, uint8_t val) {
 
 uint8_t runt_serial_port_transmit(runt_t *c, uint8_t port, uint8_t val) {
   if (runt_serial_should_log_port(c, port) == true) {
-    fprintf(c->logFile, "[%s:TXBYTE] 0x%02x = '%c'\n", port ? "SERIAL" : "IR", val & 0xff, val & 0xff);
+    fprintf(c->logFile, "[%s:TXBYTE] 0x%02x = '%c'\n", port ? "SERIAL" : "IR", val, isalnum(val) ? val : ' ');
   }
   
   runt_serial_raise_interrupt_for_port(c, port);
@@ -747,10 +745,7 @@ uint32_t runt_serial_set_value(runt_t *c, uint32_t addr, uint32_t val) {
     return runt_serial_port_set_config(c, port, byteVal);
   }
   else if (reg == 0) {
-    if (byteVal == 0x05) {
-      val = 0x03;
-      runt_serial_raise_interrupt_for_port(c, port);
-    }
+
   }
   
   return val;
