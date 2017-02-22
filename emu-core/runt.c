@@ -643,6 +643,11 @@ uint32_t runt_serial_get_value(runt_t *c, uint32_t addr) {
   else if (reg == RuntSerialConfig) {
     result = runt_serial_port_get_config(c, port);
   }
+  else {
+    if ((addr & 3) == 0) {
+      result = c->memory[(addr - 0x01400000) / 4];
+    }
+  }
 
   return result;
 }
