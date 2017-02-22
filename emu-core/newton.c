@@ -118,17 +118,77 @@ void newton_dump_task(newton_t *c, uint32_t taskAddr) {
       );
 }
 
-#pragma mark - Memory access
-uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
+#pragma mark - Memory helpers
+static inline membank_t* newton_get_membank_for_address(newton_t *c, uint32_t addr) {
+  membank_t *membank = c->membanks;
+  while (membank != NULL) {
+    if (addr >= membank->base && addr < membank->base + membank->length) {
+      return membank;
+    }
+    else {
+      membank = membank->next;
+    }
+  }
+
+  fprintf(c->logFile, "UNKNOWN MEMORY READ: 0x%08x, PC=0x%08x\n", addr, arm_get_pc(c->arm));
+  if (c->breakOnUnknownMemory) {
+    newton_stop(c);
+  }
+  
+  return NULL;
+}
+
+static inline bool newton_has_breakpoint_at_address(newton_t *c, uint32_t addr, bp_type type) {
   bp_entry_t *bp = c->breakpoints;
   while (bp != NULL) {
-    if (bp->type == BP_READ && bp->addr == addr) {
-      fprintf(c->logFile, "\n\nAddress 0x%08x read from PC 0x%08x\n", addr, arm_get_pc(c->arm));
-      newton_stop(c);
-      break;
+    if (bp->type == type && bp->addr == addr) {
+      return true;
     }
     bp = bp->next;
   }
+  return false;
+}
+
+static inline void newton_get_mem_entry(newton_t *c, uint32_t addr) {
+  if (newton_has_breakpoint_at_address(c, addr, BP_READ) == true) {
+    fprintf(c->logFile, "\n\nAddress 0x%08x read from PC 0x%08x\n", addr, arm_get_pc(c->arm));
+    newton_stop(c);
+  }
+}
+
+static inline void newton_get_mem_exit(newton_t *c, uint32_t addr, uint32_t result) {
+  if (c->memTrace == true) {
+    if (addr != arm_get_pc(c->arm)) {
+      const char *symName = newton_get_symbol_for_address(c, addr);
+      if (symName == NULL) {
+        symName = "";
+      }
+      fprintf(c->logFile, "GET: 0x%08x %s => 0x%08x, PC=0x%08x\n", addr, symName, result, arm_get_pc(c->arm));
+    }
+  }
+}
+
+static inline void newton_set_mem_entry(newton_t *c, uint32_t addr, uint32_t val) {
+  if (newton_has_breakpoint_at_address(c, addr, BP_WRITE) == true) {
+    fprintf(c->logFile, "\n\nAddress 0x%08x changed from:0x%08x to:0x%08x from PC 0x%08x\n", addr, newton_get_mem32(c, addr), val, arm_get_pc(c->arm));
+    newton_stop(c);
+  }
+}
+
+static inline void newton_set_mem_exit(newton_t *c, uint32_t addr, uint32_t val) {
+  if (c->memTrace == true) {
+    const char *symName = newton_get_symbol_for_address(c, addr);
+    if (symName == NULL) {
+      symName = "";
+    }
+    fprintf(c->logFile, "SET: 0x%08x %s => 0x%08x, PC=0x%08x\n", addr, symName, val, arm_get_pc(c->arm));
+  }
+}
+
+
+#pragma mark - Memory access
+uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
+  newton_get_mem_entry(c, addr);
   
   if (addr % 4 != 0) {
     fprintf(c->logFile, "misaligned read access: 0x%08x, PC: 0x%08x\n", addr, arm_get_pc(c->arm));
@@ -145,112 +205,88 @@ uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
     result = c->newtConfig;
   }
   else {
-    membank_t *membank = c->membanks;
-    while (membank != NULL) {
-      if (addr >= membank->base && addr < membank->base + membank->length) {
-        result = membank->get_uint32(membank->context, addr, arm_get_pc(c->arm));
-        break;
-      }
-      else {
-        membank = membank->next;
-      }
-    }
-    
-    if (membank == NULL) {
-      fprintf(c->logFile, "UNKNOWN MEMORY READ: 0x%08x, PC=0x%08x\n", addr, arm_get_pc(c->arm));
-      if (c->breakOnUnknownMemory) {
-        newton_stop(c);
-      }
+    membank_t *membank = newton_get_membank_for_address(c, addr);
+    if (membank != NULL) {
+      result = membank->get_uint32(membank->context, addr, arm_get_pc(c->arm));
     }
   }
   
-  if (c->memTrace == true) {
-    if (addr != arm_get_pc(c->arm)) {
-      const char *symName = newton_get_symbol_for_address(c, addr);
-      if (symName == NULL) {
-        symName = "";
-      }
-      fprintf(c->logFile, "GET: 0x%08x %s => 0x%08x, PC=0x%08x\n", addr, symName, result, arm_get_pc(c->arm));
-    }
-  }
+  newton_get_mem_exit(c, addr, result);
   
   return result;
 }
 
-uint8_t newton_get_mem8 (newton_t *c, uint32_t addr) {
-  int bytenum = addr & 3;
-  uint32_t word = newton_get_mem32(c, addr - bytenum);
+uint32_t newton_set_mem32 (newton_t *c, uint32_t addr, uint32_t val) {
+  newton_set_mem_entry(c, addr, val);
+
+  membank_t *membank = newton_get_membank_for_address(c, addr);
+  if (membank != NULL) {
+    val = membank->set_uint32(membank->context, addr, val, arm_get_pc(c->arm));
+  }
+
+  newton_set_mem_exit(c, addr, val);
   
-  word >>= ((3-bytenum) * 8);
-  uint8_t result = (word & 0xff);
+  return val;
+}
+
+uint8_t newton_get_mem8 (newton_t *c, uint32_t addr) {
+  uint8_t result = 0;
+
+  newton_get_mem_entry(c, addr);
+  
+  membank_t *membank = newton_get_membank_for_address(c, addr);
+  if (membank != NULL && membank->get_uint8 != NULL) {
+    result = membank->get_uint8(membank->context, addr, arm_get_pc(c->arm));
+  }
+  else {
+    int bytenum = addr & 3;
+    uint32_t word = newton_get_mem32(c, addr - bytenum);
+    
+    word >>= ((3-bytenum) * 8);
+    result = (word & 0xff);
+  }
+  
+  newton_get_mem_exit(c, addr, result);
+
   return result;
 }
+
+uint8_t newton_set_mem8 (newton_t *c, uint32_t addr, uint8_t val) {
+  uint8_t result = val;
+  newton_set_mem_entry(c, addr, val);
+
+  membank_t *membank = newton_get_membank_for_address(c, addr);
+  if (membank != NULL && membank->set_uint8 != NULL) {
+    result = membank->set_uint8(membank->context, addr, val, arm_get_pc(c->arm));
+  }
+  else {
+    static const unsigned masktab[] = {
+      0x00ffffff, 0xff00ffff, 0xffff00ff, 0xffffff00
+    };
+    
+    int bytenum = addr & 3;
+    uint32_t aligned = addr - bytenum;
+    uint32_t mask = masktab[bytenum];
+    uint32_t word = newton_get_mem32(c, aligned);
+    
+    uint32_t newval = word & mask;
+    newval |= (val << ((3 - (bytenum)) * 8));
+    
+    newton_set_mem32(c, aligned, newval);
+  }
+  
+  newton_set_mem_exit(c, addr, result);
+  
+  return val;
+}
+
 
 uint16_t newton_get_mem16 (newton_t *c, uint32_t addr) {
   abort();
 }
 
-uint8_t newton_set_mem8 (newton_t *c, uint32_t addr, uint8_t val) {
-  static const unsigned masktab[] = {
-    0x00ffffff, 0xff00ffff, 0xffff00ff, 0xffffff00
-  };
-  
-  uint32_t aligned = addr - (addr & 3);
-  uint32_t mask = masktab[addr & 3];
-  uint32_t word = newton_get_mem32(c, aligned);
-  
-  uint32_t newval = word & mask;
-  newval |= (val << ((3 - (addr & 3)) * 8));
-  
-  newton_set_mem32(c, aligned, newval);
-  
-  return val;
-}
-
 uint16_t newton_set_mem16 (newton_t *c, uint32_t addr, uint16_t val) {
   abort();
-}
-
-uint32_t newton_set_mem32 (newton_t *c, uint32_t addr, uint32_t val) {
-  uint32_t oldval = 0;
-  
-  bp_entry_t *bp = c->breakpoints;
-  while (bp != NULL) {
-    if (bp->type == BP_WRITE && bp->addr == addr) {
-      fprintf(c->logFile, "\n\nAddress 0x%08x changed from:0x%08x to:0x%08x from PC 0x%08x\n", addr, newton_get_mem32(c, addr), val, arm_get_pc(c->arm));
-      newton_stop(c);
-      break;
-    }
-    bp = bp->next;
-  }
-  
-  membank_t *membank = c->membanks;
-  while (membank != NULL) {
-    if (addr >= membank->base && addr < membank->base + membank->length) {
-      val = membank->set_uint32(membank->context, addr, val, arm_get_pc(c->arm));
-      break;
-    }
-    else {
-      membank = membank->next;
-    }
-  }
-  
-  if (membank == NULL) {
-    fprintf(c->logFile, "UNKNOWN MEMORY SET: 0x%08x => 0x%08x, PC=0x%08x\n", addr, val, arm_get_pc(c->arm));
-    if (c->breakOnUnknownMemory) {
-      newton_stop(c);
-    }
-  }
-  
-  if (c->memTrace == true) {
-    const char *symName = newton_get_symbol_for_address(c, addr);
-    if (symName == NULL) {
-      symName = "";
-    }
-    fprintf(c->logFile, "SET: 0x%08x %s => 0x%08x (was 0x%08x), PC=0x%08x\n", addr, symName, val, oldval, arm_get_pc(c->arm));
-  }
-  
-  return val;
 }
 
 #pragma mark -
@@ -1284,17 +1320,21 @@ void newton_init (newton_t *c)
 }
 
 void newton_install_memory_handler(newton_t *c,
-                   uint32_t base,
-                   uint32_t length,
-                   void *context,
-                   void *getuint32,
-                   void *setuint32,
-                   void *del)
+                                   uint32_t base,
+                                   uint32_t length,
+                                   void *context,
+                                   void *getuint32,
+                                   void *setuint32,
+                                   void *getuint8,
+                                   void *setuint8,
+                                   void *del)
 {
   membank_t *bank = calloc(sizeof(membank_t), 1);
   bank->context = context;
   bank->set_uint32 = setuint32;
   bank->get_uint32 = getuint32;
+  bank->set_uint8 = setuint8;
+  bank->get_uint8 = getuint8;
   bank->del = del;
   
   bank->base = base;
@@ -1305,7 +1345,11 @@ void newton_install_memory_handler(newton_t *c,
 }
 
 void newton_install_memory(newton_t *c, memory_t *memory, uint32_t base, uint32_t length) {
-  newton_install_memory_handler(c, base, length, memory, memory_get_uint32, memory_set_uint32, memory_delete);
+  newton_install_memory_handler(c, base, length,
+                                memory,
+                                memory_get_uint32, memory_set_uint32,
+                                memory_get_uint8, memory_set_uint8,
+                                memory_delete);
 }
 
 
@@ -1372,7 +1416,7 @@ int newton_configure_runt(newton_t *c, memory_t *rom) {
   c->runt = runt_new(c->machineType);
   runt_set_arm(c->runt, c->arm);
   runt_set_log_file(c->runt, c->logFile);
-  newton_install_memory_handler(c, 0x01400000, 0x00400000, c->runt, runt_get_mem32, runt_set_mem32, runt_del);
+  newton_install_memory_handler(c, 0x01400000, 0x00400000, c->runt, runt_get_mem32, runt_set_mem32, NULL, NULL, runt_del);
   
   // Configure pcmcia handler
   pcmcia_t *pcmcia = pcmcia_new();
@@ -1381,10 +1425,10 @@ int newton_configure_runt(newton_t *c, memory_t *rom) {
   c->pcmcia = pcmcia;
   
   // For PCMCIA card access (yes, a 512MB region...)
-  newton_install_memory_handler(c, 0x10000000, 0x0fffffff, pcmcia, pcmcia_get_mem32, pcmcia_set_mem32, pcmcia_del);
+  newton_install_memory_handler(c, 0x10000000, 0x0fffffff, pcmcia, pcmcia_get_mem32, pcmcia_set_mem32, NULL, NULL, pcmcia_del);
 
   // For PCMCIA control registers
-  newton_install_memory_handler(c, 0x70000000, 0x0fffffff, pcmcia, pcmcia_get_mem32, pcmcia_set_mem32, pcmcia_del);
+  newton_install_memory_handler(c, 0x70000000, 0x0fffffff, pcmcia, pcmcia_get_mem32, pcmcia_set_mem32, NULL, NULL, pcmcia_del);
   
   return 0;
 }

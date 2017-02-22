@@ -78,6 +78,8 @@ typedef int32_t (*newton_do_sys_set_input_notify_f) (void *ext, uint32_t fildes,
 //
 typedef uint32_t (*membank_set_uint32_f) (void *ext, uint32_t addr, uint32_t val, uint32_t pc);
 typedef uint32_t (*membank_get_uint32_f) (void *ext, uint32_t addr, uint32_t pc);
+typedef uint8_t (*membank_set_uint8_f) (void *ext, uint32_t addr, uint8_t val, uint32_t pc);
+typedef uint8_t (*membank_get_uint8_f) (void *ext, uint32_t addr, uint32_t pc);
 typedef void (*membank_del_f) (void *ext);
 
 typedef struct membank_s membank_t;
@@ -88,6 +90,8 @@ struct membank_s {
   void *context;
   membank_get_uint32_f get_uint32;
   membank_set_uint32_f set_uint32;
+  membank_get_uint8_f get_uint8;
+  membank_set_uint8_f set_uint8;
   membank_del_f del;
   
   membank_t *next;

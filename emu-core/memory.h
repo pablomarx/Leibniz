@@ -46,4 +46,7 @@ FILE *memory_get_log_file(memory_t *mem);
 uint32_t memory_get_uint32(memory_t *mem, uint32_t address, uint32_t pc);
 uint32_t memory_set_uint32(memory_t *mem, uint32_t address, uint32_t val, uint32_t pc);
 
+uint8_t memory_get_uint8(memory_t *mem, uint32_t address, uint32_t pc);
+uint8_t memory_set_uint8(memory_t *mem, uint32_t address, uint8_t val, uint32_t pc);
+
 #endif /* memory_h */

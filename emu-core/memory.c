@@ -92,3 +92,48 @@ uint32_t memory_set_uint32(memory_t *mem, uint32_t address, uint32_t val, uint32
   
   return val;
 }
+
+uint8_t memory_get_uint8(memory_t *mem, uint32_t addr, uint32_t pc) {
+  int bytenum = addr & 3;
+  uint32_t aligned = addr - (bytenum);
+
+  uint32_t word = mem->contents[((aligned - mem->base) % mem->length)/4];
+  word >>= ((3-bytenum) * 8);
+
+  uint8_t result = (word & 0xff);
+  
+  if (mem->logsReads == true) {
+    fprintf(mem->logFile, "[%s:READ] PC:0x%08x addr:0x%08x => val:0x%02x\n", mem->name, pc, addr, result);
+  }
+
+  return result;
+}
+
+uint8_t memory_set_uint8(memory_t *mem, uint32_t addr, uint8_t val, uint32_t pc) {
+  static const unsigned masktab[] = {
+    0x00ffffff, 0xff00ffff, 0xffff00ff, 0xffffff00
+  };
+  
+  int bytenum = addr & 3;
+  uint32_t aligned = addr - bytenum;
+  uint32_t mask = masktab[addr & 3];
+  
+  uint32_t word = mem->contents[((aligned - mem->base) % mem->length)/4];
+  
+  uint32_t newval = word & mask;
+  newval |= (val << ((3 - bytenum) * 8));
+  
+  if (mem->logsWrites == true) {
+    fprintf(mem->logFile, "[%s:WRITE] PC:0x%08x addr:0x%08x => val:0x%02x\n", mem->name, pc, addr, val);
+  }
+  
+  if (mem->readOnly == true) {
+    fprintf(mem->logFile, "[%s:WRITE] Attempted write to read-only memory! PC:0x%08x addr:0x%08x => val:0x%02x\n", mem->name, pc, addr, val);
+  }
+  else {
+    mem->contents[((aligned - mem->base) % mem->length)/4] = newval;
+  }
+
+  
+  return val;
+}
