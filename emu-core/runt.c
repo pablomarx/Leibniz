@@ -47,17 +47,25 @@ enum {
   RuntSound = 0x64,
   
   RuntIR = 0x80,
-    RuntIRConfig = 0x08,
-    RuntIRData   = 0x04,
+    RuntIRConfig = 0x0b,
+    RuntIRTxByte   = 0x07,
   
   RuntSerial = 0x81,
-    RuntSerialConfig = 0x08,
-    RuntSerialTxByte = 0x04,
+    RuntSerialConfig = 0x0b,
+    RuntSerialTxByte = 0x07,
     
   RuntSoundDMA1Base = 0xb0,
   RuntSoundDMA1Length = 0xb4,
   RuntSoundDMA2Base = 0xc0,
   RuntSoundDMA2Length = 0xc4,
+};
+
+enum {
+  RuntSerialRegTxEmpty = 0x00,
+  RuntSerialRegRxEmpty = 0x01,
+  RuntSerialRegParityStopBits = 0x04,
+  RuntSerialRegTxError = 0x08,
+  RuntSerialRegBaud = 0x0c,
 };
 
 enum {
@@ -102,6 +110,8 @@ static const char *runt_interrupt_names[] = {
   "serial", "tablet", "sound-dma", NULL, NULL, NULL, NULL, NULL,
   "power-fault", "battery-removed", NULL, NULL, NULL, NULL, NULL, NULL,
 };
+
+#pragma mark -
 
 void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
   const char *prefix = NULL;
@@ -163,7 +173,7 @@ void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
         case RuntIRConfig:
           prefix = "ir-config";
           break;
-        case RuntIRData:
+        case RuntIRTxByte:
           prefix = "ir-data";
           break;
         default:
@@ -533,8 +543,7 @@ void runt_switch_toggle(runt_t *c, int switchNum) {
 }
 
 #pragma mark - Serial
-static inline bool runt_serial_should_log(runt_t *c, uint32_t addr) {
-  uint8_t port = ((addr >> 8) & 0xf);
+static inline bool runt_serial_should_log_port(runt_t *c, uint8_t port) {
   if (port == 0) {
     return ((c->logFlags & RuntLogIR) == RuntLogIR);
   }
@@ -584,23 +593,151 @@ void runt_serial_raise_interrupt_for_port(runt_t *c, uint8_t port) {
   }
 }
 
+uint8_t runt_serial_port_get_config(runt_t *c, uint8_t port) {
+  uint8_t result = 0;
+  
+  runt_serial_port_t *config = NULL;
+  if (port == 0) {
+    config = c->irPort;
+  }
+  else {
+    config = c->serialPort;
+  }
+  
+  if (config->state != 1 && runt_serial_should_log_port(c, port) == true) {
+    fprintf(c->logFile, "[%s:CONFIG:GETVAL] Unexpected state %i\n", port ? "SERIAL" : "IR", config->state);
+  }
+  
+  if (config->loadedReg > countof(config->registers)) {
+    fprintf(c->logFile, "[%s:CONFIG:GETVAL] Bad loaded register #%i\n", port ? "SERIAL" : "IR", config->loadedReg);
+  }
+  else {
+    result = config->registers[config->loadedReg];
+  }
+  
+  // If these return 0, diags will angrily loop
+  // Perhaps they're tx/rx buffer empty?
+  if (config->loadedReg == RuntSerialRegTxEmpty || config->loadedReg == RuntSerialRegRxEmpty) {
+    if (result == 0) {
+      config->registers[config->loadedReg] = 0xff;
+    }
+  }
+  
+  if (runt_serial_should_log_port(c, port) == true) {
+    fprintf(c->logFile, "[%s:CONFIG:GETVAL] reg:0x%02x => 0x%02x\n", port ? "SERIAL" : "IR", config->loadedReg, result);
+  }
+  
+  
+  config->state = 0;
+  return result;
+}
+
 uint32_t runt_serial_get_value(runt_t *c, uint32_t addr) {
   uint32_t result = 0;
   uint8_t reg = (addr & 0xff);
-  
+  uint8_t port = ((addr >> 8) & 0xf);
+
   if (reg == RuntSerialTxByte) {
-    
-  }
-  else if (reg == RuntSerialConfig) {
-    if (result == 0x00) {
-      result = 0xff;
+    if (runt_serial_should_log_port(c, port) == true) {
+      fprintf(c->logFile, "[%s:TXBYTE] Unexpected read from TX register\n", port ? "SERIAL" : "IR");
     }
   }
-  else {
+  else if (reg == 0) {
     result = 3;
+  }
+  else if (reg == RuntSerialConfig) {
+    result = runt_serial_port_get_config(c, port);
   }
 
   return result;
+}
+
+uint32_t runt_serial_port_set_config(runt_t *c, uint8_t port, uint8_t val) {
+  runt_serial_port_t *config = NULL;
+  if (port == 0) {
+    config = c->irPort;
+  }
+  else {
+    config = c->serialPort;
+  }
+  
+  // Loading a register
+  if (config->state == 0) {
+    config->loadedReg = val;
+    config->state = 1;
+    if (runt_serial_should_log_port(c, port) == true) {
+      fprintf(c->logFile, "[%s:CONFIG:LOADREG] reg:0x%02x ", port ? "SERIAL" : "IR", val);
+      switch (config->loadedReg) {
+        case RuntSerialRegBaud:
+          fprintf(c->logFile, "baud rate?");
+          break;
+        case RuntSerialRegParityStopBits:
+          fprintf(c->logFile, "parity/stop bits ?");
+          break;
+        case RuntSerialRegTxEmpty:
+          fprintf(c->logFile, "tx buffer empty ?");
+          break;
+        case RuntSerialRegRxEmpty:
+          fprintf(c->logFile, "rx buffer empty ?");
+          break;
+        case RuntSerialRegTxError:
+          fprintf(c->logFile, "tx error ?");
+          break;
+      }
+      fprintf(c->logFile, "\n");
+    }
+    return val;
+  }
+
+  // Setting a loaded register's value
+  config->state = 0;
+  uint8_t loadedReg = config->loadedReg;
+  
+  if (loadedReg > countof(config->registers)) {
+    fprintf(c->logFile, "[%s:CONFIG:SETVAL] Bad loaded register #%i\n", port ? "SERIAL" : "IR", config->loadedReg);
+  }
+  else {
+    config->registers[loadedReg] = val;
+  }
+  
+  if (runt_serial_should_log_port(c, port) == true) {
+    fprintf(c->logFile, "[%s:CONFIG:SETVAL] reg:0x%02x => 0x%02x ", port ? "SERIAL" : "IR", loadedReg, val);
+    
+    switch (loadedReg) {
+      case RuntSerialRegBaud:
+        fprintf(c->logFile, "baud rate? %s", runt_serial_get_baud_description(val));
+        break;
+      case RuntSerialRegParityStopBits:
+        fprintf(c->logFile, "%s ?", runt_serial_get_parity_description(val));
+        break;
+    }
+    
+    fprintf(c->logFile, "\n");
+  }
+  
+  return val;
+}
+
+uint8_t runt_serial_port_transmit(runt_t *c, uint8_t port, uint8_t val) {
+  if (runt_serial_should_log_port(c, port) == true) {
+    fprintf(c->logFile, "[%s:TXBYTE] 0x%02x = '%c'\n", port ? "SERIAL" : "IR", val & 0xff, val & 0xff);
+  }
+  
+  runt_serial_raise_interrupt_for_port(c, port);
+  
+  runt_serial_port_t *config = NULL;
+  if (port == 0) {
+    config = c->irPort;
+  }
+  else {
+    config = c->serialPort;
+  }
+
+  // We'll claim to be full, which runt_serial_port_get_config()
+  // will return once, before flipping it back to empty.
+  config->registers[RuntSerialRegTxEmpty] = 0x00;
+  
+  return val;
 }
 
 uint32_t runt_serial_set_value(runt_t *c, uint32_t addr, uint32_t val) {
@@ -609,45 +746,10 @@ uint32_t runt_serial_set_value(runt_t *c, uint32_t addr, uint32_t val) {
   uint8_t byteVal = (val & 0xff);
 
   if (reg == RuntSerialTxByte) {
-    if (runt_serial_should_log(c, addr) == true) {
-      fprintf(c->logFile, "[%s:TXBYTE] 0x%02x = '%c'\n", port ? "SERIAL" : "IR", val & 0xff, val & 0xff);
-    }
-    
-    runt_serial_raise_interrupt_for_port(c, port);
+    return runt_serial_port_transmit(c, port, val);
   }
   else if (reg == RuntSerialConfig) {
-    uint32_t *configReg = NULL;
-    if (port == 0) {
-      configReg = &c->irConfigReg;
-    }
-    else {
-      configReg = &c->serialConfigReg;
-    }
-    
-    if (*configReg == 0) {
-      *configReg = byteVal;
-    }
-    else {
-      if (runt_serial_should_log(c, addr) == true) {
-        fprintf(c->logFile, "[%s:CONFIG] reg:0x%02x => 0x%02x ", port ? "SERIAL" : "IR", *configReg, byteVal);
-
-        switch (*configReg) {
-          case 0x0c:
-            fprintf(c->logFile, "baud rate? %s", runt_serial_get_baud_description(byteVal));
-            break;
-          case 0x04:
-            fprintf(c->logFile, "%s ?", runt_serial_get_parity_description(byteVal));
-            break;
-          case 0x08:
-            fprintf(c->logFile, "flush?");
-            break;
-        }
-        
-        fprintf(c->logFile, "\n");
-
-      }
-      *configReg = 0x00;
-    }
+    return runt_serial_port_set_config(c, port, byteVal);
   }
   else if (reg == 0) {
     if (byteVal == 0x05) {
@@ -802,6 +904,8 @@ uint8_t runt_set_mem8(runt_t *c, uint32_t addr, uint8_t val, uint32_t pc) {
     case RuntIR:
       val = runt_serial_set_value(c, addr, val);
       break;
+    case RuntADCValue:
+      break;
     default:
       fprintf(stderr, "Unsupported byte set in Runt for address:0x%08x\n", addr);
       abort();
@@ -934,6 +1038,9 @@ void runt_reset(runt_t *c) {
   
   c->interrupt = 0;
   c->interruptStick = 0;
+  
+  memset(c->irPort, 0x00, sizeof(runt_serial_port_t));
+  memset(c->serialPort, 0x00, sizeof(runt_serial_port_t));
 }
 
 void runt_init (runt_t *c, int machineType) {
@@ -963,6 +1070,11 @@ void runt_init (runt_t *c, int machineType) {
     c->lcd_driver = sharp;
   }
   
+  //
+  // Serial
+  //
+  c->irPort = calloc(1, sizeof(runt_serial_port_t));
+  c->serialPort = calloc(1, sizeof(runt_serial_port_t));
   
   //
   // Logging
@@ -1003,6 +1115,8 @@ void runt_set_arm(runt_t *c, arm_t *arm) {
 
 void runt_free (runt_t *c) {
   free(c->memory);
+  free(c->irPort);
+  free(c->serialPort);
   
   if (c->lcd_driver != NULL) {
     if (c->machineType == kGestalt_MachineType_Lindy) {

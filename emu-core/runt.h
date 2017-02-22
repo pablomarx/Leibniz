@@ -83,6 +83,12 @@ typedef const char * (*lcd_get_address_name_f) (void *ext, uint8_t addr);
 typedef void (*lcd_set_powered_f)(void *ext, bool powered);
 typedef void (*lcd_step_f)(void *ext);
 
+typedef struct runt_serial_port_s {
+  uint8_t registers[20];
+  uint8_t loadedReg;
+  uint8_t state;
+} runt_serial_port_t;
+
 typedef struct runt_s {
   arm_t *arm;
   uint32_t *memory;
@@ -99,8 +105,8 @@ typedef struct runt_s {
   uint32_t ticksAlarm3;
   int32_t adcSource;
   
-  uint32_t irConfigReg;
-  uint32_t serialConfigReg;
+  runt_serial_port_t *irPort;
+  runt_serial_port_t *serialPort;
   
   // Logging
   uint32_t logFlags;
