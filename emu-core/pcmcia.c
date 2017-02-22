@@ -77,6 +77,9 @@ void pcmcia_set_runt (pcmcia_t *c, runt_t *runt) {
 void pcmcia_set_card_inserted (pcmcia_t *c, bool cardInserted) {
   c->cardInserted = cardInserted;
 
+  if (cardInserted == false) {
+    runt_interrupt_raise(c->runt, RuntInterruptCardLock);
+  }
   runt_interrupt_raise(c->runt, RuntInterruptTric);
 }
 
@@ -158,15 +161,18 @@ uint32_t pcmcia_get_status_mem32(pcmcia_t *c, uint32_t addr) {
       bool vpp1 = runt_power_state_get_subsystem(c->runt, RuntPowerVPP1);
       bool vpp2 = runt_power_state_get_subsystem(c->runt, RuntPowerVPP2);
 
-      // Diags needs this to pass the VPP tests.  It's admittedly
-      // weird.  It came from inferred behavior of func 0x001d6e28 in the Notepad ROM.
-      // result = (vpp2 << 2) | (!vpp1 << 3) | (vpp1 << 4) | (!vpp2 << 5);
-      
-      // However the inclusion of (!vpp2 << 5) causes diags to fail "IC CARD SRAM"
-      // and it causes NewtonOS to report  the card is write protected, refusing to
-      // format it.
-      // so bit6 certainly seems to be write protect...
-      result = (!vpp1 << 3) | (vpp1 << 4) | (vpp2 << 2);
+      if (c->cardInserted == false) {
+        // Diags needs this to pass the VPP tests.  It's admittedly
+        // weird.  It came from inferred behavior of func 0x001d6e28 in the Notepad ROM.
+        result = (vpp2 << 2) | (!vpp1 << 3) | (vpp1 << 4) | (!vpp2 << 5);
+      }
+      else {
+        // However the inclusion of (!vpp2 << 5) causes diags to fail "IC CARD SRAM"
+        // and it causes NewtonOS to report  the card is write protected, refusing to
+        // format it.
+        // so bit6 certainly seems to be write protect...
+        result = (!vpp1 << 3) | (vpp1 << 4) | (vpp2 << 2);
+      }
     }
     else if (reg58 == 0x00 || reg58 == 0x0a) {
       // Diags sets reg58 to 0x00 and reads here during
