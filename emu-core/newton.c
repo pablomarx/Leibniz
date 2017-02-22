@@ -1404,7 +1404,14 @@ int newton_configure_runt(newton_t *c, memory_t *rom) {
   if (flashSize > 0) {
     // Configure flash
     memory_t *flash = memory_new("FLASH", 0x01200000, flashSize);
+    // This is the identification code for some AMD flash
+    // (29F040, 28F008).  If this is written, and read-only
+    // is set, booting into Lindy 120/130 diags will show these
+    // product codes.
+#if 0
     memory_set_uint32(flash, 0x04, 0x00a4a200, 0);
+    memory_set_readonly(flash, true);
+#endif
     //memory_set_logs_reads(flash, true);
     //memory_set_logs_writes(flash, true);
     newton_install_memory(c, flash, 0x01200000, 2 * 1024 * 1024);
