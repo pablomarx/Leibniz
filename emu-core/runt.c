@@ -600,27 +600,29 @@ uint8_t runt_serial_port_get_config(runt_t *c, uint8_t port) {
     config = c->serialPort;
   }
   
+  uint8_t loadedReg = config->loadedReg;
   if (config->state != 1 && runt_serial_should_log_port(c, port) == true) {
-    fprintf(c->logFile, "[%s:CONFIG:GETVAL] Unexpected state %i\n", port ? "SERIAL" : "IR", config->state);
+    fprintf(c->logFile, "[%s:CONFIG:GETVAL] Unexpected state %i, defaulting to reg 0\n", port ? "SERIAL" : "IR", config->state);
+    loadedReg = 0;
   }
   
-  if (config->loadedReg > countof(config->registers)) {
-    fprintf(c->logFile, "[%s:CONFIG:GETVAL] Bad loaded register #%i\n", port ? "SERIAL" : "IR", config->loadedReg);
+  if (loadedReg > countof(config->registers)) {
+    fprintf(c->logFile, "[%s:CONFIG:GETVAL] Bad loaded register #%i\n", port ? "SERIAL" : "IR", loadedReg);
   }
   else {
-    result = config->registers[config->loadedReg];
+    result = config->registers[loadedReg];
   }
   
   // If these return 0, diags will angrily loop
   // Perhaps they're tx/rx buffer empty?
-  if (config->loadedReg == RuntSerialRegTxEmpty || config->loadedReg == RuntSerialRegRxEmpty) {
+  if (loadedReg == RuntSerialRegTxEmpty || loadedReg == RuntSerialRegRxEmpty) {
     if (result == 0) {
-      config->registers[config->loadedReg] = 0xff;
+      config->registers[loadedReg] = 0xff;
     }
   }
   
   if (runt_serial_should_log_port(c, port) == true) {
-    fprintf(c->logFile, "[%s:CONFIG:GETVAL] reg:0x%02x => 0x%02x\n", port ? "SERIAL" : "IR", config->loadedReg, result);
+    fprintf(c->logFile, "[%s:CONFIG:GETVAL] reg:0x%02x => 0x%02x\n", port ? "SERIAL" : "IR", loadedReg, result);
   }
   
   
