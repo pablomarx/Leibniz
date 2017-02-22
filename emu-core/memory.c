@@ -13,9 +13,10 @@
 
 memory_t *memory_new(char *name, uint32_t base, uint32_t length) {
   memory_t *mem = calloc(1, sizeof(memory_t));
-  mem->base = base;
   mem->contents = calloc(length, sizeof(uint8_t));
-  mem->length = length;
+  
+  memory_add_mapping(mem, base, 0, length);
+
   mem->logFile = stdout;
 
   if (name != NULL) {
@@ -27,13 +28,26 @@ memory_t *memory_new(char *name, uint32_t base, uint32_t length) {
 }
 
 void memory_delete(memory_t *mem) {
-  free(mem->contents);
-  free(mem->name);
+  if (mem->contents != NULL) {
+    free(mem->contents);
+  }
+  if (mem->name != NULL) {
+    free(mem->name);
+  }
+  while (mem->mappings != NULL) {
+    memory_map_t *next = mem->mappings->next;
+    free(mem->mappings);
+    mem->mappings = next;
+  }
   free(mem);
 }
 
 void memory_clear(memory_t *mem) {
-  memset(mem->contents, 0, mem->length);
+  memset(mem->contents, 0, memory_get_length(mem));
+}
+
+uint32_t memory_get_length(memory_t *mem) {
+  return mem->mappings->length;
 }
 
 void memory_set_readonly(memory_t *mem, bool readOnly) {
@@ -68,8 +82,34 @@ FILE *memory_get_log_file(memory_t *mem) {
   return mem->logFile;
 }
 
+void memory_add_mapping(memory_t *mem, uint32_t virtaddr, uint32_t physaddr, uint32_t length) {
+  memory_map_t *map = calloc(1, sizeof(memory_map_t));
+  map->length = length;
+  map->virtaddr = virtaddr;
+  map->physaddr = physaddr;
+  map->next = mem->mappings;
+  mem->mappings = map;
+}
+
+static inline uint32_t memory_physaddr_for_virtaddr(memory_t *mem, uint32_t virtaddr) {
+  memory_map_t *map = mem->mappings;
+  if (map->next != NULL) {
+    while (map != NULL) {
+      if (map->virtaddr <= virtaddr && map->virtaddr + map->length > virtaddr) {
+        break;
+      }
+      if (map->next == NULL) {
+        break;
+      }
+      map = map->next;
+    }
+  }
+  return map->physaddr + ((virtaddr - map->virtaddr) % map->length);
+}
+
 uint32_t memory_get_uint32(memory_t *mem, uint32_t address, uint32_t pc) {
-  uint32_t result = mem->contents[((address - mem->base) % mem->length)/4];
+  uint32_t physaddr = memory_physaddr_for_virtaddr(mem, address);
+  uint32_t result = mem->contents[physaddr/4];
   
   if (mem->logsReads == true) {
     fprintf(mem->logFile, "[%s:READ] PC:0x%08x addr:0x%08x => val:0x%08x\n", mem->name, pc, address, result);
@@ -87,7 +127,8 @@ uint32_t memory_set_uint32(memory_t *mem, uint32_t address, uint32_t val, uint32
     fprintf(mem->logFile, "[%s:WRITE] Attempted write to read-only memory! PC:0x%08x addr:0x%08x => val:0x%08x\n", mem->name, pc, address, val);
   }
   else {
-    mem->contents[((address - mem->base) % mem->length)/4] = val;
+    uint32_t physaddr = memory_physaddr_for_virtaddr(mem, address);
+    mem->contents[physaddr/4] = val;
   }
   
   return val;
@@ -97,7 +138,9 @@ uint8_t memory_get_uint8(memory_t *mem, uint32_t addr, uint32_t pc) {
   int bytenum = addr & 3;
   uint32_t aligned = addr - (bytenum);
 
-  uint32_t word = mem->contents[((aligned - mem->base) % mem->length)/4];
+  uint32_t physaddr = memory_physaddr_for_virtaddr(mem, aligned);
+
+  uint32_t word = mem->contents[physaddr/4];
   word >>= ((3-bytenum) * 8);
 
   uint8_t result = (word & 0xff);
@@ -118,7 +161,8 @@ uint8_t memory_set_uint8(memory_t *mem, uint32_t addr, uint8_t val, uint32_t pc)
   uint32_t aligned = addr - bytenum;
   uint32_t mask = masktab[addr & 3];
   
-  uint32_t word = mem->contents[((aligned - mem->base) % mem->length)/4];
+  uint32_t physaddr = memory_physaddr_for_virtaddr(mem, aligned);
+  uint32_t word = mem->contents[physaddr/4];
   
   uint32_t newval = word & mask;
   newval |= (val << ((3 - bytenum) * 8));
@@ -131,7 +175,7 @@ uint8_t memory_set_uint8(memory_t *mem, uint32_t addr, uint8_t val, uint32_t pc)
     fprintf(mem->logFile, "[%s:WRITE] Attempted write to read-only memory! PC:0x%08x addr:0x%08x => val:0x%02x\n", mem->name, pc, addr, val);
   }
   else {
-    mem->contents[((aligned - mem->base) % mem->length)/4] = newval;
+    mem->contents[physaddr/4] = newval;
   }
 
   
