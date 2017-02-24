@@ -20,6 +20,7 @@
 #include "newton.h"
 #include "lcd_sharp.h"
 #include "lcd_squirt.h"
+#include "zs85C30.h"
 
 #define countof(__a__) (sizeof(__a__) / sizeof(__a__[0]))
 
