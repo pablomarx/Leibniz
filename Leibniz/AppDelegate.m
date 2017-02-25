@@ -28,7 +28,7 @@ int32_t leibniz_sys_set_input_notify(void *ext, uint32_t fildes, uint32_t addr);
 void leibniz_system_panic(newton_t *newton, const char *msg);
 void leibniz_debugstr(newton_t *newton, const char *msg);
 void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
-
+void leibniz_serial_write(void *ext, uint8_t channel, uint8_t byte);
 
 @implementation AppDelegate
 
@@ -92,7 +92,7 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
                                    leibniz_sys_read,
                                    leibniz_sys_write,
                                    leibniz_sys_set_input_notify);
-  
+  runt_set_serial_write(newton_get_runt(_newton), (__bridge void *)self, leibniz_serial_write);
   _emulatorQueue = dispatch_queue_create("org.swhite.leibniz.emulator", NULL);
 }
 
@@ -173,6 +173,12 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
 #pragma mark - Actions
 - (IBAction) togglePowerSwitch:(id)sender {
   runt_switch_toggle(_newton->runt, RuntSwitchPower);
+}
+
+- (IBAction) toggleSerialLoopback:(id)sender {
+  _serialLoopback = !_serialLoopback;
+
+  [sender setState:(_serialLoopback ? NSOnState : NSOffState)];
 }
 
 - (IBAction) showConsole:(id)sender {
@@ -528,6 +534,20 @@ int32_t leibniz_sys_set_input_notify(void *ext, uint32_t fildes, uint32_t addr) 
 
 - (void) fileStreamClosed:(FileStream *)fileStream {
   
+}
+
+#pragma mark -
+- (void) serialChannel:(uint8_t)channel receivedByte:(uint8_t)byte {
+  if (_serialLoopback == YES && channel == RuntSerialChannelSerial) {
+    runt_serial_channel_write_byte(newton_get_runt(_newton), channel, byte);
+  }
+}
+
+void leibniz_serial_write(void *ext, uint8_t channel, uint8_t byte) {
+  dispatch_sync(dispatch_get_main_queue(), ^{
+    AppDelegate *self = (__bridge AppDelegate *)ext;
+    [self serialChannel:channel receivedByte:byte];
+  });
 }
 
 @end

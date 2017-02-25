@@ -379,6 +379,12 @@
                                     <action selector="insertSRAMCard:" target="Voe-Tx-rLC" id="QAg-nH-JAT"/>
                                 </connections>
                             </menuItem>
+                            <menuItem title="Serial Loopback" id="812-wx-nbi">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="toggleSerialLoopback:" target="Voe-Tx-rLC" id="IsF-oE-ceT"/>
+                                </connections>
+                            </menuItem>
                         </items>
                     </menu>
                 </menuItem>
