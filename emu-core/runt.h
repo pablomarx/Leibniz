@@ -82,18 +82,26 @@ enum {
   RuntInterruptBatteryRemoved = 1<<26,
 };
 
-
 enum {
   RuntSwitchNicad,
   RuntSwitchPower,
   RuntSwitchCardLock,
 };
 
+enum {
+  RuntSerialChannelIR = 0,
+  RuntSerialChannelSerial = 1,
+};
+
+typedef struct runt_s runt_t;
+
 typedef uint8_t (*lcd_get_uint8_f) (void *ext, uint8_t addr);
 typedef uint8_t (*lcd_set_uint8_f) (void *ext, uint8_t addr, uint8_t val);
 typedef const char * (*lcd_get_address_name_f) (void *ext, uint8_t addr);
 typedef void (*lcd_set_powered_f)(void *ext, bool powered);
 typedef void (*lcd_step_f)(void *ext);
+
+typedef void (*serial_channel_write_f)(void *ext, uint8_t channel, uint8_t byte);
 
 typedef struct runt_serial_channel_s {
   uint8_t registers[17];
@@ -107,7 +115,7 @@ typedef struct runt_serial_channel_s {
   uint8_t specialStatus;
 } runt_serial_channel_t;
 
-typedef struct runt_s {
+struct runt_s {
   arm_t *arm;
   uint32_t *memory;
   uint32_t ticks;
@@ -127,6 +135,8 @@ typedef struct runt_s {
   runt_serial_channel_t *serialChannel;
   uint8_t enabledSerialInterrupts;
   uint8_t pendingSerialInterrupts;
+  serial_channel_write_f serialWrite_f;
+  void *serialExt;
   
   // Logging
   uint32_t logFlags;
@@ -151,7 +161,7 @@ typedef struct runt_s {
   bool touchActive;
   uint32_t touchX;
   uint32_t touchY;
-} runt_t;
+};
 
 void runt_init (runt_t *c, int machineType);
 runt_t *runt_new (int machineType);
@@ -169,6 +179,9 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val, uint32_t pc);
 uint32_t runt_get_mem32(runt_t *c, uint32_t addr, uint32_t pc);
 uint8_t runt_set_mem8(runt_t *c, uint32_t addr, uint8_t val, uint32_t pc);
 uint8_t runt_get_mem8(runt_t *c, uint32_t addr, uint32_t pc);
+
+void runt_set_serial_write(runt_t *c, void *serialExt, serial_channel_write_f write);
+void runt_serial_channel_write_byte(runt_t *c, uint8_t channel, uint8_t byte);
 
 void runt_interrupt_raise(runt_t *c, uint32_t interrupt);
 void runt_interrupt_lower(runt_t *c, uint32_t interrupt);

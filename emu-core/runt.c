@@ -548,7 +548,7 @@ void runt_switch_toggle(runt_t *c, int switchNum) {
 
 #pragma mark - Serial
 static inline bool runt_serial_should_log_channel(runt_t *c, uint8_t channel) {
-  if (channel == 0) {
+  if (channel == RuntSerialChannelIR) {
     return ((c->logFlags & RuntLogIR) == RuntLogIR);
   }
   else {
@@ -565,7 +565,7 @@ uint8_t runt_serial_channel_get_config(runt_t *c, uint8_t channel) {
   uint8_t result = 0;
   
   runt_serial_channel_t *config = NULL;
-  if (channel == 0) {
+  if (channel == RuntSerialChannelIR) {
     config = c->irChannel;
   }
   else {
@@ -590,7 +590,7 @@ uint8_t runt_serial_channel_get_config(runt_t *c, uint8_t channel) {
       break;
     case 2:    // Modified interrupt vector (Channel B only)
                // Unmodified interrupt vector (Channel A only)
-      if (channel == 0) {
+      if (channel == RuntSerialChannelIR) {
         result = c->enabledSerialInterrupts;
       }
       break;
@@ -622,10 +622,10 @@ uint8_t runt_serial_channel_get_config(runt_t *c, uint8_t channel) {
   return result;
 }
 
-uint8_t runt_serial_channel_read_data(runt_t *c, uint8_t channel) {
+uint8_t runt_serial_channel_get_rxbyte(runt_t *c, uint8_t channel) {
   uint8_t result = 0;
   runt_serial_channel_t *config = NULL;
-  if (channel == 0) {
+  if (channel == RuntSerialChannelIR) {
     config = c->irChannel;
   }
   else {
@@ -647,7 +647,7 @@ uint32_t runt_serial_get_value(runt_t *c, uint32_t addr) {
   uint8_t channel = ((addr >> 8) & 0xf);
 
   if (reg == RuntSerialTxByte) {
-    result = runt_serial_channel_read_data(c, channel);
+    result = runt_serial_channel_get_rxbyte(c, channel);
   }
   else if (reg == RuntSerialConfig) {
     result = runt_serial_channel_get_config(c, channel);
@@ -664,7 +664,7 @@ uint32_t runt_serial_get_value(runt_t *c, uint32_t addr) {
 
 uint32_t runt_serial_channel_set_config(runt_t *c, uint8_t channel, uint8_t val) {
   runt_serial_channel_t *config = NULL;
-  if (channel == 0) {
+  if (channel == RuntSerialChannelIR) {
     config = c->irChannel;
   }
   else {
@@ -738,39 +738,48 @@ uint32_t runt_serial_channel_set_config(runt_t *c, uint8_t channel, uint8_t val)
   return val;
 }
 
-#define SERIAL_LOOP_BACK 0
+void runt_serial_channel_write_byte(runt_t *c, uint8_t channel, uint8_t byte) {
+  runt_serial_channel_t *config = NULL;
+  uint8_t irq =0 ;
+  if (channel == RuntSerialChannelIR) {
+    config = c->irChannel;
+    irq = RR3_A_RXIP;
+  }
+  else {
+    config = c->serialChannel;
+    irq = RR3_B_RXIP;
+  }
 
-uint8_t runt_serial_channel_write_data(runt_t *c, uint8_t channel, uint8_t val) {
+  config->rxByte = byte;
+  config->bufferStatus |= RR0_RXAVAIL;
+  runt_serial_channel_raise_interrupt(c, channel, irq);
+}
+
+
+uint8_t runt_serial_channel_set_txbyte(runt_t *c, uint8_t channel, uint8_t val) {
   if (runt_serial_should_log_channel(c, channel) == true) {
     fprintf(c->logFile, "[%s:TXBYTE] 0x%02x = '%c'\n", channel ? "SERIAL" : "IR", val, isalnum(val) ? val : ' ');
   }
   
   runt_serial_channel_t *config = NULL;
   uint8_t irq =0 ;
-  if (channel == 0) {
+  if (channel == RuntSerialChannelIR) {
     config = c->irChannel;
     irq = RR3_A_TXIP;
-#if SERIAL_LOOP_BACK
-    irq |= RR3_A_RXIP;
-#endif
   }
   else {
     config = c->serialChannel;
     irq = RR3_B_TXIP;
-#if SERIAL_LOOP_BACK
-    irq |= RR3_B_RXIP;
-#endif
   }
 
   config->txByte = val;
   
-#if SERIAL_LOOP_BACK
-  config->rxByte = val;
-  config->bufferStatus |= RR0_RXAVAIL;
-#endif
-
   runt_serial_channel_raise_interrupt(c, channel, irq);
 
+  if (c->serialWrite_f != NULL) {
+    c->serialWrite_f(c->serialExt, channel, val);
+  }
+  
   return val;
 }
 
@@ -780,7 +789,7 @@ uint32_t runt_serial_set_value(runt_t *c, uint32_t addr, uint32_t val) {
   uint8_t byteVal = (val & 0xff);
 
   if (reg == RuntSerialTxByte) {
-    return runt_serial_channel_write_data(c, channel, val);
+    return runt_serial_channel_set_txbyte(c, channel, val);
   }
   else if (reg == RuntSerialConfig) {
     return runt_serial_channel_set_config(c, channel, byteVal);
@@ -793,6 +802,11 @@ uint32_t runt_serial_set_value(runt_t *c, uint32_t addr, uint32_t val) {
   }
   
   return val;
+}
+
+void runt_set_serial_write(runt_t *c, void *serialExt, serial_channel_write_f write) {
+  c->serialExt = serialExt;
+  c->serialWrite_f = write;
 }
 
 #pragma mark - Clocks
