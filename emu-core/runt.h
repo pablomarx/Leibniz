@@ -96,9 +96,15 @@ typedef void (*lcd_set_powered_f)(void *ext, bool powered);
 typedef void (*lcd_step_f)(void *ext);
 
 typedef struct runt_serial_channel_s {
-  uint8_t registers[20];
-  uint8_t loadedReg;
-  uint8_t state;
+  uint8_t registers[17];
+  uint8_t regNum;
+  bool regLoaded;
+  
+  uint8_t txByte;
+  uint8_t rxByte;
+  
+  uint8_t bufferStatus;
+  uint8_t specialStatus;
 } runt_serial_channel_t;
 
 typedef struct runt_s {
@@ -119,6 +125,8 @@ typedef struct runt_s {
   
   runt_serial_channel_t *irChannel;
   runt_serial_channel_t *serialChannel;
+  uint8_t enabledSerialInterrupts;
+  uint8_t pendingSerialInterrupts;
   
   // Logging
   uint32_t logFlags;

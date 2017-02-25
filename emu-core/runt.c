@@ -24,6 +24,8 @@
 
 #define countof(__a__) (sizeof(__a__) / sizeof(__a__[0]))
 
+#define RUNT_BASE 0x01400000
+
 enum {
   RuntGetInterrupt = 0x04,
   RuntClearInterrupt = 0x08,
@@ -554,39 +556,8 @@ static inline bool runt_serial_should_log_channel(runt_t *c, uint8_t channel) {
   }
 }
 
-const char *runt_serial_get_baud_description(uint8_t baud) {
-  // Observed via Lindy diags, Evaluation -> Serial Test
-  // Speeds greater than 57600 started writing to other
-  // serial registers (e.g. 0x01408xYY, where YY is:
-  // 0x10, 0x14, 0x18, 0x1c, 0x20, 0x24, 0x28, 0x2c)
-  switch (baud) {
-    case 0x7d: return "300";
-    case 0xbd: return "600";
-    case 0x5e: return "1200";
-    case 0x2e: return "2400";
-    case 0x16: return "4800";
-    case 0x0a: return "9600";
-    case 0x04: return "19200";
-    case 0x01: return "38400";
-    case 0x00: return "57600";
-    default: return "unknown!";
-  }
-}
-
-const char *runt_serial_get_parity_description(uint8_t val) {
-  // Observed via Lindy diags, Evaluation -> Serial Test
-  switch (val) {
-    case 0x44: return "parity: none, stop bits: 1";
-    case 0x45: return "parity: odd,  stop bits: 1";
-    case 0x47: return "parity: even, stop bits: 1";
-    case 0x4c: return "parity: none, stop bits: 2";
-    case 0x4d: return "parity: odd,  stop bits: 2";
-    case 0x4f: return "parity: even, stop bits: 2";
-    default: return "unknown!";
-  }
-}
-
-void runt_serial_raise_interrupt_for_channel(runt_t *c, uint8_t channel) {
+void runt_serial_channel_raise_interrupt(runt_t *c, uint8_t channel, uint8_t irq) {
+  c->pendingSerialInterrupts |= irq;
   runt_interrupt_raise(c, RuntInterruptSerial);
 }
 
@@ -601,33 +572,72 @@ uint8_t runt_serial_channel_get_config(runt_t *c, uint8_t channel) {
     config = c->serialChannel;
   }
   
-  uint8_t loadedReg = config->loadedReg;
-  if (config->state != 1 && runt_serial_should_log_channel(c, channel) == true) {
-    fprintf(c->logFile, "[%s:CONFIG:GETVAL] Unexpected state %i, defaulting to reg 0\n", channel ? "SERIAL" : "IR", config->state);
-    loadedReg = 0;
+  uint8_t regNum = config->regNum;
+  if (config->regLoaded != true && runt_serial_should_log_channel(c, channel) == true) {
+    fprintf(c->logFile, "[%s:CONFIG:GETVAL] Unexpected regLoaded == false, defaulting to reg 0\n", channel ? "SERIAL" : "IR");
+    regNum = 0;
   }
   
-  if (loadedReg > countof(config->registers)) {
-    fprintf(c->logFile, "[%s:CONFIG:GETVAL] Bad loaded register #%i\n", channel ? "SERIAL" : "IR", loadedReg);
+  // Comments are from the Zilog Z85C30 datasheet
+  // They seem to line up with the Newton's usage,
+  // but it isn't definitive...
+  switch (regNum) {
+    case 0:    // Transmit/Receive buffer status and External status
+      result = config->bufferStatus | RR0_TXEMPTY | RR0_DCD | RR0_CTS;
+      break;
+    case 1:    // Special Receive Condition status
+      result = config->specialStatus | RR1_ALLSENT;
+      break;
+    case 2:    // Modified interrupt vector (Channel B only)
+               // Unmodified interrupt vector (Channel A only)
+      if (channel == 0) {
+        result = c->enabledSerialInterrupts;
+      }
+      break;
+    case 3:    // Interrupt Pending bits (Channel A only)
+      result = c->pendingSerialInterrupts;
+      break;
+      
+    case 8:    // Receive Buffer
+      result = config->rxByte;
+      config->bufferStatus &= ~RR0_RXAVAIL;
+      break;
+      
+    case 10:   // Miscellaneous status
+    case 12:   // Lower byte of Baud Rate Generator time constant
+    case 13:   // Upper byte of Baud Rate Generator time constant
+    case 15:   // External/Status interrupt information
+      result = config->registers[regNum];
+      break;
+    default:
+      fprintf(c->logFile, "[%s:CONFIG:GETVAL] Invalid read register #%i\n", channel ? "SERIAL" : "IR", regNum);
+      break;
+  }
+
+  if (runt_serial_should_log_channel(c, channel) == true) {
+    fprintf(c->logFile, "[%s:CONFIG:GETVAL] reg:0x%02x => 0x%02x\n", channel ? "SERIAL" : "IR", regNum, result);
+  }
+  
+  config->regLoaded = false;
+  return result;
+}
+
+uint8_t runt_serial_channel_read_data(runt_t *c, uint8_t channel) {
+  uint8_t result = 0;
+  runt_serial_channel_t *config = NULL;
+  if (channel == 0) {
+    config = c->irChannel;
   }
   else {
-    result = config->registers[loadedReg];
+    config = c->serialChannel;
   }
-  
-  // If these return 0, diags will angrily loop
-  // Perhaps they're tx/rx buffer empty?
-  if (loadedReg == RuntSerialRegTxEmpty || loadedReg == RuntSerialRegRxEmpty) {
-    if (result == 0) {
-      config->registers[loadedReg] = 0xff;
-    }
-  }
-  
+
+  result = config->rxByte;
+
   if (runt_serial_should_log_channel(c, channel) == true) {
-    fprintf(c->logFile, "[%s:CONFIG:GETVAL] reg:0x%02x => 0x%02x\n", channel ? "SERIAL" : "IR", loadedReg, result);
+    fprintf(c->logFile, "[%s:RXBYTE] 0%02x\n", channel ? "SERIAL" : "IR", result);
   }
-  
-  
-  config->state = 0;
+
   return result;
 }
 
@@ -637,17 +647,16 @@ uint32_t runt_serial_get_value(runt_t *c, uint32_t addr) {
   uint8_t channel = ((addr >> 8) & 0xf);
 
   if (reg == RuntSerialTxByte) {
-    if (runt_serial_should_log_channel(c, channel) == true) {
-      fprintf(c->logFile, "[%s:TXBYTE] Unexpected read from TX register\n", channel ? "SERIAL" : "IR");
-    }
+    result = runt_serial_channel_read_data(c, channel);
   }
   else if (reg == RuntSerialConfig) {
     result = runt_serial_channel_get_config(c, channel);
   }
+  else if (reg == 0) {
+    result = c->enabledSerialInterrupts;
+  }
   else {
-    if ((addr & 3) == 0) {
-      result = c->memory[(addr - 0x01400000) / 4];
-    }
+    fprintf(c->logFile, "Unhandled serial register: 0x%08x\n", addr);
   }
 
   return result;
@@ -662,82 +671,106 @@ uint32_t runt_serial_channel_set_config(runt_t *c, uint8_t channel, uint8_t val)
     config = c->serialChannel;
   }
   
-  // Loading a register
-  if (config->state == 0) {
-    config->loadedReg = val;
-    config->state = 1;
-    if (runt_serial_should_log_channel(c, channel) == true) {
-      fprintf(c->logFile, "[%s:CONFIG:LOADREG] reg:0x%02x ", channel ? "SERIAL" : "IR", val);
-      switch (config->loadedReg) {
-        case RuntSerialRegBaud:
-          fprintf(c->logFile, "baud rate?");
-          break;
-        case RuntSerialRegParityStopBits:
-          fprintf(c->logFile, "parity/stop bits ?");
-          break;
-        case RuntSerialRegTxEmpty:
-          fprintf(c->logFile, "tx buffer empty ?");
-          break;
-        case RuntSerialRegRxEmpty:
-          fprintf(c->logFile, "rx buffer empty ?");
-          break;
-        case RuntSerialRegTxError:
-          fprintf(c->logFile, "tx error ?");
-          break;
-      }
-      fprintf(c->logFile, "\n");
-    }
+  // Loading a register number
+  if (config->regLoaded == false) {
+    config->regNum = val;
+    config->regLoaded = true;
     return val;
   }
 
-  // Setting a loaded register's value
-  config->state = 0;
-  uint8_t loadedReg = config->loadedReg;
+  // Setting a loaded register number's value
+  config->regLoaded = false;
+  uint8_t regNum = config->regNum;
   
-  if (loadedReg > countof(config->registers)) {
-    fprintf(c->logFile, "[%s:CONFIG:SETVAL] Bad loaded register #%i\n", channel ? "SERIAL" : "IR", config->loadedReg);
+  if (regNum < countof(config->registers)) {
+    config->registers[regNum] = val;
   }
-  else {
-    config->registers[loadedReg] = val;
+
+  // Comments are from the Zilog Z85C30 datasheet
+  // They seem to line up with the Newton's usage,
+  // but it isn't definitive...
+  switch (regNum) {
+    case 0:     // CRC initialize, initialization commands for the various modes, register pointers
+    case 1:     // Transmit/Receive interrupt and data transfer mode definition
+      break;
+
+    case 2:     // Interrupt vector (accessed through either channel)
+      break;
+      
+    case 3:     // Receive parameters and control
+    case 4:     // Transmit/Receive miscellaneous parameters and modes
+    case 5:     // Transmit parameters and controls
+    case 6:     // Sync characters or SDLC address field
+    case 7:     // Sync character or SDLC flag
+      break;
+
+    case 8:     // Transmit buffer
+      config->txByte = val;
+      break;
+    case 9:     // Master interrupt control and reset (accessed through either channel)
+      if ((val & WR9_RESETA) == WR9_RESETA) {
+        c->pendingSerialInterrupts &= ~RR3_A_IP;
+      }
+      if ((val & WR9_RESETB) == WR9_RESETB) {
+        c->pendingSerialInterrupts &= ~RR3_B_IP;
+      }
+      if ((val & WR9_MIE) == WR9_MIE) {
+        
+      }
+      break;
+
+    case 10:    // Miscellaneous transmitter/receiver control bits
+    case 11:    // Clock mode control
+    case 12:    // Lower byte of Baud Rate Generator time constant
+    case 13:    // Upper byte of Baud Rate Generator time constant
+    case 14:    // Miscellaneous control bits
+    case 15:    // External/Status interrupt control
+      break;
+    default:
+      fprintf(c->logFile, "[%s:CONFIG:SETVAL] Bad loaded register #%i\n", channel ? "SERIAL" : "IR", regNum);
+      break;
   }
   
   if (runt_serial_should_log_channel(c, channel) == true) {
-    fprintf(c->logFile, "[%s:CONFIG:SETVAL] reg:0x%02x => 0x%02x ", channel ? "SERIAL" : "IR", loadedReg, val);
-    
-    switch (loadedReg) {
-      case RuntSerialRegBaud:
-        fprintf(c->logFile, "baud rate? %s", runt_serial_get_baud_description(val));
-        break;
-      case RuntSerialRegParityStopBits:
-        fprintf(c->logFile, "%s ?", runt_serial_get_parity_description(val));
-        break;
-    }
-    
-    fprintf(c->logFile, "\n");
+    fprintf(c->logFile, "[%s:CONFIG:SETVAL] reg:0x%02x => 0x%02x\n", channel ? "SERIAL" : "IR", regNum, val);
   }
   
   return val;
 }
 
-uint8_t runt_serial_channel_transmit(runt_t *c, uint8_t channel, uint8_t val) {
+#define SERIAL_LOOP_BACK 0
+
+uint8_t runt_serial_channel_write_data(runt_t *c, uint8_t channel, uint8_t val) {
   if (runt_serial_should_log_channel(c, channel) == true) {
     fprintf(c->logFile, "[%s:TXBYTE] 0x%02x = '%c'\n", channel ? "SERIAL" : "IR", val, isalnum(val) ? val : ' ');
   }
   
-  runt_serial_raise_interrupt_for_channel(c, channel);
-  
   runt_serial_channel_t *config = NULL;
+  uint8_t irq =0 ;
   if (channel == 0) {
     config = c->irChannel;
+    irq = RR3_A_TXIP;
+#if SERIAL_LOOP_BACK
+    irq |= RR3_A_RXIP;
+#endif
   }
   else {
     config = c->serialChannel;
+    irq = RR3_B_TXIP;
+#if SERIAL_LOOP_BACK
+    irq |= RR3_B_RXIP;
+#endif
   }
 
-  // We'll claim to be full, which runt_serial_channel_get_config()
-  // will return once, before flipping it back to empty.
-  config->registers[RuntSerialRegTxEmpty] = 0x00;
+  config->txByte = val;
   
+#if SERIAL_LOOP_BACK
+  config->rxByte = val;
+  config->bufferStatus |= RR0_RXAVAIL;
+#endif
+
+  runt_serial_channel_raise_interrupt(c, channel, irq);
+
   return val;
 }
 
@@ -747,13 +780,16 @@ uint32_t runt_serial_set_value(runt_t *c, uint32_t addr, uint32_t val) {
   uint8_t byteVal = (val & 0xff);
 
   if (reg == RuntSerialTxByte) {
-    return runt_serial_channel_transmit(c, channel, val);
+    return runt_serial_channel_write_data(c, channel, val);
   }
   else if (reg == RuntSerialConfig) {
     return runt_serial_channel_set_config(c, channel, byteVal);
   }
   else if (reg == 0) {
-
+    c->enabledSerialInterrupts = val;
+  }
+  else {
+    fprintf(c->logFile, "Unhandled serial register: 0x%08x\n", addr);
   }
   
   return val;
@@ -772,7 +808,7 @@ uint32_t runt_get_rtc(runt_t *c) {
 uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val, uint32_t pc) {
   runt_log_access(c, addr, val, true);
   
-  uint32_t localAddr = ((addr - 0x01400000) / 4);
+  uint32_t localAddr = ((addr - RUNT_BASE) / 4);
   switch ((addr >> 8) & 0xff) {
     case 0x00:
       // Observed bit 2 changing depending on gNewtConfig
@@ -847,7 +883,7 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val, uint32_t pc) {
 
 
 uint32_t runt_get_mem32(runt_t *c, uint32_t addr, uint32_t pc) {
-  uint32_t result = c->memory[(addr - 0x01400000) / 4];
+  uint32_t result = c->memory[(addr - RUNT_BASE) / 4];
   
   switch ((addr >> 8) & 0xff) {
     case RuntLCD:
