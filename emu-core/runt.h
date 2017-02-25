@@ -139,7 +139,6 @@ struct runt_s {
   
   runt_serial_channel_t *channelA;
   runt_serial_channel_t *channelB;
-  uint8_t enabledSerialInterrupts;
   uint8_t pendingSerialInterrupts;
   serial_channel_write_f serialWrite_f;
   void *serialExt;

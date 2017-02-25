@@ -577,7 +577,7 @@ uint8_t runt_serial_channel_get_config(runt_t *c, uint8_t channel) {
                // Unmodified interrupt vector (Channel A only)
       // If RR2 is read from Channel A, the unmodified vector is returned.
       if (channel == RuntSerialChannelA) {
-        result = c->enabledSerialInterrupts;
+        result = config->registers[2];
       }
       else {
         // If RR2 is read from Channel B, then the vector is modified to
@@ -612,7 +612,9 @@ uint8_t runt_serial_channel_get_config(runt_t *c, uint8_t channel) {
       }
       break;
     case 3:    // Interrupt Pending bits (Channel A only)
-      result = c->pendingSerialInterrupts;
+      if (channel == RuntSerialChannelA) {
+        result = c->pendingSerialInterrupts;
+      }
       break;
       
     case 8:    // Receive Buffer
@@ -669,9 +671,7 @@ uint32_t runt_serial_get_value(runt_t *c, uint32_t addr) {
     result = runt_serial_channel_get_config(c, channel);
   }
   else {
-    if (reg == 0) {
-      result = c->enabledSerialInterrupts;
-    }
+    result = c->memory[(addr - RUNT_BASE) / 4];
     fprintf(c->logFile, "[SERIAL:UNKNOWN:RD] addr:0x%08x => 0x%08x (PC:0x%08x, LR:0x%08x)\n", addr, result, arm_get_pc(c->arm), arm_get_lr(c->arm));
   }
 
@@ -689,13 +689,30 @@ uint32_t runt_serial_channel_set_config(runt_t *c, uint8_t channel, uint8_t val)
   
   // Loading a register number
   if (config->regLoaded == false) {
-    if (val >= countof(config->registers)) {
-      fprintf(c->logFile, "[%s:CONFIG:SETVAL] Bad load register #%i (PC:0x%08x, LR:0x%08x)\n", runt_serial_channel_desc(c, channel), val, arm_get_pc(c->arm), arm_get_lr(c->arm));
-      val = 0;
+    // Loading a valid register number
+    if (val < countof(config->registers)) {
+      if (runt_serial_should_log_channel(c, channel) == true) {
+        fprintf(c->logFile, "[%s:CONFIG:LOADREG] Loaded register #%i (PC:0x%08x, LR:0x%08x)\n", runt_serial_channel_desc(c, channel), val, arm_get_pc(c->arm), arm_get_lr(c->arm));
+      }
+      
+      config->regNum = val;
+      config->regLoaded = true;
+      return val;
     }
-
-    config->regNum = val;
-    config->regLoaded = true;
+    
+    // Dealing with an invalid register number
+    if (runt_serial_should_log_channel(c, channel) == true) {
+      fprintf(c->logFile, "[%s:CONFIG:SETVAL] Bad load register #%i (PC:0x%08x, LR:0x%08x)\n", runt_serial_channel_desc(c, channel), val, arm_get_pc(c->arm), arm_get_lr(c->arm));
+    }
+    
+    // All of the ROMs tend to write 0x28 without loading
+    // a register first.  And if nothing is done to the
+    // pending interrupts, they'll infinitely loop.
+    // So assume this is some weird clear pending interrupts
+    // flag.
+    if (val == 0x28) {
+      c->pendingSerialInterrupts = 0;
+    }
     return val;
   }
 
@@ -716,6 +733,8 @@ uint32_t runt_serial_channel_set_config(runt_t *c, uint8_t channel, uint8_t val)
       break;
 
     case 2:     // Interrupt vector (accessed through either channel)
+      c->channelA->registers[regNum] = val;
+      c->channelB->registers[regNum] = val;
       break;
       
     case 3:     // Receive parameters and control
@@ -818,9 +837,7 @@ uint32_t runt_serial_set_value(runt_t *c, uint32_t addr, uint32_t val) {
   }
   else {
     fprintf(c->logFile, "[SERIAL:UNKNOWN:WR] addr:0x%08x => 0x%08x (PC:0x%08x, LR:0x%08x)\n", addr, val, arm_get_pc(c->arm), arm_get_lr(c->arm));
-    if (reg == 0) {
-      c->enabledSerialInterrupts = val;
-    }
+    c->memory[(addr - RUNT_BASE) / 4] = val;
   }
   
   return val;
