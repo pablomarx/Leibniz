@@ -51,13 +51,8 @@ enum {
   RuntSound = 0x64,
   
   RuntIR = 0x80,
-    RuntIRConfig = 0x0b,
-    RuntIRTxByte   = 0x07,
-  
   RuntSerial = 0x81,
-    RuntSerialConfig = 0x0b,
-    RuntSerialTxByte = 0x07,
-    
+  
   RuntSoundDMA1Base = 0xb0,
   RuntSoundDMA1Length = 0xb4,
   RuntSoundDMA2Base = 0xc0,
@@ -65,11 +60,8 @@ enum {
 };
 
 enum {
-  RuntSerialRegTxEmpty = 0x00,
-  RuntSerialRegRxEmpty = 0x01,
-  RuntSerialRegParityStopBits = 0x04,
-  RuntSerialRegTxError = 0x08,
-  RuntSerialRegBaud = 0x0c,
+  RuntSerialConfig = 0x0b,
+  RuntSerialTxByte = 0x07,
 };
 
 enum {
@@ -172,33 +164,9 @@ void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
       break;
     }
     case RuntIR:
-      flag = RuntLogIR;
-      switch (addr & 0xff) {
-        case RuntIRConfig:
-          prefix = "ir-config";
-          break;
-        case RuntIRTxByte:
-          prefix = "ir-data";
-          break;
-        default:
-          prefix = "ir-unknown";
-          break;
-      }
-      break;
     case RuntSerial:
-      flag = RuntLogSerial;
-      switch (addr & 0xff) {
-        case RuntSerialConfig:
-          prefix = "serial-config";
-          break;
-        case RuntSerialTxByte:
-          prefix = "serial-data";
-          break;
-        default:
-          prefix = "serial-unknown";
-          break;
-      }
-      break;
+      // Intentionally blank. Serial does it's own logging.
+      return;
     case RuntPower:
       flag = RuntLogPower;
       prefix = "power";
@@ -588,7 +556,7 @@ uint8_t runt_serial_channel_get_config(runt_t *c, uint8_t channel) {
   uint8_t regNum = config->regNum;
   if (config->regLoaded != true) {
     if (runt_serial_should_log_channel(c, channel) == true) {
-      fprintf(c->logFile, "[%s:CONFIG:GETVAL] Unexpected regLoaded == false, defaulting to reg 0\n", runt_serial_channel_desc(c, channel));
+      fprintf(c->logFile, "[%s:CONFIG:GETVAL] Unexpected regLoaded == false, regNum = #%i defaulting to reg 0 (PC:0x%08x, LR:0x%08x)\n", runt_serial_channel_desc(c, channel), regNum, arm_get_pc(c->arm), arm_get_lr(c->arm));
     }
 
     regNum = 0;
@@ -659,12 +627,12 @@ uint8_t runt_serial_channel_get_config(runt_t *c, uint8_t channel) {
       result = config->registers[regNum];
       break;
     default:
-      fprintf(c->logFile, "[%s:CONFIG:GETVAL] Invalid read register #%i\n", runt_serial_channel_desc(c, channel), regNum);
+      fprintf(c->logFile, "[%s:CONFIG:GETVAL] Invalid read register #%i (PC:0x%08x, LR:0x%08x)\n", runt_serial_channel_desc(c, channel), regNum, arm_get_pc(c->arm), arm_get_lr(c->arm));
       break;
   }
 
   if (runt_serial_should_log_channel(c, channel) == true) {
-    fprintf(c->logFile, "[%s:CONFIG:GETVAL] reg:0x%02x => 0x%02x\n", runt_serial_channel_desc(c, channel), regNum, result);
+    fprintf(c->logFile, "[%s:CONFIG:GETVAL] reg:0x%02x => 0x%02x (PC:0x%08x, LR:0x%08x)\n", runt_serial_channel_desc(c, channel), regNum, result, arm_get_pc(c->arm), arm_get_lr(c->arm));
   }
 
   return result;
@@ -683,7 +651,7 @@ uint8_t runt_serial_channel_get_rxbyte(runt_t *c, uint8_t channel) {
   result = config->rxByte;
 
   if (runt_serial_should_log_channel(c, channel) == true) {
-    fprintf(c->logFile, "[%s:RXBYTE] 0%02x\n", runt_serial_channel_desc(c, channel), result);
+    fprintf(c->logFile, "[%s:RXBYTE] 0%02x (PC:0x%08x, LR:0x%08x)\n", runt_serial_channel_desc(c, channel), result, arm_get_pc(c->arm), arm_get_lr(c->arm));
   }
 
   return result;
@@ -700,11 +668,11 @@ uint32_t runt_serial_get_value(runt_t *c, uint32_t addr) {
   else if (reg == RuntSerialConfig) {
     result = runt_serial_channel_get_config(c, channel);
   }
-  else if (reg == 0) {
-    result = c->enabledSerialInterrupts;
-  }
   else {
-    fprintf(c->logFile, "Unhandled serial register: 0x%08x\n", addr);
+    if (reg == 0) {
+      result = c->enabledSerialInterrupts;
+    }
+    fprintf(c->logFile, "[SERIAL:UNKNOWN:RD] addr:0x%08x => 0x%08x (PC:0x%08x, LR:0x%08x)\n", addr, result, arm_get_pc(c->arm), arm_get_lr(c->arm));
   }
 
   return result;
@@ -722,7 +690,7 @@ uint32_t runt_serial_channel_set_config(runt_t *c, uint8_t channel, uint8_t val)
   // Loading a register number
   if (config->regLoaded == false) {
     if (val >= countof(config->registers)) {
-      fprintf(c->logFile, "[%s:CONFIG:SETVAL] Bad load register #%i\n", runt_serial_channel_desc(c, channel), val);
+      fprintf(c->logFile, "[%s:CONFIG:SETVAL] Bad load register #%i (PC:0x%08x, LR:0x%08x)\n", runt_serial_channel_desc(c, channel), val, arm_get_pc(c->arm), arm_get_lr(c->arm));
       val = 0;
     }
 
@@ -780,13 +748,13 @@ uint32_t runt_serial_channel_set_config(runt_t *c, uint8_t channel, uint8_t val)
     case 15:    // External/Status interrupt control
       break;
     default:
-      fprintf(c->logFile, "[%s:CONFIG:SETVAL] Unexpected register #%i\n", runt_serial_channel_desc(c, channel), regNum);
+      fprintf(c->logFile, "[%s:CONFIG:SETVAL] Unexpected register #%i (PC:0x%08x, LR:0x%08x)\n", runt_serial_channel_desc(c, channel), regNum, arm_get_pc(c->arm), arm_get_lr(c->arm));
       break;
 
   }
   
   if (runt_serial_should_log_channel(c, channel) == true) {
-    fprintf(c->logFile, "[%s:CONFIG:SETVAL] reg:0x%02x => 0x%02x\n", runt_serial_channel_desc(c, channel), regNum, val);
+    fprintf(c->logFile, "[%s:CONFIG:SETVAL] reg:0x%02x => 0x%02x (PC:0x%08x, LR:0x%08x)\n", runt_serial_channel_desc(c, channel), regNum, val, arm_get_pc(c->arm), arm_get_lr(c->arm));
   }
   
   return val;
@@ -812,7 +780,7 @@ void runt_serial_channel_write_byte(runt_t *c, uint8_t channel, uint8_t byte) {
 
 uint8_t runt_serial_channel_set_txbyte(runt_t *c, uint8_t channel, uint8_t val) {
   if (runt_serial_should_log_channel(c, channel) == true) {
-    fprintf(c->logFile, "[%s:TXBYTE] 0x%02x = '%c'\n", runt_serial_channel_desc(c, channel), val, isalnum(val) ? val : ' ');
+    fprintf(c->logFile, "[%s:TXBYTE] 0x%02x = '%c' (PC:0x%08x, LR:0x%08x)\n", runt_serial_channel_desc(c, channel), val, isalnum(val) ? val : ' ', arm_get_pc(c->arm), arm_get_lr(c->arm));
   }
   
   runt_serial_channel_t *config = NULL;
@@ -848,11 +816,11 @@ uint32_t runt_serial_set_value(runt_t *c, uint32_t addr, uint32_t val) {
   else if (reg == RuntSerialConfig) {
     return runt_serial_channel_set_config(c, channel, byteVal);
   }
-  else if (reg == 0) {
-    c->enabledSerialInterrupts = val;
-  }
   else {
-    fprintf(c->logFile, "Unhandled serial register: 0x%08x\n", addr);
+    fprintf(c->logFile, "[SERIAL:UNKNOWN:WR] addr:0x%08x => 0x%08x (PC:0x%08x, LR:0x%08x)\n", addr, val, arm_get_pc(c->arm), arm_get_lr(c->arm));
+    if (reg == 0) {
+      c->enabledSerialInterrupts = val;
+    }
   }
   
   return val;
