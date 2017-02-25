@@ -89,8 +89,14 @@ enum {
 };
 
 enum {
-  RuntSerialChannelIR = 0,
-  RuntSerialChannelSerial = 1,
+  RuntSerialChannelA = 0xaa,
+  RuntSerialChannelB = 0x33,
+  
+  // Per OMP Repair Manual, Page 11:
+  // In Junior-1, channel A controls RS422 serial port
+  // and channel B controls IR unit.
+  RuntSerialChannelIR = RuntSerialChannelB,
+  RuntSerialChannelSerial = RuntSerialChannelA,
 };
 
 typedef struct runt_s runt_t;
@@ -131,8 +137,8 @@ struct runt_s {
   uint32_t ticksAlarm3;
   int32_t adcSource;
   
-  runt_serial_channel_t *irChannel;
-  runt_serial_channel_t *serialChannel;
+  runt_serial_channel_t *channelA;
+  runt_serial_channel_t *channelB;
   uint8_t enabledSerialInterrupts;
   uint8_t pendingSerialInterrupts;
   serial_channel_write_f serialWrite_f;
