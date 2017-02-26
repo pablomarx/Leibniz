@@ -568,7 +568,14 @@ uint8_t runt_serial_channel_get_config(runt_t *c, uint8_t channel) {
   // but it isn't definitive...
   switch (regNum) {
     case 0:    // Transmit/Receive buffer status and External status
-      result = config->bufferStatus | RR0_TXEMPTY;
+      result = config->bufferStatus | RR0_DCD;
+      uint8_t transmitControls = config->registers[5];
+      if ((transmitControls & WR5_TXENABLE) == WR5_TXENABLE) {
+        result |= RR0_TXEMPTY;
+      }
+      if ((transmitControls & WR5_RTS) == WR5_RTS) {
+        result |= RR0_CTS;
+      }
       break;
     case 1:    // Special Receive Condition status
       result = config->specialStatus | RR1_ALLSENT;
