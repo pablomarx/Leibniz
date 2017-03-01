@@ -128,7 +128,6 @@
 		F1E4AF1F19C1327F00D8EFB4 /* LeibnizTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LeibnizTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F1E4AF2419C1328000D8EFB4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F1E4AF2519C1328000D8EFB4 /* LeibnizTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LeibnizTests.m; sourceTree = "<group>"; };
-		F1EF40441E60E67E00CEAC13 /* zs85C30.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = zs85C30.h; sourceTree = "<group>"; };
 		F1F02C4C1E56672D0061B21E /* FileStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileStream.h; sourceTree = "<group>"; };
 		F1F02C4D1E56672D0061B21E /* FileStream.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FileStream.m; sourceTree = "<group>"; };
 		F1F02C4F1E566C6D0061B21E /* LeibnizFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LeibnizFile.h; sourceTree = "<group>"; };
@@ -209,7 +208,6 @@
 				F19548961E47B170001772E8 /* single_cpdo.c */,
 				F19548971E47B170001772E8 /* softfloat.c */,
 				F19548981E47B170001772E8 /* softfloat.h */,
-				F1EF40441E60E67E00CEAC13 /* zs85C30.h */,
 			);
 			name = "alt-emu";
 			path = "emu-core";
