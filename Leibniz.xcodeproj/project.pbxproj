@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F100F38F1E676C4B0086F5FB /* e8530.c in Sources */ = {isa = PBXBuildFile; fileRef = F100F38D1E676C4B0086F5FB /* e8530.c */; };
 		F10F099D19C651A700C8C8FD /* hexdump.c in Sources */ = {isa = PBXBuildFile; fileRef = F10F099B19C651A700C8C8FD /* hexdump.c */; };
 		F11F0DE31E43CB4800B963C2 /* pcmcia.c in Sources */ = {isa = PBXBuildFile; fileRef = F11F0DE11E43CB4800B963C2 /* pcmcia.c */; };
 		F123BD5D19C4FC8800EC994F /* arm.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD4719C4FC8800EC994F /* arm.c */; };
@@ -63,6 +64,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		F100F38D1E676C4B0086F5FB /* e8530.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = e8530.c; sourceTree = "<group>"; };
+		F100F38E1E676C4B0086F5FB /* e8530.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = e8530.h; sourceTree = "<group>"; };
 		F10F099B19C651A700C8C8FD /* hexdump.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = hexdump.c; sourceTree = "<group>"; };
 		F10F099C19C651A700C8C8FD /* hexdump.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = hexdump.h; sourceTree = "<group>"; };
 		F11F0DE11E43CB4800B963C2 /* pcmcia.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pcmcia.c; sourceTree = "<group>"; };
@@ -167,6 +170,8 @@
 				F123BD4C19C4FC8800EC994F /* copr15.c */,
 				F123BD4E19C4FC8800EC994F /* disasm.c */,
 				F19548881E47B170001772E8 /* double_cpdo.c */,
+				F100F38D1E676C4B0086F5FB /* e8530.c */,
+				F100F38E1E676C4B0086F5FB /* e8530.h */,
 				F19548891E47B170001772E8 /* extended_cpdo.c */,
 				F195488A1E47B170001772E8 /* fpa.c */,
 				F195488B1E47B170001772E8 /* fpa.h */,
@@ -413,6 +418,7 @@
 				F123BD6319C4FC8800EC994F /* disasm.c in Sources */,
 				F10F099D19C651A700C8C8FD /* hexdump.c in Sources */,
 				F195489C1E47B170001772E8 /* fpa11_cpdo.c in Sources */,
+				F100F38F1E676C4B0086F5FB /* e8530.c in Sources */,
 				F19548AF1E4E7E59001772E8 /* EmulatorView.m in Sources */,
 				F1F02C4E1E56672D0061B21E /* FileStream.m in Sources */,
 				F123BD6819C4FC8800EC994F /* mmu.c in Sources */,

@@ -17,6 +17,7 @@ OBJS := arm.o \
 		copr15.o \
 		disasm.o \
 		mmu.o \
+		e8530.o \
 		newton.o \
 		opcodes.o \
 		memory.o \
