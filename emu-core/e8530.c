@@ -277,7 +277,7 @@ void e8530_check_rxd (e8530_t *scc, unsigned chn)
 	c->rx_j = (c->rx_j + 1) % E8530_BUF_MAX;
 
 	if (c->set_inp != NULL) {
-		c->set_inp (c->set_inp_ext, 1);
+		c->set_inp (c->set_inp_ext, c->rr[8]);
 	}
 
 	c->rr[0] |= 0x01;
