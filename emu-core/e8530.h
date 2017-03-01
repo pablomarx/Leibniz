@@ -105,6 +105,7 @@ void e8530_set_multichar (e8530_t *scc, unsigned chn, unsigned read_max, unsigne
 
 void e8530_set_clock (e8530_t *scc, unsigned long pclk, unsigned long rtxca, unsigned long rtxcb);
 
+unsigned char e8530_get_ctl (e8530_t *scc, unsigned chn);
 unsigned char e8530_get_ctl_a (e8530_t *scc);
 unsigned char e8530_get_ctl_b (e8530_t *scc);
 
