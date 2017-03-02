@@ -11,11 +11,15 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 
 typedef struct docker_s {
   uint8_t *buffer;
   uint32_t bufferLen;
   uint32_t bufferIdx;
+  
+  FILE *packageFile;
+  int16_t packageSeqNo;
   
   uint8_t *response;
   uint32_t responseLen;

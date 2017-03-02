@@ -46,6 +46,9 @@ void docker_free(docker_t *c) {
   if (c->response != NULL) {
     free(c->response);
   }
+  if (c->packageFile != NULL) {
+    fclose(c->packageFile);
+  }
 }
 
 void docker_del(docker_t *c) {
@@ -74,9 +77,8 @@ uint8_t *docker_get_response(docker_t *c, uint32_t *outLength) {
 void docker_make_framed_response(docker_t *c, uint8_t *data, uint32_t length) {
   uint32_t idx = 0;
   uint16_t xsum = 0;
-  uint32_t rsplen = 0;
+  uint32_t rsplen = length + 7; // SYN,DLE,STX,ETX,DLE,csum,csum
   
-  rsplen = length + 7;
   for (uint32_t i=0; i<length; i++) {
     if (data[i] == DLE) {
       rsplen++; // Need to escape the DLE
@@ -88,7 +90,7 @@ void docker_make_framed_response(docker_t *c, uint8_t *data, uint32_t length) {
     c->response = calloc(c->responseLen, sizeof(uint8_t));
   }
   else {
-    uint32_t newlength = c->responseLen + length;
+    uint32_t newlength = c->responseLen + rsplen;
     c->response = realloc(c->response, newlength);
     idx = c->responseLen;
     c->responseLen = newlength;
@@ -114,7 +116,13 @@ void docker_make_framed_response(docker_t *c, uint8_t *data, uint32_t length) {
   c->response[idx++] = (xsum >> 8);
 }
 
-void docker_newt_dock_response(docker_t *c, const char *command, uint8_t seqNo, void *data, uint32_t length) {
+void docker_make_la_response(docker_t *c, uint8_t seqNo) {
+  uint8_t frame[] = { 0x03, LA, seqNo, 0x01 };
+  docker_make_framed_response(c, frame, countof(frame));
+}
+
+
+void docker_make_dock_response(docker_t *c, const char *command, uint8_t seqNo, void *data, uint32_t length) {
   uint32_t frameSize = 3 /*lt header*/ + 12 /*newtdock<cmd>*/ + 4/*length*/;
   if (data != NULL) {
     frameSize += length;
@@ -147,18 +155,64 @@ void docker_newt_dock_response(docker_t *c, const char *command, uint8_t seqNo, 
   free(frame);
 }
 
+void docker_make_disconnect_response(docker_t *c) {
+  // Ready to install packages.. but we'll disconncet for now
+  docker_make_dock_response(c, "disc", 0/*seqNo*/, NULL, 0);
+}
+
+#define CHUNK_SIZE 256
+void docker_make_package_data_response(docker_t *c, uint8_t seqNo) {
+  uint8_t frame[CHUNK_SIZE + 3];
+  uint8_t *data = &frame[3];
+  uint32_t length = 0;
+
+  if (c->packageFile == NULL) {
+    return;
+  }
+
+  if ((uint8_t)(seqNo + 1) == c->packageSeqNo) {
+    // Newton wants the last chunk re-sent.
+    uint32_t pos = (uint32_t)ftell(c->packageFile);
+    fseek(c->packageFile, pos - CHUNK_SIZE, SEEK_SET);
+    c->packageSeqNo = seqNo;
+  }
+
+  c->packageSeqNo++;
+  if (c->packageSeqNo > 0xff) {
+    c->packageSeqNo = 0;
+  }
+  
+  frame[0] = 0x02;
+  frame[1] = LT;
+  frame[2] = (c->packageSeqNo & 0xff);
+  
+  length = (uint32_t)fread(data, sizeof(uint8_t), CHUNK_SIZE, c->packageFile);
+  while (length % 4 != 0) {
+    data[length++] = 0;
+  }
+  
+  docker_make_framed_response(c, frame, length + 3);
+  
+  if (feof(c->packageFile) == true) {
+    fclose(c->packageFile);
+    c->packageFile = NULL;
+  }
+}
+
 void docker_parse_newt_dock_payload(docker_t *c) {
   const char *command = (const char *)c->buffer + 14;
   uint8_t seqNo = c->buffer[5];
+
+  docker_make_la_response(c, seqNo);
   
   if (strncmp(command, "rtdk", 4) == 0) {
     // Session type should be 4 to load a package
     uint8_t sessionType[] = { 0, 0, 0, 4 };
-    docker_newt_dock_response(c, "dock", seqNo, sessionType, sizeof(sessionType));
+    docker_make_dock_response(c, "dock", seqNo, sessionType, sizeof(sessionType));
   }
   else if (strncmp(command, "name", 4) == 0) {
     uint8_t seconds[] = { 0, 0, 0, 30 };
-    docker_newt_dock_response(c, "stim", seqNo, seconds, sizeof(seconds));
+    docker_make_dock_response(c, "stim", seqNo, seconds, sizeof(seconds));
   }
   else if (strncmp(command, "dres", 4) == 0) {
     uint32_t errCode = *(uint32_t *)&c->buffer[22];
@@ -169,14 +223,10 @@ void docker_parse_newt_dock_payload(docker_t *c) {
       return;
     }
 
-    // Ready to install packages.. but we'll disconncet for now
-    docker_newt_dock_response(c, "disc", seqNo, NULL, 0);
+    if (c->packageFile != NULL) {
+      return;
+    }
   }
-}
-
-void docker_make_la_response(docker_t *c, uint8_t seqNo) {
-  uint8_t frame[] = { 0x03, LA, seqNo, 0x01 };
-  docker_make_framed_response(c, frame, countof(frame));
 }
 
 void docker_parse_payload(docker_t *c) {
@@ -184,6 +234,7 @@ void docker_parse_payload(docker_t *c) {
     case LR: {
       uint8_t lr[]= {23,1,2,1,6,1,0,0,0,0,255,2,1,2,3,1,1,4,2,64,0,8,1,3};
       docker_make_framed_response(c, lr, countof(lr));
+      c->packageSeqNo = -1;
       break;
     }
     case LT: {
@@ -195,10 +246,13 @@ void docker_parse_payload(docker_t *c) {
       break;
     }
     case LA:
-      docker_make_la_response(c, c->buffer[5]);
+      if (c->packageFile != NULL) {
+        docker_make_package_data_response(c, c->buffer[5]);
+      }
       break;
     case LD:
       // Disconnect?
+      c->packageSeqNo = -1;
       break;
     default:
       printf("Unhandled frame type: 0x%02x\n", c->buffer[4]);
