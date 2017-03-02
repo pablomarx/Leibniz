@@ -103,7 +103,6 @@ void docker_make_framed_response(docker_t *c, uint8_t *data, uint32_t length) {
 
     if (data[i] == DLE) {
       c->response[idx++] = DLE;
-      xsum = crc16_update(xsum, DLE);
     }
   }
 
