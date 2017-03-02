@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		F100F38F1E676C4B0086F5FB /* e8530.c in Sources */ = {isa = PBXBuildFile; fileRef = F100F38D1E676C4B0086F5FB /* e8530.c */; };
+		F100F3981E67C5830086F5FB /* crc16.c in Sources */ = {isa = PBXBuildFile; fileRef = F100F3961E67C5830086F5FB /* crc16.c */; };
 		F10F099D19C651A700C8C8FD /* hexdump.c in Sources */ = {isa = PBXBuildFile; fileRef = F10F099B19C651A700C8C8FD /* hexdump.c */; };
 		F11F0DE31E43CB4800B963C2 /* pcmcia.c in Sources */ = {isa = PBXBuildFile; fileRef = F11F0DE11E43CB4800B963C2 /* pcmcia.c */; };
 		F123BD5D19C4FC8800EC994F /* arm.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD4719C4FC8800EC994F /* arm.c */; };
@@ -66,6 +67,8 @@
 /* Begin PBXFileReference section */
 		F100F38D1E676C4B0086F5FB /* e8530.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = e8530.c; sourceTree = "<group>"; };
 		F100F38E1E676C4B0086F5FB /* e8530.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = e8530.h; sourceTree = "<group>"; };
+		F100F3961E67C5830086F5FB /* crc16.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = crc16.c; sourceTree = "<group>"; };
+		F100F3971E67C5830086F5FB /* crc16.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = crc16.h; sourceTree = "<group>"; };
 		F10F099B19C651A700C8C8FD /* hexdump.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = hexdump.c; sourceTree = "<group>"; };
 		F10F099C19C651A700C8C8FD /* hexdump.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = hexdump.h; sourceTree = "<group>"; };
 		F11F0DE11E43CB4800B963C2 /* pcmcia.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pcmcia.c; sourceTree = "<group>"; };
@@ -167,6 +170,8 @@
 				F123BD4819C4FC8800EC994F /* arm.h */,
 				F123BD4A19C4FC8800EC994F /* copr14.c */,
 				F123BD4C19C4FC8800EC994F /* copr15.c */,
+				F100F3961E67C5830086F5FB /* crc16.c */,
+				F100F3971E67C5830086F5FB /* crc16.h */,
 				F123BD4E19C4FC8800EC994F /* disasm.c */,
 				F19548881E47B170001772E8 /* double_cpdo.c */,
 				F100F38D1E676C4B0086F5FB /* e8530.c */,
@@ -402,6 +407,7 @@
 				F19548A61E4E52C6001772E8 /* ListenerWindowController.m in Sources */,
 				F123BD5D19C4FC8800EC994F /* arm.c in Sources */,
 				F195489D1E47B170001772E8 /* fpa11_cpdt.c in Sources */,
+				F100F3981E67C5830086F5FB /* crc16.c in Sources */,
 				F1DD99A71CC818DA00C718CC /* memory.c in Sources */,
 				F1E09AED1B2D2AB000004CC8 /* lcd_sharp.c in Sources */,
 				F1E4AF1519C1327F00D8EFB4 /* AppDelegate.m in Sources */,

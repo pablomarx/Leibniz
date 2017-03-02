@@ -24,6 +24,7 @@ OBJS := arm.o \
 		fpa.o \
 		linenoise.o \
 		runt.o \
+		crc16.o \
 		pcmcia.o \
 		hexdump.o \
 		lcd_sharp.o \
