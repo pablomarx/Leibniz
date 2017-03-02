@@ -71,18 +71,28 @@ uint8_t *docker_get_response(docker_t *c, uint32_t *outLength) {
   return c->response;
 }
 
-void docker_make_framed_response_data(docker_t *c, uint8_t *data, uint32_t length) {
+void docker_make_framed_response(docker_t *c, uint8_t *data, uint32_t length) {
   uint32_t idx = 0;
   uint16_t xsum = 0;
+  uint32_t rsplen = 0;
   
-  c->responseLen = length + 7;
+  rsplen = length + 7;
   for (uint32_t i=0; i<length; i++) {
     if (data[i] == DLE) {
-      length++; // Need to escape the DLE
+      rsplen++; // Need to escape the DLE
     }
   }
   
-  c->response = calloc(c->responseLen, sizeof(uint8_t));
+  if (c->response == NULL) {
+    c->responseLen = rsplen;
+    c->response = calloc(c->responseLen, sizeof(uint8_t));
+  }
+  else {
+    uint32_t newlength = c->responseLen + length;
+    c->response = realloc(c->response, newlength);
+    idx = c->responseLen;
+    c->responseLen = newlength;
+  }
   
   c->response[idx++] = SYN;
   c->response[idx++] = DLE;
@@ -106,56 +116,67 @@ void docker_make_framed_response_data(docker_t *c, uint8_t *data, uint32_t lengt
 }
 
 void docker_newt_dock_response(docker_t *c, const char *command, uint8_t seqNo, void *data, uint32_t length) {
-  uint32_t frameSize = 3 /*lt header*/ + 12 /*newtdock<cmd>*/ + 4/*length*/ + length/*data*/;
+  uint32_t frameSize = 3 /*lt header*/ + 12 /*newtdock<cmd>*/ + 4/*length*/;
+  if (data != NULL) {
+    frameSize += length;
+  }
   uint8_t *frame = calloc(frameSize, sizeof(uint8_t));
-  frame[0] = 2; // length
-  frame[1] = LT;
-  frame[2] = seqNo;
-  memcpy(frame + 3, "newt", 4);
-  memcpy(frame + 7, "dock", 4);
-  memcpy(frame + 11, command, 4);
+  uint8_t idx = 0;
   
-  frame[15] = ((length >> 24) & 0xff);
-  frame[16] = ((length >> 16) & 0xff);
-  frame[17] = ((length >>  8) & 0xff);
-  frame[18] = ((length      ) & 0xff);
+  frame[idx++] = 2; // length
+  frame[idx++] = LT;
+  frame[idx++] = seqNo;
+  
+  memcpy(frame + idx, "newt", 4);
+  idx += 4;
+  memcpy(frame + idx, "dock", 4);
+  idx += 4;
+  memcpy(frame + idx, command, 4);
+  idx += 4;
+  
+  frame[idx++] = ((length >> 24) & 0xff);
+  frame[idx++] = ((length >> 16) & 0xff);
+  frame[idx++] = ((length >>  8) & 0xff);
+  frame[idx++] = ((length      ) & 0xff);
   
   if (data != NULL) {
-    memcpy(frame + 19, data, length);
+    memcpy(frame + idx, data, length);
   }
   
-  docker_make_framed_response_data(c, frame, frameSize);
+  docker_make_framed_response(c, frame, frameSize);
 
   free(frame);
 }
 
 void docker_parse_newt_dock_payload(docker_t *c) {
   const char *command = (const char *)c->buffer + 14;
+  uint8_t seqNo = c->buffer[5];
+  
   if (strncmp(command, "rtdk", 4) == 0) {
     // Session type should be 4 to load a package
     uint8_t sessionType[] = { 0, 0, 0, 4 };
-    docker_newt_dock_response(c, "dock", c->buffer[5], sessionType, sizeof(sessionType));
+    docker_newt_dock_response(c, "dock", seqNo, sessionType, sizeof(sessionType));
   }
   else if (strncmp(command, "name", 4) == 0) {
     uint8_t seconds[] = { 0, 0, 0, 30 };
-    docker_newt_dock_response(c, "stim", c->buffer[5], seconds, sizeof(seconds));
+    docker_newt_dock_response(c, "stim", seqNo, seconds, sizeof(seconds));
   }
   else if (strncmp(command, "dres", 4) == 0) {
     // Ready to install packages.. but we'll disconncet for now
-    docker_newt_dock_response(c, "disc", c->buffer[5], NULL, 0);
+    docker_newt_dock_response(c, "disc", seqNo, NULL, 0);
   }
 }
 
-void docker_make_la_frame_response(docker_t *c, uint8_t seqNo) {
+void docker_make_la_response(docker_t *c, uint8_t seqNo) {
   uint8_t frame[] = { 0x03, LA, seqNo, 0x01 };
-  docker_make_framed_response_data(c, frame, countof(frame));
+  docker_make_framed_response(c, frame, countof(frame));
 }
 
 void docker_parse_payload(docker_t *c) {
   switch(c->buffer[4]) {
     case LR: {
       uint8_t lr[]= {23,1,2,1,6,1,0,0,0,0,255,2,1,2,3,1,1,4,2,64,0,8,1,3};
-      docker_make_framed_response_data(c, lr, countof(lr));
+      docker_make_framed_response(c, lr, countof(lr));
       break;
     }
     case LT: {
@@ -167,7 +188,7 @@ void docker_parse_payload(docker_t *c) {
       break;
     }
     case LA:
-      docker_make_la_frame_response(c, c->buffer[5]);
+      docker_make_la_response(c, c->buffer[5]);
       break;
     case LD:
       // Disconnect?
