@@ -162,6 +162,14 @@ void docker_parse_newt_dock_payload(docker_t *c) {
     docker_newt_dock_response(c, "stim", seqNo, seconds, sizeof(seconds));
   }
   else if (strncmp(command, "dres", 4) == 0) {
+    uint32_t errCode = *(uint32_t *)&c->buffer[22];
+    if (errCode != 0) {
+      // Newton formats suggests the Newton will disconnect
+      // after sending an error code
+      printf("errCode=0x%08x\n", errCode);
+      return;
+    }
+
     // Ready to install packages.. but we'll disconncet for now
     docker_newt_dock_response(c, "disc", seqNo, NULL, 0);
   }
