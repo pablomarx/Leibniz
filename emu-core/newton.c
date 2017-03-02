@@ -1129,16 +1129,51 @@ void newton_log_exception (void *ext, uint32_t addr) {
 }
 
 #pragma mark - Serial
+void newton_serial_channel_enqueue_data(newton_t *c, uint8_t channel, uint8_t *data, uint32_t size) {
+  newton_serial_queue_t queue = c->serialQueues[channel];
+  
+  if (queue.buffer == NULL) {
+    queue.length = size;
+    queue.buffer = malloc(size);
+    memcpy(queue.buffer, data, size);
+  }
+  else {
+    uint32_t newLength = queue.length + size;
+    queue.buffer = realloc(queue.buffer, newLength);
+    
+    memcpy(queue.buffer + queue.length, data, size);
+    queue.length = newLength;
+  }
+}
+
+void newton_serial_channel_dequeue_data(newton_t *c, uint8_t channel) {
+  e8530_t *scc = runt_get_scc(c->runt);
+  
+  newton_serial_queue_t queue = c->serialQueues[channel];
+  if (queue.length == 0) {
+    return;
+  }
+  
+  int success = e8530_receive(scc, channel, queue.buffer[queue.offset]);
+  if (success == 0) {
+    queue.offset++;
+    if (queue.offset >= queue.length) {
+      free(queue.buffer);
+      queue.buffer = NULL;
+      queue.length = 0;
+      queue.offset = 0;
+    }
+  }
+}
+
 void newton_serial_channel_send(newton_t *c, uint8_t channel, uint8_t *data, uint32_t size) {
   e8530_t *scc = runt_get_scc(c->runt);
   for (uint32_t i=0; i<size; i++) {
     int success = e8530_receive(scc, channel, data[i]);
     if (success != 0) {
-      // XXX: Need to copy the remainder of the data...
-      // Hook up inp_fct's on the e8530_t, and try
-      // to send more data as the inp_fct is invoked
-      // as bytes are cleared out of the RX buffer.
-      break;
+      uint32_t remaining = (size - i);
+      newton_serial_channel_enqueue_data(c, channel, data + i, remaining);
+      return;
     }
   }
 }
@@ -1186,6 +1221,16 @@ void newton_serial_chanA_output(void *ext, uint8_t val) {
 void newton_serial_chanB_output(void *ext, uint8_t val) {
   newton_t *newton = (newton_t *)ext;
   newton_serial_channel_flush_output(newton, RuntSerialChannelB);
+}
+
+void newton_serial_chanA_input(void *ext, uint8_t val) {
+  newton_t *newton = (newton_t *)ext;
+  newton_serial_channel_dequeue_data(newton, RuntSerialChannelA);
+}
+
+void newton_serial_chanB_input(void *ext, uint8_t val) {
+  newton_t *newton = (newton_t *)ext;
+  newton_serial_channel_dequeue_data(newton, RuntSerialChannelB);
 }
 
 #pragma mark -
@@ -1496,6 +1541,8 @@ int newton_configure_runt(newton_t *c, memory_t *rom) {
   e8530_t *scc = runt_get_scc(c->runt);
   e8530_set_out_fct (scc, 0, c, newton_serial_chanA_output);
   e8530_set_out_fct (scc, 1, c, newton_serial_chanB_output);
+  e8530_set_inp_fct (scc, 0, c, newton_serial_chanA_input);
+  e8530_set_inp_fct (scc, 1, c, newton_serial_chanB_input);
   
   // Configure pcmcia handler
   pcmcia_t *pcmcia = pcmcia_new();
@@ -1664,6 +1711,13 @@ void newton_free (newton_t *c)
     }
     free(membank);
     membank = next;
+  }
+  
+  if (c->serialQueues[0].buffer != NULL) {
+    free(c->serialQueues[0].buffer);
+  }
+  if (c->serialQueues[1].buffer != NULL) {
+    free(c->serialQueues[1].buffer);
   }
 
   docker_del(c->docker);

@@ -117,6 +117,11 @@ typedef enum {
   NewtonRebootStyleWarm,
 } NewtonRebootStyle;
 
+typedef struct {
+  uint8_t *buffer;
+  uint32_t offset;
+  uint32_t length;
+} newton_serial_queue_t;
 
 struct newton_s {
   arm_t *arm;
@@ -137,6 +142,7 @@ struct newton_s {
   NewtonBootMode bootMode;
   
   docker_t *docker;
+  newton_serial_queue_t serialQueues[2];
   
   // TapFileCntl related
   bool supportsRegularFiles;
