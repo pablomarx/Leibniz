@@ -60,7 +60,7 @@ enum {
 
 enum {
   RuntSerialConfig = 0x0b,
-  RuntSerialTxByte = 0x07,
+  RuntSerialData = 0x07,
 };
 
 enum {
@@ -536,145 +536,16 @@ static inline uint8_t runt_serial_channel_from_address(runt_t *c, uint32_t addre
   }
 }
 
-void runt_serial_channel_raise_interrupt(runt_t *c, uint8_t channel, uint8_t irq) {
-  c->pendingSerialInterrupts |= irq;
-  runt_interrupt_raise(c, RuntInterruptSerial);
-}
-
-uint8_t runt_serial_channel_get_config(runt_t *c, uint8_t channel) {
-  uint8_t result = 0;
-  
-  runt_serial_channel_t *config = NULL;
-  if (channel == RuntSerialChannelA) {
-    config = c->channelA;
-  }
-  else {
-    config = c->channelB;
-  }
-  
-  uint8_t regNum = config->regNum;
-  if (config->regLoaded != true) {
-    if (runt_serial_should_log_channel(c, channel) == true) {
-      fprintf(c->logFile, "[%s:CONFIG:GETVAL] Unexpected regLoaded == false, regNum = #%i defaulting to reg 0 (PC:0x%08x, LR:0x%08x)\n", runt_serial_channel_desc(c, channel), regNum, arm_get_pc(c->arm), arm_get_lr(c->arm));
-    }
-
-    regNum = 0;
-  }
-  config->regLoaded = false;
-  
-  // Comments are from the Zilog Z85C30 datasheet
-  // They seem to line up with the Newton's usage,
-  // but it isn't definitive...
-  switch (regNum) {
-    case 0:    // Transmit/Receive buffer status and External status
-      result = config->bufferStatus | RR0_DCD;
-      uint8_t transmitControls = config->registers[5];
-      if ((transmitControls & WR5_TXENABLE) == WR5_TXENABLE) {
-        result |= RR0_TXEMPTY;
-      }
-      if ((transmitControls & WR5_RTS) == WR5_RTS) {
-        result |= RR0_CTS;
-      }
-      break;
-    case 1:    // Special Receive Condition status
-      result = config->specialStatus | RR1_ALLSENT;
-      break;
-    case 2:    // Modified interrupt vector (Channel B only)
-               // Unmodified interrupt vector (Channel A only)
-      // If RR2 is read from Channel A, the unmodified vector is returned.
-      if (channel == RuntSerialChannelA) {
-        result = config->registers[2];
-      }
-      else {
-        // If RR2 is read from Channel B, then the vector is modified to
-        // indicate the source of the interrupt.
-        // See http://www.eit.lth.se/fileadmin/eit/courses/edi021/datablad/Periphery/Communication/z8530.pdf
-        // Table 2-9. Interrupt Vector Modification
-        bool statusHigh = ((config->registers[9] >> 3) & 1);
-        if (statusHigh == 0) {
-          if ((c->pendingSerialInterrupts & RR3_B_TXIP) == RR3_B_TXIP) {
-            result |= 1 << 2;
-          }
-          if ((c->pendingSerialInterrupts & RR3_A_RXIP) == RR3_A_RXIP) {
-            result |= 1 << 2;
-            result |= 1 << 3;
-          }
-          if ((c->pendingSerialInterrupts & RR3_A_TXIP) == RR3_A_TXIP) {
-            result |= 1 << 3;
-          }
-        }
-        else {
-          if ((c->pendingSerialInterrupts & RR3_A_RXIP) == RR3_A_RXIP) {
-            result |= 1 << 4;
-            result |= 1 << 5;
-          }
-          if ((c->pendingSerialInterrupts & RR3_A_TXIP) == RR3_A_TXIP) {
-            result |= 1 << 4;
-          }
-          if ((c->pendingSerialInterrupts & RR3_B_RXIP) == RR3_B_RXIP) {
-            result |= 1 << 5;
-          }
-        }
-      }
-      break;
-    case 3:    // Interrupt Pending bits (Channel A only)
-      if (channel == RuntSerialChannelA) {
-        result = c->pendingSerialInterrupts;
-      }
-      break;
-      
-    case 8:    // Receive Buffer
-      result = config->rxByte;
-      config->bufferStatus &= ~RR0_RXAVAIL;
-      break;
-      
-    case 10:   // Miscellaneous status
-    case 12:   // Lower byte of Baud Rate Generator time constant
-    case 13:   // Upper byte of Baud Rate Generator time constant
-    case 15:   // External/Status interrupt information
-      result = config->registers[regNum];
-      break;
-    default:
-      fprintf(c->logFile, "[%s:CONFIG:GETVAL] Invalid read register #%i (PC:0x%08x, LR:0x%08x)\n", runt_serial_channel_desc(c, channel), regNum, arm_get_pc(c->arm), arm_get_lr(c->arm));
-      break;
-  }
-
-  if (runt_serial_should_log_channel(c, channel) == true) {
-    fprintf(c->logFile, "[%s:CONFIG:GETVAL] reg:0x%02x => 0x%02x (PC:0x%08x, LR:0x%08x)\n", runt_serial_channel_desc(c, channel), regNum, result, arm_get_pc(c->arm), arm_get_lr(c->arm));
-  }
-
-  return result;
-}
-
-uint8_t runt_serial_channel_get_rxbyte(runt_t *c, uint8_t channel) {
-  uint8_t result = 0;
-  runt_serial_channel_t *config = NULL;
-  if (channel == RuntSerialChannelA) {
-    config = c->channelA;
-  }
-  else {
-    config = c->channelB;
-  }
-
-  result = config->rxByte;
-
-  if (runt_serial_should_log_channel(c, channel) == true) {
-    fprintf(c->logFile, "[%s:RXBYTE] 0%02x (PC:0x%08x, LR:0x%08x)\n", runt_serial_channel_desc(c, channel), result, arm_get_pc(c->arm), arm_get_lr(c->arm));
-  }
-
-  return result;
-}
-
 uint32_t runt_serial_get_value(runt_t *c, uint32_t addr) {
   uint32_t result = 0;
   uint8_t reg = (addr & 0xff);
   uint8_t channel = runt_serial_channel_from_address(c, addr);
 
-  if (reg == RuntSerialTxByte) {
-    result = runt_serial_channel_get_rxbyte(c, channel);
+  if (reg == RuntSerialData) {
+    result = e8530_get_data(c->scc, channel);
   }
   else if (reg == RuntSerialConfig) {
-    result = runt_serial_channel_get_config(c, channel);
+    result = e8530_get_ctl(c->scc, channel);
   }
   else {
     result = c->memory[(addr - RUNT_BASE) / 4];
@@ -684,162 +555,16 @@ uint32_t runt_serial_get_value(runt_t *c, uint32_t addr) {
   return result;
 }
 
-uint32_t runt_serial_channel_set_config(runt_t *c, uint8_t channel, uint8_t val) {
-  runt_serial_channel_t *config = NULL;
-  if (channel == RuntSerialChannelA) {
-    config = c->channelA;
-  }
-  else {
-    config = c->channelB;
-  }
-  
-  // Loading a register number
-  if (config->regLoaded == false) {
-    // Loading a valid register number
-    if (val < countof(config->registers)) {
-      if (runt_serial_should_log_channel(c, channel) == true) {
-        fprintf(c->logFile, "[%s:CONFIG:LOADREG] Loaded register #%i (PC:0x%08x, LR:0x%08x)\n", runt_serial_channel_desc(c, channel), val, arm_get_pc(c->arm), arm_get_lr(c->arm));
-      }
-      
-      config->regNum = val;
-      config->regLoaded = true;
-      return val;
-    }
-    
-    // Dealing with an invalid register number
-    if (runt_serial_should_log_channel(c, channel) == true) {
-      fprintf(c->logFile, "[%s:CONFIG:SETVAL] Bad load register #%i (PC:0x%08x, LR:0x%08x)\n", runt_serial_channel_desc(c, channel), val, arm_get_pc(c->arm), arm_get_lr(c->arm));
-    }
-    
-    // All of the ROMs tend to write 0x28 without loading
-    // a register first.  And if nothing is done to the
-    // pending interrupts, they'll infinitely loop.
-    // So assume this is some weird clear pending interrupts
-    // flag.
-    if (val == 0x28) {
-      c->pendingSerialInterrupts = 0;
-    }
-    return val;
-  }
-
-  // Setting a loaded register number's value
-  config->regLoaded = false;
-  uint8_t regNum = config->regNum;
-  
-  if (regNum < countof(config->registers)) {
-    config->registers[regNum] = val;
-  }
-
-  // Comments are from the Zilog Z85C30 datasheet
-  // They seem to line up with the Newton's usage,
-  // but it isn't definitive...
-  switch (regNum) {
-    case 0:     // CRC initialize, initialization commands for the various modes, register pointers
-    case 1:     // Transmit/Receive interrupt and data transfer mode definition
-      break;
-
-    case 2:     // Interrupt vector (accessed through either channel)
-      c->channelA->registers[regNum] = val;
-      c->channelB->registers[regNum] = val;
-      break;
-      
-    case 3:     // Receive parameters and control
-    case 4:     // Transmit/Receive miscellaneous parameters and modes
-    case 5:     // Transmit parameters and controls
-    case 6:     // Sync characters or SDLC address field
-    case 7:     // Sync character or SDLC flag
-      break;
-
-    case 8:     // Transmit buffer
-      config->txByte = val;
-      break;
-    case 9:     // Master interrupt control and reset (accessed through either channel)
-      if ((val & WR9_RESETA) == WR9_RESETA) {
-        c->pendingSerialInterrupts &= ~RR3_A_IP;
-      }
-      if ((val & WR9_RESETB) == WR9_RESETB) {
-        c->pendingSerialInterrupts &= ~RR3_B_IP;
-      }
-      if ((val & WR9_MIE) == WR9_MIE) {
-        
-      }
-      break;
-
-    case 10:    // Miscellaneous transmitter/receiver control bits
-    case 11:    // Clock mode control
-    case 12:    // Lower byte of Baud Rate Generator time constant
-    case 13:    // Upper byte of Baud Rate Generator time constant
-    case 14:    // Miscellaneous control bits
-    case 15:    // External/Status interrupt control
-      break;
-    default:
-      fprintf(c->logFile, "[%s:CONFIG:SETVAL] Unexpected register #%i (PC:0x%08x, LR:0x%08x)\n", runt_serial_channel_desc(c, channel), regNum, arm_get_pc(c->arm), arm_get_lr(c->arm));
-      break;
-
-  }
-  
-  if (runt_serial_should_log_channel(c, channel) == true) {
-    fprintf(c->logFile, "[%s:CONFIG:SETVAL] reg:0x%02x => 0x%02x (PC:0x%08x, LR:0x%08x)\n", runt_serial_channel_desc(c, channel), regNum, val, arm_get_pc(c->arm), arm_get_lr(c->arm));
-  }
-  
-  return val;
-}
-
-void runt_serial_channel_write_byte(runt_t *c, uint8_t channel, uint8_t byte) {
-  runt_serial_channel_t *config = NULL;
-  uint8_t irq =0 ;
-  if (channel == RuntSerialChannelA) {
-    config = c->channelA;
-    irq = RR3_A_RXIP;
-  }
-  else {
-    config = c->channelB;
-    irq = RR3_B_RXIP;
-  }
-
-  config->rxByte = byte;
-  config->bufferStatus |= RR0_RXAVAIL;
-  runt_serial_channel_raise_interrupt(c, channel, irq);
-}
-
-
-uint8_t runt_serial_channel_set_txbyte(runt_t *c, uint8_t channel, uint8_t val) {
-  if (runt_serial_should_log_channel(c, channel) == true) {
-    fprintf(c->logFile, "[%s:TXBYTE] 0x%02x = '%c' (PC:0x%08x, LR:0x%08x)\n", runt_serial_channel_desc(c, channel), val, isalnum(val) ? val : ' ', arm_get_pc(c->arm), arm_get_lr(c->arm));
-  }
-  
-  runt_serial_channel_t *config = NULL;
-  uint8_t irq =0 ;
-  if (channel == RuntSerialChannelA) {
-    config = c->channelA;
-    irq = RR3_A_TXIP;
-  }
-  else {
-    config = c->channelB;
-    irq = RR3_B_TXIP;
-  }
-
-  config->txByte = val;
-  
-  runt_serial_channel_raise_interrupt(c, channel, irq);
-
-  if (c->serialWrite_f != NULL) {
-    c->serialWrite_f(c->serialExt, channel, val);
-  }
-  
-  return val;
-}
-
 uint32_t runt_serial_set_value(runt_t *c, uint32_t addr, uint32_t val) {
   uint8_t reg = (addr & 0xff);
   uint8_t byteVal = (val & 0xff);
   uint8_t channel = runt_serial_channel_from_address(c, addr);
 
-  if (reg == RuntSerialTxByte) {
-    return runt_serial_channel_set_txbyte(c, channel, val);
+  if (reg == RuntSerialData) {
+    e8530_set_data(c->scc, channel, byteVal);
   }
   else if (reg == RuntSerialConfig) {
-    return runt_serial_channel_set_config(c, channel, byteVal);
+    e8530_set_ctl(c->scc, channel, byteVal);
   }
   else {
     fprintf(c->logFile, "[SERIAL:UNKNOWN:WR] addr:0x%08x => 0x%08x (PC:0x%08x, LR:0x%08x)\n", addr, val, arm_get_pc(c->arm), arm_get_lr(c->arm));
@@ -849,10 +574,26 @@ uint32_t runt_serial_set_value(runt_t *c, uint32_t addr, uint32_t val) {
   return val;
 }
 
-void runt_set_serial_write(runt_t *c, void *serialExt, serial_channel_write_f write) {
-  c->serialExt = serialExt;
-  c->serialWrite_f = write;
+void runt_serial_interrupt(void *ext, uint8_t val) {
+  runt_t *runt = (runt_t *)ext;
+  if (val == 0) {
+    runt_interrupt_lower(runt, RuntInterruptSerial);
+  }
+  else {
+    runt_interrupt_raise(runt, RuntInterruptSerial);
+  }
 }
+
+void runt_serial_chanA_rts(void *ext, uint8_t val) {
+  runt_t *runt = (runt_t *)ext;
+  e8530_set_cts(runt->scc, RuntSerialChannelA, val);
+}
+
+void runt_serial_chanB_rts(void *ext, uint8_t val) {
+  runt_t *runt = (runt_t *)ext;
+  e8530_set_cts(runt->scc, RuntSerialChannelB, val);
+}
+
 
 #pragma mark - Clocks
 uint32_t runt_get_ticks(runt_t *c) {
@@ -1040,7 +781,11 @@ bool runt_step(runt_t *c) {
   }
     
   c->ticks += 2;
-  
+
+  if (c->ticks % 10 == 4) {
+    e8530_clock (c->scc, 1);
+  }
+
   if (c->rtcAlarm != 0 && runt_get_rtc(c) >= c->rtcAlarm) {
     runt_interrupt_raise(c, RuntInterruptAlarm);
     c->rtcAlarm = 0;
@@ -1104,6 +849,10 @@ void runt_set_log_file (runt_t *c, FILE *file) {
 
 #pragma mark -
 #pragma mark
+e8530_t * runt_get_scc(runt_t *c) {
+  return c->scc;
+}
+
 void runt_set_lcd_fct(runt_t *c, void *ext,
             void *get8, void *set8, void *getname, void *step, void *powered)
 {
@@ -1133,8 +882,7 @@ void runt_reset(runt_t *c) {
   c->interrupt = 0;
   c->interruptStick = 0;
   
-  memset(c->channelA, 0x00, sizeof(runt_serial_channel_t));
-  memset(c->channelB, 0x00, sizeof(runt_serial_channel_t));
+  e8530_reset(c->scc);
 }
 
 void runt_init (runt_t *c, int machineType) {
@@ -1167,8 +915,12 @@ void runt_init (runt_t *c, int machineType) {
   //
   // Serial
   //
-  c->channelA = calloc(1, sizeof(runt_serial_channel_t));
-  c->channelB = calloc(1, sizeof(runt_serial_channel_t));
+  c->scc = calloc(1, sizeof(e8530_t));
+  e8530_init(c->scc);
+  e8530_reset(c->scc);
+  e8530_set_irq_fct(c->scc, c, runt_serial_interrupt);
+  e8530_set_rts_fct (c->scc, 0, c, runt_serial_chanA_rts);
+  e8530_set_rts_fct (c->scc, 1, c, runt_serial_chanB_rts);
   
   //
   // Logging
@@ -1209,8 +961,8 @@ void runt_set_arm(runt_t *c, arm_t *arm) {
 
 void runt_free (runt_t *c) {
   free(c->memory);
-  free(c->channelA);
-  free(c->channelB);
+  e8530_free(c->scc);
+  free(c->scc);
   
   if (c->lcd_driver != NULL) {
     if (c->machineType == kGestalt_MachineType_Lindy) {

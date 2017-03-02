@@ -10,6 +10,7 @@
 #define __Leibniz__runt__
 
 #include "arm.h"
+#include "e8530.h"
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -89,8 +90,8 @@ enum {
 };
 
 enum {
-  RuntSerialChannelA = 0xaa,
-  RuntSerialChannelB = 0x33,
+  RuntSerialChannelA = 0x00,
+  RuntSerialChannelB = 0x01,
   
   // Per OMP Repair Manual, Page 11:
   // In Junior-1, channel A controls RS422 serial port
@@ -106,20 +107,6 @@ typedef uint8_t (*lcd_set_uint8_f) (void *ext, uint8_t addr, uint8_t val);
 typedef const char * (*lcd_get_address_name_f) (void *ext, uint8_t addr);
 typedef void (*lcd_set_powered_f)(void *ext, bool powered);
 typedef void (*lcd_step_f)(void *ext);
-
-typedef void (*serial_channel_write_f)(void *ext, uint8_t channel, uint8_t byte);
-
-typedef struct runt_serial_channel_s {
-  uint8_t registers[17];
-  uint8_t regNum;
-  bool regLoaded;
-  
-  uint8_t txByte;
-  uint8_t rxByte;
-  
-  uint8_t bufferStatus;
-  uint8_t specialStatus;
-} runt_serial_channel_t;
 
 struct runt_s {
   arm_t *arm;
@@ -137,12 +124,8 @@ struct runt_s {
   uint32_t ticksAlarm3;
   int32_t adcSource;
   
-  runt_serial_channel_t *channelA;
-  runt_serial_channel_t *channelB;
-  uint8_t pendingSerialInterrupts;
-  serial_channel_write_f serialWrite_f;
-  void *serialExt;
-  
+  e8530_t *scc;
+
   // Logging
   uint32_t logFlags;
   FILE *logFile;
@@ -177,6 +160,8 @@ void runt_set_arm (runt_t *c, arm_t *arm);
 bool runt_step(runt_t *c);
 void runt_reset(runt_t *c);
 
+e8530_t * runt_get_scc(runt_t *c);
+
 void runt_set_log_flags (runt_t *c, unsigned flags, int val);
 void runt_set_log_file (runt_t *c, FILE *file);
 
@@ -184,9 +169,6 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val, uint32_t pc);
 uint32_t runt_get_mem32(runt_t *c, uint32_t addr, uint32_t pc);
 uint8_t runt_set_mem8(runt_t *c, uint32_t addr, uint8_t val, uint32_t pc);
 uint8_t runt_get_mem8(runt_t *c, uint32_t addr, uint32_t pc);
-
-void runt_set_serial_write(runt_t *c, void *serialExt, serial_channel_write_f write);
-void runt_serial_channel_write_byte(runt_t *c, uint8_t channel, uint8_t byte);
 
 void runt_interrupt_raise(runt_t *c, uint32_t interrupt);
 void runt_interrupt_lower(runt_t *c, uint32_t interrupt);
