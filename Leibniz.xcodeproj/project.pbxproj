@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		F100F38F1E676C4B0086F5FB /* e8530.c in Sources */ = {isa = PBXBuildFile; fileRef = F100F38D1E676C4B0086F5FB /* e8530.c */; };
 		F100F3981E67C5830086F5FB /* crc16.c in Sources */ = {isa = PBXBuildFile; fileRef = F100F3961E67C5830086F5FB /* crc16.c */; };
+		F100F39B1E67DA4A0086F5FB /* docker.c in Sources */ = {isa = PBXBuildFile; fileRef = F100F3991E67DA4A0086F5FB /* docker.c */; };
 		F10F099D19C651A700C8C8FD /* hexdump.c in Sources */ = {isa = PBXBuildFile; fileRef = F10F099B19C651A700C8C8FD /* hexdump.c */; };
 		F11F0DE31E43CB4800B963C2 /* pcmcia.c in Sources */ = {isa = PBXBuildFile; fileRef = F11F0DE11E43CB4800B963C2 /* pcmcia.c */; };
 		F123BD5D19C4FC8800EC994F /* arm.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD4719C4FC8800EC994F /* arm.c */; };
@@ -69,6 +70,8 @@
 		F100F38E1E676C4B0086F5FB /* e8530.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = e8530.h; sourceTree = "<group>"; };
 		F100F3961E67C5830086F5FB /* crc16.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = crc16.c; sourceTree = "<group>"; };
 		F100F3971E67C5830086F5FB /* crc16.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = crc16.h; sourceTree = "<group>"; };
+		F100F3991E67DA4A0086F5FB /* docker.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = docker.c; sourceTree = "<group>"; };
+		F100F39A1E67DA4A0086F5FB /* docker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = docker.h; sourceTree = "<group>"; };
 		F10F099B19C651A700C8C8FD /* hexdump.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = hexdump.c; sourceTree = "<group>"; };
 		F10F099C19C651A700C8C8FD /* hexdump.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = hexdump.h; sourceTree = "<group>"; };
 		F11F0DE11E43CB4800B963C2 /* pcmcia.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pcmcia.c; sourceTree = "<group>"; };
@@ -173,6 +176,8 @@
 				F100F3961E67C5830086F5FB /* crc16.c */,
 				F100F3971E67C5830086F5FB /* crc16.h */,
 				F123BD4E19C4FC8800EC994F /* disasm.c */,
+				F100F3991E67DA4A0086F5FB /* docker.c */,
+				F100F39A1E67DA4A0086F5FB /* docker.h */,
 				F19548881E47B170001772E8 /* double_cpdo.c */,
 				F100F38D1E676C4B0086F5FB /* e8530.c */,
 				F100F38E1E676C4B0086F5FB /* e8530.h */,
@@ -425,6 +430,7 @@
 				F100F38F1E676C4B0086F5FB /* e8530.c in Sources */,
 				F19548AF1E4E7E59001772E8 /* EmulatorView.m in Sources */,
 				F1F02C4E1E56672D0061B21E /* FileStream.m in Sources */,
+				F100F39B1E67DA4A0086F5FB /* docker.c in Sources */,
 				F123BD6819C4FC8800EC994F /* mmu.c in Sources */,
 				F123BD5F19C4FC8800EC994F /* copr14.c in Sources */,
 				F195489A1E47B170001772E8 /* extended_cpdo.c in Sources */,
