@@ -1130,38 +1130,39 @@ void newton_log_exception (void *ext, uint32_t addr) {
 
 #pragma mark - Serial
 void newton_serial_channel_enqueue_data(newton_t *c, uint8_t channel, uint8_t *data, uint32_t size) {
-  newton_serial_queue_t queue = c->serialQueues[channel];
+  newton_serial_queue_t *queue = &c->serialQueues[channel];
   
-  if (queue.buffer == NULL) {
-    queue.length = size;
-    queue.buffer = malloc(size);
-    memcpy(queue.buffer, data, size);
+  if (queue->buffer == NULL) {
+    queue->length = size;
+    queue->buffer = malloc(size);
+    queue->offset = 0;
+    memcpy(queue->buffer, data, size);
   }
   else {
-    uint32_t newLength = queue.length + size;
-    queue.buffer = realloc(queue.buffer, newLength);
+    uint32_t newLength = queue->length + size;
+    queue->buffer = realloc(queue->buffer, newLength);
     
-    memcpy(queue.buffer + queue.length, data, size);
-    queue.length = newLength;
+    memcpy(queue->buffer + queue->length, data, size);
+    queue->length = newLength;
   }
 }
 
 void newton_serial_channel_dequeue_data(newton_t *c, uint8_t channel) {
   e8530_t *scc = runt_get_scc(c->runt);
   
-  newton_serial_queue_t queue = c->serialQueues[channel];
-  if (queue.length == 0) {
+  newton_serial_queue_t *queue = &c->serialQueues[channel];
+  if (queue->length == 0) {
     return;
   }
   
-  int success = e8530_receive(scc, channel, queue.buffer[queue.offset]);
+  int success = e8530_receive(scc, channel, queue->buffer[queue->offset]);
   if (success == 0) {
-    queue.offset++;
-    if (queue.offset >= queue.length) {
-      free(queue.buffer);
-      queue.buffer = NULL;
-      queue.length = 0;
-      queue.offset = 0;
+    queue->offset++;
+    if (queue->offset >= queue->length) {
+      free(queue->buffer);
+      queue->buffer = NULL;
+      queue->length = 0;
+      queue->offset = 0;
     }
   }
 }
