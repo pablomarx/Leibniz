@@ -523,6 +523,16 @@ static inline bool runt_serial_should_log_channel(runt_t *c, uint8_t channel) {
   }
 }
 
+static inline bool runt_serial_should_log(runt_t *c) {
+  if ((c->logFlags & RuntLogIR) == RuntLogIR) {
+    return true;
+  }
+  else if ((c->logFlags & RuntLogSerial) == RuntLogSerial) {
+    return true;
+  }
+  return false;
+}
+
 static inline const char *runt_serial_channel_desc(runt_t *c, uint8_t channel) {
   return (channel == RuntSerialChannelSerial ? "SERIAL" : "IR");
 }
@@ -549,7 +559,9 @@ uint32_t runt_serial_get_value(runt_t *c, uint32_t addr) {
   }
   else {
     result = c->memory[(addr - RUNT_BASE) / 4];
-    fprintf(c->logFile, "[SERIAL:UNKNOWN:RD] addr:0x%08x => 0x%08x (PC:0x%08x, LR:0x%08x)\n", addr, result, arm_get_pc(c->arm), arm_get_lr(c->arm));
+    if (runt_serial_should_log(c) == true) {
+      fprintf(c->logFile, "[SERIAL:UNKNOWN:RD] addr:0x%08x => 0x%08x (PC:0x%08x, LR:0x%08x)\n", addr, result, arm_get_pc(c->arm), arm_get_lr(c->arm));
+    }
   }
 
   return result;
@@ -567,7 +579,9 @@ uint32_t runt_serial_set_value(runt_t *c, uint32_t addr, uint32_t val) {
     e8530_set_ctl(c->scc, channel, byteVal);
   }
   else {
-    fprintf(c->logFile, "[SERIAL:UNKNOWN:WR] addr:0x%08x => 0x%08x (PC:0x%08x, LR:0x%08x)\n", addr, val, arm_get_pc(c->arm), arm_get_lr(c->arm));
+    if (runt_serial_should_log(c) == true) {
+      fprintf(c->logFile, "[SERIAL:UNKNOWN:WR] addr:0x%08x => 0x%08x (PC:0x%08x, LR:0x%08x)\n", addr, val, arm_get_pc(c->arm), arm_get_lr(c->arm));
+    }
     c->memory[(addr - RUNT_BASE) / 4] = val;
   }
   
