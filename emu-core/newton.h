@@ -10,9 +10,10 @@
 #define Leibniz_newton_h
 
 #include "arm.h"
-#include "runt.h"
+#include "docker.h"
 #include "memory.h"
 #include "pcmcia.h"
+#include "runt.h"
 
 #include <stdio.h>
 
@@ -105,6 +106,18 @@ typedef void (*newton_system_panic_f) (newton_t *c, const char *msg);
 typedef void (*newton_debugstr_f) (newton_t *c, const char *msg);
 typedef void (*newton_undefined_opcode_f) (newton_t *c, uint32_t opcode);
 
+typedef enum {
+  NewtonBootModeNormal = 0,
+  NewtonBootModeDiagnostics,
+  NewtonBootModeAutoPWB,
+} NewtonBootMode;
+
+typedef enum {
+  NewtonRebootStyleCold,
+  NewtonRebootStyleWarm,
+} NewtonRebootStyle;
+
+
 struct newton_s {
   arm_t *arm;
   bool stop;
@@ -121,6 +134,9 @@ struct newton_s {
   uint32_t debuggerBits;
   uint32_t newtConfig;
   uint32_t newtTests;
+  NewtonBootMode bootMode;
+  
+  docker_t *docker;
   
   // TapFileCntl related
   bool supportsRegularFiles;
@@ -152,17 +168,6 @@ struct newton_s {
   newton_system_panic_f system_panic;
   newton_debugstr_f debug_str;
 };
-
-typedef enum {
-  NewtonBootModeNormal = 0,
-  NewtonBootModeDiagnostics,
-  NewtonBootModeAutoPWB,
-} NewtonBootMode;
-
-typedef enum {
-  NewtonRebootStyleCold,
-  NewtonRebootStyleWarm,
-} NewtonRebootStyle;
 
 void arm_dasm_str (char *dst, arm_dasm_t *op);
 

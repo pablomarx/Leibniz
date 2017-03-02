@@ -1128,10 +1128,71 @@ void newton_log_exception (void *ext, uint32_t addr) {
   //  newton_stop((newton_t *)ext);
 }
 
+#pragma mark - Serial
+void newton_serial_channel_send(newton_t *c, uint8_t channel, uint8_t *data, uint32_t size) {
+  e8530_t *scc = runt_get_scc(c->runt);
+  for (uint32_t i=0; i<size; i++) {
+    int success = e8530_receive(scc, channel, data[i]);
+    if (success != 0) {
+      // XXX: Need to copy the remainder of the data...
+      // Hook up inp_fct's on the e8530_t, and try
+      // to send more data as the inp_fct is invoked
+      // as bytes are cleared out of the RX buffer.
+      break;
+    }
+  }
+}
+
+void newton_handle_docker_payload(newton_t *c, uint8_t channel) {
+  docker_t *docker = c->docker;
+
+  docker_parse_payload(docker);
+  
+  uint32_t rspLen = 0;
+  uint8_t *response = docker_get_response(docker, &rspLen);
+  if (rspLen > 0 && response != NULL) {
+    newton_serial_channel_send(c, channel, response, rspLen);
+  }
+  
+  docker_reset(docker);
+}
+
+void newton_serial_channel_flush_output(newton_t *c, uint8_t channel) {
+  e8530_t *scc = runt_get_scc(c->runt);
+  docker_t *docker = c->docker;
+  
+  while (e8530_out_empty(scc, channel) == false) {
+    uint8_t val = e8530_send(scc, channel);
+    if (c->bootMode != NewtonBootModeNormal) {
+      // Do a serial loopback for diagnostics
+      e8530_receive(scc, channel, val);
+    }
+    else {
+      if (channel == RuntSerialChannelSerial) {
+        docker_receive_byte(docker, val);
+        if (docker_can_parse_payload(docker) == true) {
+          newton_handle_docker_payload(c, RuntSerialChannelSerial);
+        }
+      }
+    }
+  }
+}
+
+void newton_serial_chanA_output(void *ext, uint8_t val) {
+  newton_t *newton = (newton_t *)ext;
+  newton_serial_channel_flush_output(newton, RuntSerialChannelA);
+}
+
+void newton_serial_chanB_output(void *ext, uint8_t val) {
+  newton_t *newton = (newton_t *)ext;
+  newton_serial_channel_flush_output(newton, RuntSerialChannelB);
+}
 
 #pragma mark -
 #pragma mark
 void newton_set_bootmode(newton_t *c, NewtonBootMode bootMode) {
+  c->bootMode = bootMode;
+  
   switch (bootMode) {
     case NewtonBootModeAutoPWB:
       c->runt->interrupt = 0xffffffff;
@@ -1164,6 +1225,7 @@ void newton_reboot(newton_t *c, NewtonRebootStyle style) {
   if (style == NewtonRebootStyleCold) {
     memory_clear(c->ram);
   }
+  docker_reset(c->docker);
 }
 
 void newton_emulate(newton_t *c, int32_t count) {
@@ -1313,6 +1375,11 @@ void newton_init (newton_t *c)
   newton_set_logfile(c, stdout);
   
   //
+  // Docker, used for the docking protocol
+  //
+  c->docker = docker_new();
+  
+  //
   //
   //
   c->lastPc = 0;
@@ -1422,6 +1489,13 @@ int newton_configure_runt(newton_t *c, memory_t *rom) {
   runt_set_arm(c->runt, c->arm);
   runt_set_log_file(c->runt, c->logFile);
   newton_install_memory_handler(c, 0x01400000, 0x00400000, c->runt, runt_get_mem32, runt_set_mem32, runt_get_mem8, runt_set_mem8, runt_del);
+  
+  //
+  // Route the output (TX) of the SCC into us
+  //
+  e8530_t *scc = runt_get_scc(c->runt);
+  e8530_set_out_fct (scc, 0, c, newton_serial_chanA_output);
+  e8530_set_out_fct (scc, 1, c, newton_serial_chanB_output);
   
   // Configure pcmcia handler
   pcmcia_t *pcmcia = pcmcia_new();
@@ -1592,6 +1666,7 @@ void newton_free (newton_t *c)
     membank = next;
   }
 
+  docker_del(c->docker);
   arm_del(c->arm);
   fpa_delete();
 }
