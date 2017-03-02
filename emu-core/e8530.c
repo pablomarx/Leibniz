@@ -1073,27 +1073,30 @@ void e8530_set_cts_b (e8530_t *scc, unsigned char val)
 	e8530_set_cts (scc, 1, val);
 }
 
-void e8530_receive (e8530_t *scc, unsigned chn, unsigned char val)
+int e8530_receive (e8530_t *scc, unsigned chn, unsigned char val)
 {
 	e8530_chn_t *c;
 
 	chn &= 1;
 	c = &scc->chn[chn];
 
-	if (((c->rx_i + 1) % E8530_BUF_MAX) != c->rx_j) {
-		c->rxbuf[c->rx_i] = val;
-		c->rx_i = (c->rx_i + 1) % E8530_BUF_MAX;
+	if (((c->rx_i + 1) % E8530_BUF_MAX) == c->rx_j) {
+		return -1;
 	}
+  
+	c->rxbuf[c->rx_i] = val;
+	c->rx_i = (c->rx_i + 1) % E8530_BUF_MAX;
+	return 0;
 }
 
-void e8530_receive_a (e8530_t *scc, unsigned char val)
+int e8530_receive_a (e8530_t *scc, unsigned char val)
 {
-	e8530_receive (scc, 0, val);
+	return e8530_receive (scc, 0, val);
 }
 
-void e8530_receive_b (e8530_t *scc, unsigned char val)
+int e8530_receive_b (e8530_t *scc, unsigned char val)
 {
-	e8530_receive (scc, 1, val);
+	return e8530_receive (scc, 1, val);
 }
 
 unsigned char e8530_send (e8530_t *scc, unsigned chn)

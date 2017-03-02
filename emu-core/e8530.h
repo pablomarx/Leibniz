@@ -129,9 +129,9 @@ void e8530_set_cts (e8530_t *scc, unsigned chn, unsigned char val);
 void e8530_set_cts_a (e8530_t *scc, unsigned char val);
 void e8530_set_cts_b (e8530_t *scc, unsigned char val);
 
-void e8530_receive (e8530_t *scc, unsigned chn, unsigned char val);
-void e8530_receive_a (e8530_t *scc, unsigned char val);
-void e8530_receive_b (e8530_t *scc, unsigned char val);
+int e8530_receive (e8530_t *scc, unsigned chn, unsigned char val);
+int e8530_receive_a (e8530_t *scc, unsigned char val);
+int e8530_receive_b (e8530_t *scc, unsigned char val);
 
 unsigned char e8530_send (e8530_t *scc, unsigned chn);
 unsigned char e8530_send_a (e8530_t *scc);
