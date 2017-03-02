@@ -21,8 +21,6 @@
   newton_t *_newton;
   NSArray *_files;
   
-  BOOL _serialLoopback;
-  
   FileStream *_fileStream;
   ListenerWindowController *_consoleWindow;
 }
