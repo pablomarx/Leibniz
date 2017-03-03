@@ -229,8 +229,8 @@ void docker_parse_newt_dock_payload(docker_t *c) {
     }
     
     if (c->packageFile != NULL) {
+      docker_make_disconnect_response(c, c->packageSeqNo + 1);
       docker_close_package_file(c);
-      docker_make_disconnect_response(c, seqNo);
       return;
     }
     
