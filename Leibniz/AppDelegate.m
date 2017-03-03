@@ -14,9 +14,9 @@
 #import "NSWindow+AccessoryView.h"
 #import "PowerButtonAccessoryController.h"
 
+#include "docker.h"
 #include "newton.h"
 #include "runt.h"
-#include "monitor.h"
 #include "HammerConfigBits.h"
 
 int32_t leibniz_sys_open(void *ext, const char *cStrName, int mode);
@@ -28,6 +28,9 @@ int32_t leibniz_sys_set_input_notify(void *ext, uint32_t fildes, uint32_t addr);
 void leibniz_system_panic(newton_t *newton, const char *msg);
 void leibniz_debugstr(newton_t *newton, const char *msg);
 void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
+void docker_connected(void *ctx);
+void docker_disconnected(void *ctx);
+void docker_install_progress(void *ctx, double progress);
 
 @implementation AppDelegate
 
@@ -91,6 +94,10 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
                                    leibniz_sys_read,
                                    leibniz_sys_write,
                                    leibniz_sys_set_input_notify);
+  
+  
+  docker_set_callbacks(newton_get_docker(_newton), (__bridge void *)self, docker_connected, docker_disconnected, docker_install_progress);
+
   _emulatorQueue = dispatch_queue_create("org.swhite.leibniz.emulator", NULL);
 }
 
@@ -109,13 +116,19 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
   });
 }
 
+- (void) stopEmulator:(void(^)())completion {
+  newton_stop(_newton);
+  dispatch_async(_emulatorQueue, ^{
+    completion();
+  });
+}
+
 - (void) rebootNewtonWithStyle:(NewtonRebootStyle)style bootMode:(NewtonBootMode)bootMode {
   if (_newton == NULL) {
     return;
   }
   
-  newton_stop(_newton);
-  dispatch_async(_emulatorQueue, ^{
+  [self stopEmulator:^{
     newton_reboot(_newton, style);
     newton_set_bootmode(_newton, bootMode);
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -129,7 +142,7 @@ void leibniz_undefined_opcode(newton_t *newton, uint32_t opcode);
       }
       [self runEmulator];
     });
-  });
+  }];
 }
 
 
@@ -527,6 +540,50 @@ int32_t leibniz_sys_set_input_notify(void *ext, uint32_t fildes, uint32_t addr) 
 - (void) fileStreamClosed:(FileStream *)fileStream {
   
 }
+
+#pragma mark -
+- (void) showOpenPackagePanel {
+  NSOpenPanel *openPanel = [NSOpenPanel openPanel];
+  openPanel.title = NSLocalizedString(@"Select a package to install", @"Select a package to install");
+  
+  NSInteger result = [openPanel runModal];
+  
+  if (result == NSFileHandlingPanelOKButton) {
+    NSString *packageFile = [[openPanel URL] path];
+    docker_install_package_at_path(newton_get_docker(_newton), [packageFile fileSystemRepresentation]);
+  }
+  
+  [self runEmulator];
+}
+
+- (void) dockerConnected {
+  // We'll stop the emulator so the connection doesn't
+  // time out.
+  [self stopEmulator:^{
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [self showOpenPackagePanel];
+    });
+  }];
+}
+
+- (void) dockerDisconnected {
+  NSLog(@"%s", __PRETTY_FUNCTION__);
+}
+
+void docker_connected(void *ctx) {
+  AppDelegate *self = (__bridge AppDelegate *)ctx;
+  [self dockerConnected];
+}
+
+void docker_disconnected(void *ctx) {
+  AppDelegate *self = (__bridge AppDelegate *)ctx;
+  [self dockerDisconnected];
+}
+
+void docker_install_progress(void *ctx, double progress) {
+  NSLog(@"%s %f", __PRETTY_FUNCTION__, progress);
+}
+
 
 @end
 
