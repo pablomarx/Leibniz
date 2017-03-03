@@ -155,9 +155,16 @@ void docker_make_dock_response(docker_t *c, const char *command, uint8_t seqNo, 
   free(frame);
 }
 
-void docker_make_disconnect_response(docker_t *c) {
-  // Ready to install packages.. but we'll disconncet for now
-  docker_make_dock_response(c, "disc", 0/*seqNo*/, NULL, 0);
+void docker_make_disconnect_response(docker_t *c, uint8_t seqNo) {
+  docker_make_dock_response(c, "disc", seqNo, NULL, 0);
+}
+
+void docker_close_package_file(docker_t *c) {
+  if (c->packageFile != NULL) {
+    fclose(c->packageFile);
+    c->packageFile = NULL;
+  }
+  c->packageSeqNo = -1;
 }
 
 #define CHUNK_SIZE 256
@@ -165,8 +172,10 @@ void docker_make_package_data_response(docker_t *c, uint8_t seqNo) {
   uint8_t frame[CHUNK_SIZE + 3];
   uint8_t *data = &frame[3];
   uint32_t length = 0;
-
-  if (c->packageFile == NULL) {
+  
+  docker_make_la_response(c, c->packageSeqNo);
+  
+  if (c->packageFile == NULL || feof(c->packageFile) == true) {
     return;
   }
 
@@ -186,17 +195,13 @@ void docker_make_package_data_response(docker_t *c, uint8_t seqNo) {
   frame[1] = LT;
   frame[2] = (c->packageSeqNo & 0xff);
   
+  
   length = (uint32_t)fread(data, sizeof(uint8_t), CHUNK_SIZE, c->packageFile);
   while (length % 4 != 0) {
     data[length++] = 0;
   }
   
   docker_make_framed_response(c, frame, length + 3);
-  
-  if (feof(c->packageFile) == true) {
-    fclose(c->packageFile);
-    c->packageFile = NULL;
-  }
 }
 
 void docker_parse_newt_dock_payload(docker_t *c) {
@@ -222,10 +227,14 @@ void docker_parse_newt_dock_payload(docker_t *c) {
       printf("errCode=0x%08x\n", errCode);
       return;
     }
-
+    
     if (c->packageFile != NULL) {
+      docker_close_package_file(c);
+      docker_make_disconnect_response(c, seqNo);
       return;
     }
+    
+    docker_make_disconnect_response(c, seqNo);
   }
 }
 
@@ -234,7 +243,7 @@ void docker_parse_payload(docker_t *c) {
     case LR: {
       uint8_t lr[]= {23,1,2,1,6,1,0,0,0,0,255,2,1,2,3,1,1,4,2,64,0,8,1,3};
       docker_make_framed_response(c, lr, countof(lr));
-      c->packageSeqNo = -1;
+      docker_close_package_file(c);
       break;
     }
     case LT: {
@@ -252,7 +261,7 @@ void docker_parse_payload(docker_t *c) {
       break;
     case LD:
       // Disconnect?
-      c->packageSeqNo = -1;
+      docker_close_package_file(c);
       break;
     default:
       printf("Unhandled frame type: 0x%02x\n", c->buffer[4]);
