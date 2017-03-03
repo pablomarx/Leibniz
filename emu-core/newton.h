@@ -194,6 +194,7 @@ uint32_t newton_set_mem32 (newton_t *c, uint32_t addr, uint32_t val);
 
 runt_t *newton_get_runt (newton_t *c);
 pcmcia_t *newton_get_pcmcia (newton_t *c);
+docker_t *newton_get_docker (newton_t *c);
 
 void newton_emulate(newton_t *c, int32_t count);
 void newton_stop(newton_t *c);

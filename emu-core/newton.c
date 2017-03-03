@@ -1337,6 +1337,10 @@ pcmcia_t *newton_get_pcmcia (newton_t *c) {
   return c->pcmcia;
 }
 
+docker_t *newton_get_docker (newton_t *c) {
+  return c->docker;
+}
+
 void newton_set_log_flags (newton_t *c, unsigned flags, int val) {
   if (val) {
     c->logFlags |= flags;
