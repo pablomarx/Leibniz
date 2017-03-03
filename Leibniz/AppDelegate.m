@@ -32,6 +32,8 @@ void docker_connected(void *ctx);
 void docker_disconnected(void *ctx);
 void docker_install_progress(void *ctx, double progress);
 
+static NSString * kLastROMFile = @"lastROMFile";
+
 @implementation AppDelegate
 
 @synthesize window = _window;
@@ -49,6 +51,15 @@ void docker_install_progress(void *ctx, double progress);
   
   [self setupTitlebarAccessory];
   [self createConsoleWindowAndFileStream];
+  
+  NSString *lastROMFile = [[NSUserDefaults standardUserDefaults] objectForKey:kLastROMFile];
+  if (lastROMFile != nil) {
+    BOOL success = [self beginEmulatingWithROMFile:lastROMFile];
+    if (success == YES) {
+      return;
+    }
+  }
+
   [self openDocument:self];
 }
 
@@ -70,7 +81,7 @@ void docker_install_progress(void *ctx, double progress);
   self.files = @[];
 }
 
-- (void) createEmulatorWithROMFile:(NSString *)romFile {
+- (BOOL) createEmulatorWithROMFile:(NSString *)romFile {
   _newton = newton_new();
   newton_set_logfile(_newton, _fileStream.file);
   
@@ -78,12 +89,11 @@ void docker_install_progress(void *ctx, double progress);
   if (success != 0) {
     newton_del(_newton);
     _newton = NULL;
-    [self showErrorAlertWithTitle:NSLocalizedString(@"Unsupported file", @"Unsupported file")
-                          message:NSLocalizedString(@"The file does not appear to be a supported ROM.", @"The file does not appear to be a supported ROM.")];
-    return;
+    return NO;
   }
   
   NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+  [userDefaults setObject:romFile forKey:kLastROMFile];
   uint32_t newtonLogFlags = (uint32_t)[userDefaults integerForKey:@"newtonLogFlags"];
   uint32_t runtLogFlags = (uint32_t)[userDefaults integerForKey:@"runtLogFlags"];
   
@@ -108,9 +118,10 @@ void docker_install_progress(void *ctx, double progress);
   docker_set_callbacks(newton_get_docker(_newton), (__bridge void *)self, docker_connected, docker_disconnected, docker_install_progress);
 
   _emulatorQueue = dispatch_queue_create("org.swhite.leibniz.emulator", NULL);
+  return YES;
 }
 
-- (void) beginEmulatingWithROMFile:(NSString *)romFile {
+- (BOOL) beginEmulatingWithROMFile:(NSString *)romFile {
   if (_newton != NULL) {
     [self stopEmulator:^{
       newton_del(_newton);
@@ -121,11 +132,18 @@ void docker_install_progress(void *ctx, double progress);
         [self beginEmulatingWithROMFile:romFile];
       });
     }];
-    return;
+    return YES;
   }
 
-  [self createEmulatorWithROMFile:romFile];
-  [self runEmulator];
+  BOOL success = [self createEmulatorWithROMFile:romFile];
+  if (success == NO) {
+    [self showErrorAlertWithTitle:NSLocalizedString(@"Unsupported file", @"Unsupported file")
+                          message:NSLocalizedString(@"The file does not appear to be a supported ROM.", @"The file does not appear to be a supported ROM.")];
+  }
+  else {
+    [self runEmulator];
+  }
+  return success;
 }
 
 - (void) runEmulator {
