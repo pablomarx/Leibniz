@@ -49,7 +49,7 @@ void docker_install_progress(void *ctx, double progress);
   
   [self setupTitlebarAccessory];
   [self createConsoleWindowAndFileStream];
-  [self showOpenROMPanel];
+  [self openDocument:self];
 }
 
 - (void) createConsoleWindowAndFileStream {
@@ -59,6 +59,15 @@ void docker_install_progress(void *ctx, double progress);
   
   _fileStream = [[FileStream alloc] init];
   _fileStream.delegate = self;
+}
+
+- (void) closeListenerWindows {
+  for (LeibnizFile *aFile in self.files) {
+    if (aFile.listener != nil) {
+      [aFile.listener close];
+    }
+  }
+  self.files = @[];
 }
 
 - (void) createEmulatorWithROMFile:(NSString *)romFile {
@@ -102,6 +111,19 @@ void docker_install_progress(void *ctx, double progress);
 }
 
 - (void) beginEmulatingWithROMFile:(NSString *)romFile {
+  if (_newton != NULL) {
+    [self stopEmulator:^{
+      newton_del(_newton);
+      _newton = NULL;
+      dispatch_async(dispatch_get_main_queue(), ^{
+        [self.window close];
+        [self closeListenerWindows];
+        [self beginEmulatingWithROMFile:romFile];
+      });
+    }];
+    return;
+  }
+
   [self createEmulatorWithROMFile:romFile];
   [self runEmulator];
 }
@@ -117,6 +139,11 @@ void docker_install_progress(void *ctx, double progress);
 }
 
 - (void) stopEmulator:(void(^)())completion {
+  if (_newton == NULL) {
+    completion();
+    return;
+  }
+  
   newton_stop(_newton);
   dispatch_async(_emulatorQueue, ^{
     completion();
@@ -133,12 +160,7 @@ void docker_install_progress(void *ctx, double progress);
     newton_set_bootmode(_newton, bootMode);
     dispatch_async(dispatch_get_main_queue(), ^{
       if (style == NewtonRebootStyleCold) {
-        for (LeibnizFile *aFile in self.files) {
-          if (aFile.listener != nil) {
-            [aFile.listener close];
-          }
-        }
-        self.files = @[];
+        [self closeListenerWindows];
       }
       [self runEmulator];
     });
@@ -146,7 +168,7 @@ void docker_install_progress(void *ctx, double progress);
 }
 
 
-- (void) showOpenROMPanel {
+- (IBAction) openDocument:(id)sender {
   NSOpenPanel *openPanel = [NSOpenPanel openPanel];
   NSInteger result = [openPanel runModal];
   
@@ -156,9 +178,6 @@ void docker_install_progress(void *ctx, double progress);
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
       [self beginEmulatingWithROMFile: romFile];
     });
-  }
-  else {
-    [NSApp terminate:self];
   }
 }
 
