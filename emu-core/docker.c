@@ -56,6 +56,43 @@ void docker_del(docker_t *c) {
   free(c);
 }
 
+void docker_set_callbacks (docker_t *c, void *ext, docker_connected_f connected, docker_disconnected_f disconnected, docker_install_progress_f progress)
+{
+  c->ext = ext;
+  c->connected = connected;
+  c->disconnected = disconnected;
+  c->installProgress = progress;
+}
+
+void docker_close_package_file(docker_t *c) {
+  if (c->packageFile != NULL) {
+    fclose(c->packageFile);
+    c->packageFile = NULL;
+  }
+  c->packageSeqNo = -1;
+}
+
+void docker_reset_package_file(docker_t *c) {
+  if (c->packageFile != NULL) {
+    rewind(c->packageFile);
+    c->packageSeqNo = -1;
+  }
+}
+
+int8_t docker_install_package_at_path(docker_t *c, const char *path) {
+  docker_close_package_file(c);
+  
+  c->packageFile = fopen(path, "rb");
+  if (c->packageFile == NULL) {
+    return -1;
+  }
+  
+  fseek(c->packageFile, 0, SEEK_END);
+  c->packageSize = (uint32_t)ftell(c->packageFile);
+  rewind(c->packageFile);
+  return 0;
+}
+
 void docker_reset(docker_t *c) {
   memset(c->buffer, 0x00, c->bufferLen);
   c->bufferIdx = 0;
@@ -159,14 +196,6 @@ void docker_make_disconnect_response(docker_t *c, uint8_t seqNo) {
   docker_make_dock_response(c, "disc", seqNo, NULL, 0);
 }
 
-void docker_close_package_file(docker_t *c) {
-  if (c->packageFile != NULL) {
-    fclose(c->packageFile);
-    c->packageFile = NULL;
-  }
-  c->packageSeqNo = -1;
-}
-
 #define CHUNK_SIZE 256
 void docker_make_package_data_response(docker_t *c, uint8_t seqNo) {
   uint8_t frame[CHUNK_SIZE + 3];
@@ -179,10 +208,12 @@ void docker_make_package_data_response(docker_t *c, uint8_t seqNo) {
     return;
   }
 
+  uint32_t pos = (uint32_t)ftell(c->packageFile);
   if ((uint8_t)(seqNo + 1) == c->packageSeqNo) {
     // Newton wants the last chunk re-sent.
-    uint32_t pos = (uint32_t)ftell(c->packageFile);
-    fseek(c->packageFile, pos - CHUNK_SIZE, SEEK_SET);
+    pos -= CHUNK_SIZE;
+    
+    fseek(c->packageFile, pos, SEEK_SET);
     c->packageSeqNo = seqNo;
   }
 
@@ -202,6 +233,10 @@ void docker_make_package_data_response(docker_t *c, uint8_t seqNo) {
   }
   
   docker_make_framed_response(c, frame, length + 3);
+  
+  if (c->installProgress != NULL) {
+    c->installProgress(c->ext, (double)(pos + length) / c->packageSize);
+  }
 }
 
 void docker_parse_newt_dock_payload(docker_t *c) {
@@ -224,26 +259,34 @@ void docker_parse_newt_dock_payload(docker_t *c) {
     if (errCode != 0) {
       // Newton formats suggests the Newton will disconnect
       // after sending an error code
-      printf("errCode=0x%08x\n", errCode);
+      printf("kDResult error code: 0x%08x\n", errCode);
       return;
     }
-    
-    if (c->packageFile != NULL) {
+
+    if (c->packageFile == NULL) {
+      docker_make_disconnect_response(c, seqNo);
+    }
+    else if (c->packageSeqNo != -1) {
       docker_make_disconnect_response(c, c->packageSeqNo + 1);
       docker_close_package_file(c);
-      return;
     }
-    
-    docker_make_disconnect_response(c, seqNo);
+    else {
+      docker_make_dock_response(c, "lpkg", seqNo, NULL, c->packageSize);
+      c->packageSeqNo = seqNo;
+    }
   }
 }
 
 void docker_parse_payload(docker_t *c) {
   switch(c->buffer[4]) {
     case LR: {
+      if (c->connected != NULL) {
+        c->connected(c->ext);
+      }
+      docker_reset_package_file(c);
+      
       uint8_t lr[]= {23,1,2,1,6,1,0,0,0,0,255,2,1,2,3,1,1,4,2,64,0,8,1,3};
       docker_make_framed_response(c, lr, countof(lr));
-      docker_close_package_file(c);
       break;
     }
     case LT: {
@@ -255,12 +298,14 @@ void docker_parse_payload(docker_t *c) {
       break;
     }
     case LA:
-      if (c->packageFile != NULL) {
+      if (c->packageSeqNo != -1) {
         docker_make_package_data_response(c, c->buffer[5]);
       }
       break;
     case LD:
-      // Disconnect?
+      if (c->disconnected != NULL) {
+        c->disconnected(c->ext);
+      }
       docker_close_package_file(c);
       break;
     default:
