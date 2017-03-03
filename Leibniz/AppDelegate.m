@@ -83,8 +83,10 @@ static NSString * kLastROMFile = @"lastROMFile";
 
 - (BOOL) createEmulatorWithROMFile:(NSString *)romFile {
   _newton = newton_new();
+#if !DEBUG
   newton_set_logfile(_newton, _fileStream.file);
-  
+#endif
+
   int success = newton_load_rom(_newton, [romFile fileSystemRepresentation]);
   if (success != 0) {
     newton_del(_newton);
