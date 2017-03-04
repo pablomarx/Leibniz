@@ -222,7 +222,9 @@ static NSString * kLastROMFile = @"lastROMFile";
 
 #pragma mark - Actions
 - (IBAction) togglePowerSwitch:(id)sender {
-  runt_switch_toggle(_newton->runt, RuntSwitchPower);
+  if (_newton != NULL) {
+    runt_switch_toggle(_newton->runt, RuntSwitchPower);
+  }
 }
 
 - (IBAction) showConsole:(id)sender {
@@ -242,11 +244,15 @@ static NSString * kLastROMFile = @"lastROMFile";
 }
 
 - (IBAction) insertSRAMCard:(id)sender {
-  BOOL inserted = ([sender state] == NSOnState ? 0 : 1);
-  [sender setState:(!inserted ? NSOffState : NSOnState)];
-
-  pcmcia_t *pcmcia = newton_get_pcmcia(_newton);
-  pcmcia_set_card_inserted(pcmcia, inserted);
+  if (_newton == NULL) {
+    [sender setState:NSOffState];
+  }
+  else {
+    BOOL inserted = ([sender state] == NSOnState ? 0 : 1);
+    pcmcia_t *pcmcia = newton_get_pcmcia(_newton);
+    pcmcia_set_card_inserted(pcmcia, inserted);
+    [sender setState:(!inserted ? NSOffState : NSOnState)];
+  }
 }
 
 #pragma mark - Tablet
