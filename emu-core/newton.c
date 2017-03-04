@@ -1501,38 +1501,35 @@ int newton_configure_runt(newton_t *c, memory_t *rom) {
   }
   newton_install_memory(c, rom, 0x00000000, 0x01000000);
   
-  uint32_t ramSize = 0;
-  uint32_t flashSize = 0;
+  uint32_t ramBank1 = 0;
+  uint32_t ramBank2 = 0;
   
   if (c->machineType == kGestalt_MachineType_MessagePad) {
-    ramSize = 640 * 1024;
-    flashSize = 1 * 1024 * 1024;
+    ramBank1 = 512 * 1024;
+    ramBank2 = 1 * 1024 * 1024;
   }
   else { // Lindy
-    ramSize = 2 * 1024 * 1024;
-    flashSize = 2 * 1024 * 1024;
+    ramBank1 = 2 * 1024 * 1024;
+    ramBank2 = 2 * 1024 * 1024;
   }
   
   // Configure RAM
-  memory_t *ram = memory_new("RAM", 0x01000000, ramSize);
+  memory_t *ram = memory_new("RAM", 0x01000000, ramBank1);
   newton_install_memory(c, ram, 0x01000000, 2 * 1024 * 1024);
   c->ram = ram;
   
-  if (flashSize > 0) {
-    // Configure flash
-    memory_t *flash = memory_new("FLASH", 0x01200000, flashSize);
-    // This is the identification code for some AMD flash
-    // (29F040, 28F008).  If this is written, and read-only
-    // is set, booting into Lindy 120/130 diags will show these
-    // product codes.
+  memory_t *ram2 = memory_new("RAM2", 0x01200000, ramBank2);
+  // This is the identification code for some AMD flash
+  // (29F040, 28F008).  If this is written, and read-only
+  // is set, booting into Lindy 120/130 diags will show these
+  // product codes.
 #if 0
-    memory_set_uint32(flash, 0x04, 0x00a4a200, 0);
-    memory_set_readonly(flash, true);
+  memory_set_uint32(ram2, 0x04, 0x00a4a200, 0);
+  memory_set_readonly(ram2, true);
 #endif
-    //memory_set_logs_reads(flash, true);
-    //memory_set_logs_writes(flash, true);
-    newton_install_memory(c, flash, 0x01200000, 2 * 1024 * 1024);
-  }
+  //memory_set_logs_reads(ram2, true);
+  //memory_set_logs_writes(ram2, true);
+  newton_install_memory(c, ram2, 0x01200000, 2 * 1024 * 1024);
   
   // Configure the Runt ASIC
   c->runt = runt_new(c->machineType);
