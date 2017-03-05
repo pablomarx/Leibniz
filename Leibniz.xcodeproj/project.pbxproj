@@ -36,7 +36,6 @@
 		F19548A71E4E52C6001772E8 /* ListenerWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = F19548A51E4E52C5001772E8 /* ListenerWindowController.xib */; };
 		F19548AF1E4E7E59001772E8 /* EmulatorView.m in Sources */ = {isa = PBXBuildFile; fileRef = F19548AE1E4E7E59001772E8 /* EmulatorView.m */; };
 		F19548B21E4E7EE9001772E8 /* TouchView.m in Sources */ = {isa = PBXBuildFile; fileRef = F19548B11E4E7EE9001772E8 /* TouchView.m */; };
-		F1DB3DD919C60F8B006C7102 /* monitor.c in Sources */ = {isa = PBXBuildFile; fileRef = F1DB3DD719C60F8B006C7102 /* monitor.c */; };
 		F1DB3DDC19C63121006C7102 /* linenoise.c in Sources */ = {isa = PBXBuildFile; fileRef = F1DB3DDA19C63121006C7102 /* linenoise.c */; };
 		F1DD99A71CC818DA00C718CC /* memory.c in Sources */ = {isa = PBXBuildFile; fileRef = F1DD99A51CC818DA00C718CC /* memory.c */; };
 		F1E09AED1B2D2AB000004CC8 /* lcd_sharp.c in Sources */ = {isa = PBXBuildFile; fileRef = F1E09AE91B2D2AB000004CC8 /* lcd_sharp.c */; };
@@ -114,8 +113,6 @@
 		F19548AE1E4E7E59001772E8 /* EmulatorView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EmulatorView.m; sourceTree = "<group>"; };
 		F19548B01E4E7EE9001772E8 /* TouchView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TouchView.h; sourceTree = "<group>"; };
 		F19548B11E4E7EE9001772E8 /* TouchView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TouchView.m; sourceTree = "<group>"; };
-		F1DB3DD719C60F8B006C7102 /* monitor.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = monitor.c; sourceTree = "<group>"; };
-		F1DB3DD819C60F8B006C7102 /* monitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = monitor.h; sourceTree = "<group>"; };
 		F1DB3DDA19C63121006C7102 /* linenoise.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = linenoise.c; sourceTree = "<group>"; };
 		F1DB3DDB19C63121006C7102 /* linenoise.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = linenoise.h; sourceTree = "<group>"; };
 		F1DD99A51CC818DA00C718CC /* memory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = memory.c; sourceTree = "<group>"; };
@@ -206,8 +203,6 @@
 				F1DD99A51CC818DA00C718CC /* memory.c */,
 				F1DD99A61CC818DA00C718CC /* memory.h */,
 				F123BD5519C4FC8800EC994F /* mmu.c */,
-				F1DB3DD719C60F8B006C7102 /* monitor.c */,
-				F1DB3DD819C60F8B006C7102 /* monitor.h */,
 				F123BD5819C4FC8800EC994F /* newton.c */,
 				F123BD7019C4FCF500EC994F /* newton.h */,
 				F123BD5B19C4FC8800EC994F /* opcodes.c */,
@@ -434,7 +429,6 @@
 				F123BD6819C4FC8800EC994F /* mmu.c in Sources */,
 				F123BD5F19C4FC8800EC994F /* copr14.c in Sources */,
 				F195489A1E47B170001772E8 /* extended_cpdo.c in Sources */,
-				F1DB3DD919C60F8B006C7102 /* monitor.c in Sources */,
 				F123BD6119C4FC8800EC994F /* copr15.c in Sources */,
 				F123BD6B19C4FC8800EC994F /* newton.c in Sources */,
 				F123BD6E19C4FC8800EC994F /* opcodes.c in Sources */,
