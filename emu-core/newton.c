@@ -1506,7 +1506,7 @@ int newton_configure_runt(newton_t *c, memory_t *rom) {
   
   if (c->machineType == kGestalt_MachineType_MessagePad) {
     ramBank1 = 512 * 1024;
-    ramBank2 = 1 * 1024 * 1024;
+    ramBank2 = 512 * 1024;
   }
   else { // Lindy
     ramBank1 = 2 * 1024 * 1024;
