@@ -191,6 +191,7 @@ static NSString * kLastROMFile = @"lastROMFile";
 - (IBAction) openDocument:(id)sender {
   NSOpenPanel *openPanel = [NSOpenPanel openPanel];
   NSInteger result = [openPanel runModal];
+  [openPanel close];
   
   if (result == NSFileHandlingPanelOKButton) {
     NSString *romFile = [[openPanel URL] path];
@@ -331,7 +332,7 @@ void newton_display_set_framebuffer(const uint8_t *display, int width, int heigh
       [self runEmulator];
     }
     else {
-      [self showOpenROMPanel];
+      [self openDocument:self];
     }
   }
 }
