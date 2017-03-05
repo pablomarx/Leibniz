@@ -27,6 +27,8 @@ typedef struct memory_s {
   
   uint32_t *contents;
   uint32_t length;
+  uint32_t flashCode;
+  int8_t flashSequence;
   
   memory_map_t *mappings;
   uint32_t mappingCount;
@@ -45,6 +47,8 @@ void memory_clear(memory_t *mem);
 uint32_t memory_get_length(memory_t *mem);
 
 void memory_write_to_file(memory_t *mem, const char *file);
+
+void memory_set_flash_code(memory_t *mem, uint32_t flashCode);
 
 void memory_set_readonly(memory_t *mem, bool readOnly);
 bool memory_get_readonly(memory_t *mem);

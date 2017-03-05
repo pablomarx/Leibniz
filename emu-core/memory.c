@@ -51,6 +51,10 @@ uint32_t memory_get_length(memory_t *mem) {
   return mem->mappings->length;
 }
 
+void memory_set_flash_code(memory_t *mem, uint32_t flashCode) {
+  mem->flashCode = flashCode;
+}
+
 void memory_set_readonly(memory_t *mem, bool readOnly) {
   mem->readOnly = readOnly;
 }
@@ -121,6 +125,10 @@ uint32_t memory_get_uint32(memory_t *mem, uint32_t address, uint32_t pc) {
   uint32_t physaddr = memory_physaddr_for_virtaddr(mem, address);
   uint32_t result = mem->contents[physaddr/4];
   
+  if (mem->flashSequence == 4 && physaddr == 4) {
+    result = mem->flashCode;
+  }
+
   if (mem->logsReads == true) {
     fprintf(mem->logFile, "[%s:READ] PC:0x%08x addr:0x%08x => val:0x%08x\n", mem->name, pc, address, result);
   }
@@ -138,6 +146,53 @@ uint32_t memory_set_uint32(memory_t *mem, uint32_t address, uint32_t val, uint32
   }
   else {
     uint32_t physaddr = memory_physaddr_for_virtaddr(mem, address);
+
+    if (mem->flashCode != 0) {
+      // Write to the command register?
+      if (physaddr == 0) {
+        if (val == 0xf0f0f0f0) {
+          if (mem->flashSequence == 0) {
+            mem->flashSequence = 1;
+          }
+          else {
+            mem->flashSequence = 0;
+          }
+          return val;
+        }
+      }
+      
+      // Advance the flash sequence
+      switch (mem->flashSequence) {
+        case 1:
+          if ((physaddr & 0xfff0) == 0x5550 && val == 0xaaaaaaaa) {
+            mem->flashSequence++;
+            return val;
+          }
+          else {
+            mem->flashSequence = INT8_MAX;
+          }
+          break;
+        case 2:
+          if ((physaddr & 0xfff0) == 0xaaa0 && val == 0x55555555) {
+            mem->flashSequence++;
+            return val;
+          }
+          else {
+            mem->flashSequence = INT8_MAX;
+          }
+          break;
+        case 3:
+          if ((physaddr & 0xfff0) == 0x5550 && val == 0x90909090) {
+            mem->flashSequence++;
+            return val;
+          }
+          else {
+            mem->flashSequence = INT8_MAX;
+          }
+          break;
+      }
+    }
+    
     mem->contents[physaddr/4] = val;
   }
   
