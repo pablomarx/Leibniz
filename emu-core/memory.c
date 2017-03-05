@@ -14,6 +14,7 @@
 memory_t *memory_new(char *name, uint32_t base, uint32_t length) {
   memory_t *mem = calloc(1, sizeof(memory_t));
   mem->contents = calloc(length, sizeof(uint8_t));
+  mem->length = length;
   
   memory_add_mapping(mem, base, 0, length);
 
@@ -80,6 +81,15 @@ void memory_set_log_file(memory_t *mem, FILE *logFile) {
 
 FILE *memory_get_log_file(memory_t *mem) {
   return mem->logFile;
+}
+
+void memory_write_to_file(memory_t *mem, const char *file) {
+  FILE *fp = fopen(file, "w");
+  for (uint32_t i=0; i<mem->length/4; i++) {
+    uint32_t word = htonl(*(mem->contents + i));
+    fwrite(&word, sizeof(word), 1, fp);
+  }
+  fclose(fp);
 }
 
 void memory_add_mapping(memory_t *mem, uint32_t virtaddr, uint32_t physaddr, uint32_t length) {
