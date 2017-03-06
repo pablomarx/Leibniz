@@ -21,8 +21,7 @@ enum {
 void pcmcia_init (pcmcia_t *c)
 {
   c->registers = calloc(0xff, sizeof(uint8_t));
-  c->cardCapacity = 1024 * 1024;
-  c->cardData = calloc(c->cardCapacity, sizeof(uint8_t));
+  c->cardMemory = memory_new("SRAM", 0x10000000, 1024 * 1024);
   c->logFile = stdout;
 }
 
@@ -46,9 +45,9 @@ void pcmcia_free (pcmcia_t *c)
     free(c->registers);
     c->registers = NULL;
   }
-  if (c->cardData != NULL) {
-    free(c->cardData);
-    c->cardData = NULL;
+  if (c->cardMemory != NULL) {
+    memory_delete(c->cardMemory);
+    c->cardMemory = NULL;
   }
 }
 
@@ -125,9 +124,7 @@ uint32_t pcmcia_set_status_mem32(pcmcia_t *c, uint32_t addr, uint32_t val) {
 }
 
 uint32_t pcmcia_set_card_mem32(pcmcia_t *c, uint32_t addr, uint32_t val) {
-  uint32_t localAddr = (addr & 0x00ffffff) % c->cardCapacity;
-  c->cardData[localAddr / 4] = val;
-  return val;
+  return memory_set_uint32(c->cardMemory, addr, val, 0);
 }
 
 uint32_t pcmcia_set_mem32(pcmcia_t *c, uint32_t addr, uint32_t val, uint32_t pc)
@@ -215,8 +212,7 @@ uint32_t pcmcia_get_status_mem32(pcmcia_t *c, uint32_t addr) {
 }
 
 uint32_t pcmcia_get_card_mem32(pcmcia_t *c, uint32_t addr) {
-  uint32_t localAddr = (addr & 0x00ffffff) % c->cardCapacity;
-  return c->cardData[localAddr / 4];
+  return memory_get_uint32(c->cardMemory, addr, 0);
 }
 
 uint32_t pcmcia_get_mem32(pcmcia_t *c, uint32_t addr, uint32_t pc)

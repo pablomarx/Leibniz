@@ -12,13 +12,14 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+
+#include "memory.h"
 #include "runt.h"
 
 typedef struct pcmcia_s {
   uint32_t *registers;
   
-  uint32_t cardCapacity;
-  uint32_t *cardData;
+  memory_t *cardMemory;
   bool cardInserted;
   
   runt_t *runt;
