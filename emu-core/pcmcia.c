@@ -157,7 +157,7 @@ uint32_t pcmcia_get_status_mem32(pcmcia_t *c, uint32_t addr) {
     uint8_t reg58 = pcmcia_get_register(c, 0x58);
     // "LOAD DIAGS TO ICCARD" writes 0x1b, and will fail with the VPP results
     // "IC CARD CHECK"'s "VPP1 and "VPP2" writes 0x0b, and will fail without the VPP results.
-    if (reg58 == 0x0b || reg == 0x1b) {
+    if (reg58 == 0x0b || reg58 == 0x1b) {
       bool vpp1 = runt_power_state_get_subsystem(c->runt, RuntPowerVPP1);
       bool vpp2 = runt_power_state_get_subsystem(c->runt, RuntPowerVPP2);
 
