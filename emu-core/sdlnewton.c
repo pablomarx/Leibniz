@@ -109,16 +109,16 @@ void handle_mouse_event(SDL_Event event) {
 	if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP) {
 		if (event.button.button == SDL_BUTTON_LEFT) {
 			if (event.type == SDL_MOUSEBUTTONDOWN) {
-				runt_touch_down(newton_get_runt(gNewton), event.button.y, 240-event.button.x);
+				newton_touch_down(gNewton, event.button.y, 240-event.button.x);
 			}
 			else {
-				runt_touch_up(newton_get_runt(gNewton));
+				newton_touch_up(gNewton);
 			}
 		}
 	}
 	else if (event.type == SDL_MOUSEMOTION) {
 		if ((event.motion.state & SDL_BUTTON_LMASK) == SDL_BUTTON_LMASK) {
-			runt_touch_down(newton_get_runt(gNewton), event.motion.y, 240-event.motion.x);
+			newton_touch_down(gNewton, event.motion.y, 240-event.motion.x);
 		}
 	}
 }
@@ -127,8 +127,7 @@ void handle_keyup_event(SDL_Event event) {
 	char sym = event.key.keysym.sym;
 	if (sym == ' ') {
 		runt_switch_toggle(newton_get_runt(gNewton), RuntSwitchPower);
-	}
-	
+	}	
 }
 
 int system_message_loop(void) {

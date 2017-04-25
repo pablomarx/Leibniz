@@ -1389,6 +1389,18 @@ void newton_set_debugstr(newton_t *c, newton_debugstr_f debugstr) {
   c->debug_str = debugstr;
 }
 
+void newton_touch_down(newton_t *c, int x, int y) {
+  if (c->runt != NULL) {
+    runt_touch_down(c->runt, x, y);
+  }
+}
+
+void newton_touch_up(newton_t *c) {
+  if (c->runt != NULL) {
+    runt_touch_up(c->runt);
+  }
+}
+
 #pragma mark -
 #pragma mark
 newton_t *newton_new (void)

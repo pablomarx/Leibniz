@@ -259,15 +259,15 @@ static NSString * kLastROMFile = @"lastROMFile";
 #pragma mark - Tablet
 
 - (void) tabletTouchedDownAtPoint:(NSPoint)point {
-  runt_touch_down(_newton->runt, point.x, point.y);
+  newton_touch_down(_newton, point.x, point.y);
 }
 
 - (void) tabletDraggedToPoint:(NSPoint)point {
-  runt_touch_down(_newton->runt, point.x, point.y);
+  newton_touch_down(_newton, point.x, point.y);
 }
 
 - (void) tabletTouchedUpAtPoint:(NSPoint)point {
-  runt_touch_up(_newton->runt);
+  newton_touch_up(_newton);
 }
 
 #pragma mark - Display
