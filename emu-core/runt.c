@@ -25,6 +25,14 @@
 
 #define RUNT_BASE 0x01400000
 
+#if DISABLE_LOGGING
+#define LOG_STR(...) {}
+#define SHOULD_LOG(__x__) false
+#else
+#define LOG_STR(...) fprintf(c->logFile, __VA_ARGS__)
+#define SHOULD_LOG(__x__) ((c->logFlags & __x__) == __x__)
+#endif
+
 enum {
   RuntGetInterrupt = 0x04,
   RuntClearInterrupt = 0x08,
@@ -108,6 +116,9 @@ static const char *runt_interrupt_names[] = {
 
 #pragma mark -
 
+#if DISABLE_LOGGING
+#define runt_log_access(...) {}
+#else
 void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
   const char *prefix = NULL;
   uint32_t flag = 0;
@@ -204,10 +215,11 @@ void runt_log_access(runt_t *c, uint32_t addr, uint32_t val, bool write) {
       break;
   }
   
-  if ((c->logFlags & flag) == flag) {
-    fprintf(c->logFile, "[RUNT ASIC:%s:%02x:%s] 0x%08x => 0x%08x (PC:0x%08x, LR:0x%08x)\n", write?"WR":"RD", ((addr >> 8) & 0xff), prefix, addr, val, arm_get_pc(c->arm), arm_get_lr(c->arm));
+  if (SHOULD_LOG(flag)) {
+    LOG_STR("[RUNT ASIC:%s:%02x:%s] 0x%08x => 0x%08x (PC:0x%08x, LR:0x%08x)\n", write?"WR":"RD", ((addr >> 8) & 0xff), prefix, addr, val, arm_get_pc(c->arm), arm_get_lr(c->arm));
   }
 }
+#endif
 
 #pragma mark -
 static inline uint32_t runt_register_get(runt_t *c, uint8_t reg) {
@@ -224,10 +236,10 @@ uint32_t runt_get_adc_source(runt_t *c) {
 }
 
 void runt_set_adc_source(runt_t *c, uint32_t val) {
-  bool log = ((c->logFlags & RuntLogADC) == RuntLogADC);
+  bool log = SHOULD_LOG(RuntLogADC);
   if (log == true) {
     uint32_t oldVal = runt_get_adc_source(c);
-    fprintf(c->logFile, " => ADC sample: 0x%08x -> 0x%08x: ", oldVal, val);
+    LOG_STR(" => ADC sample: 0x%08x -> 0x%08x: ", oldVal, val);
   }
   
   
@@ -235,7 +247,7 @@ void runt_set_adc_source(runt_t *c, uint32_t val) {
   for (int i=0; i<countof(runt_adc_sources); i++) {
     if ((val & runt_adc_sources[i].mask) == runt_adc_sources[i].test) {
       if (log == true) {
-        fprintf(c->logFile, "%s\n", runt_adc_sources[i].name);
+        LOG_STR("%s\n", runt_adc_sources[i].name);
       }
       c->adcSource = runt_adc_sources[i].val;
       matched = true;
@@ -246,7 +258,7 @@ void runt_set_adc_source(runt_t *c, uint32_t val) {
   if (matched == false) {
     c->adcSource = -1;
     if (log == true) {
-      fprintf(c->logFile, "**unknown: 0x%08x**\n", val);
+      LOG_STR("**unknown: 0x%08x**\n", val);
     }
   }
 }
@@ -307,7 +319,7 @@ uint32_t runt_get_adc_value(runt_t *c) {
       break;
     }
     default:
-      fprintf(c->logFile, "[RUNT ASIC:RD:%02x:adc] unhandled source type:0x%08x\n", RuntADCSource, runt_get_adc_source(c));
+      LOG_STR("[RUNT ASIC:RD:%02x:adc] unhandled source type:0x%08x\n", RuntADCSource, runt_get_adc_source(c));
       break;
   }
   return result;
@@ -320,10 +332,10 @@ void runt_print_description_for_interrupts(runt_t *c, uint32_t val) {
     if ((val & bit) == bit) {
       const char *name = runt_interrupt_names[i];
       if (name != NULL) {
-        fprintf(c->logFile, "%s, ", name);
+        LOG_STR("%s, ", name);
       }
       else {
-        fprintf(c->logFile, "unknown-%i, ", i);
+        LOG_STR("unknown-%i, ", i);
       }
     }
   }
@@ -345,10 +357,10 @@ void runt_interrupt_raise(runt_t *c, uint32_t interrupt) {
   if ((c->interrupt & interrupt) != interrupt) {
     c->interrupt |= interrupt;
     
-    if ((c->logFlags & RuntLogInterrupts) == RuntLogInterrupts) {
-      fprintf(c->logFile, "[RUNT:ASIC] Raising interrupt 0x%02x: ", interrupt);
+    if (SHOULD_LOG(RuntLogInterrupts)) {
+      LOG_STR("[RUNT:ASIC] Raising interrupt 0x%02x: ", interrupt);
       runt_print_description_for_interrupts(c, interrupt);
-      fprintf(c->logFile, "\n");
+      LOG_STR("\n");
     }
   }
   
@@ -376,20 +388,20 @@ void runt_interrupt_lower(runt_t *c, uint32_t interrupt) {
 
 void runt_print_enabled_interrupts(runt_t *c) {
   uint32_t val = runt_register_get(c, RuntEnableInterrupt);
-  fprintf(c->logFile, "Enabled interrupts: ");
+  LOG_STR("Enabled interrupts: ");
   runt_print_description_for_interrupts(c, val);
-  fprintf(c->logFile, "\n");
+  LOG_STR("\n");
 }
 
 void runt_set_enabled_interrupts(runt_t *c, uint32_t val) {
-  if ((c->logFlags & RuntLogInterrupts) == RuntLogInterrupts) {
+  if (SHOULD_LOG(RuntLogInterrupts)) {
     uint32_t oldVal = runt_register_get(c, RuntEnableInterrupt);
     if (val != oldVal) {
-      fprintf(c->logFile, " => enable interrupts was: 0x%08x (", oldVal);
+      LOG_STR(" => enable interrupts was: 0x%08x (", oldVal);
       runt_print_description_for_interrupts(c, oldVal);
-      fprintf(c->logFile, "), now: 0x%08x (", val);
+      LOG_STR("), now: 0x%08x (", val);
       runt_print_description_for_interrupts(c, val);
-      fprintf(c->logFile, ")\n");
+      LOG_STR(")\n");
     }
   }
 }
@@ -446,21 +458,21 @@ void runt_power_state_set(runt_t *c, uint32_t val) {
     return;
   }
   
-  if ((c->logFlags & RuntLogPower) == RuntLogPower) {
-    fprintf(c->logFile, " => power on: 0x%08x -> 0x%08x: ", oldVal, val);
+  if (SHOULD_LOG(RuntLogPower)) {
+    LOG_STR(" => power on: 0x%08x -> 0x%08x: ", oldVal, val);
     for (int i=0; i<32; i++) {
       uint32_t bit = (1 << i);
       if ((val & bit) == bit) {
         const char *name = runt_power_names[i];
         if (name != NULL) {
-          fprintf(c->logFile, "%s, ", name);
+          LOG_STR("%s, ", name);
         }
         else {
-          fprintf(c->logFile, "unknown-%i, ", i);
+          LOG_STR("unknown-%i, ", i);
         }
       }
     }
-    fprintf(c->logFile, "\n");
+    LOG_STR("\n");
   }
     
   runt_register_set(c, RuntPower, val);
@@ -516,18 +528,18 @@ void runt_switch_toggle(runt_t *c, int switchNum) {
 #pragma mark - Serial
 static inline bool runt_serial_should_log_channel(runt_t *c, uint8_t channel) {
   if (channel == RuntSerialChannelIR) {
-    return ((c->logFlags & RuntLogIR) == RuntLogIR);
+    return (SHOULD_LOG(RuntLogIR));
   }
   else {
-    return ((c->logFlags & RuntLogSerial) == RuntLogSerial);
+    return (SHOULD_LOG(RuntLogSerial));
   }
 }
 
 static inline bool runt_serial_should_log(runt_t *c) {
-  if ((c->logFlags & RuntLogIR) == RuntLogIR) {
+  if (SHOULD_LOG(RuntLogIR)) {
     return true;
   }
-  else if ((c->logFlags & RuntLogSerial) == RuntLogSerial) {
+  else if (SHOULD_LOG(RuntLogSerial)) {
     return true;
   }
   return false;
@@ -560,7 +572,7 @@ uint32_t runt_serial_get_value(runt_t *c, uint32_t addr) {
   else {
     result = c->memory[(addr - RUNT_BASE) / 4];
     if (runt_serial_should_log(c) == true) {
-      fprintf(c->logFile, "[SERIAL:UNKNOWN:RD] addr:0x%08x => 0x%08x (PC:0x%08x, LR:0x%08x)\n", addr, result, arm_get_pc(c->arm), arm_get_lr(c->arm));
+      LOG_STR("[SERIAL:UNKNOWN:RD] addr:0x%08x => 0x%08x (PC:0x%08x, LR:0x%08x)\n", addr, result, arm_get_pc(c->arm), arm_get_lr(c->arm));
     }
   }
 
@@ -580,7 +592,7 @@ uint32_t runt_serial_set_value(runt_t *c, uint32_t addr, uint32_t val) {
   }
   else {
     if (runt_serial_should_log(c) == true) {
-      fprintf(c->logFile, "[SERIAL:UNKNOWN:WR] addr:0x%08x => 0x%08x (PC:0x%08x, LR:0x%08x)\n", addr, val, arm_get_pc(c->arm), arm_get_lr(c->arm));
+      LOG_STR("[SERIAL:UNKNOWN:WR] addr:0x%08x => 0x%08x (PC:0x%08x, LR:0x%08x)\n", addr, val, arm_get_pc(c->arm), arm_get_lr(c->arm));
     }
     c->memory[(addr - RUNT_BASE) / 4] = val;
   }
@@ -628,10 +640,10 @@ uint32_t runt_set_mem32(runt_t *c, uint32_t addr, uint32_t val, uint32_t pc) {
       // Observed bit 2 changing depending on gNewtConfig
       // kDontPauseCPU being set...
       if ((val & 2) == 2) {
-        fprintf(c->logFile, " => CPU pausing enabled?\n");
+        LOG_STR(" => CPU pausing enabled?\n");
       }
       else {
-        fprintf(c->logFile, " => CPU pausing disabled?\n");
+        LOG_STR(" => CPU pausing disabled?\n");
       }
       break;
     case RuntLCD:

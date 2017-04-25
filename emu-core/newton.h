@@ -155,18 +155,21 @@ struct newton_s {
   newton_do_sys_set_input_notify_f do_sys_set_input_notify;
   
   //
+#if !DISABLE_DEBUGGER
   bp_entry_t *breakpoints;
   symbol_t *symbols;
   
   bool instructionTrace;
   bool memTrace;
-  bool breakOnUnknownMemory;
-  
+	
   bool pcSpy;
   bool spSpy;
   uint32_t lastPc;
   uint32_t lastSp;
-  
+#endif
+
+	bool breakOnUnknownMemory;
+
   FILE *logFile;
   uint32_t logFlags;
   

@@ -11,15 +11,25 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if DISABLE_LOGGING
+#define LOG_STR(...) {}
+#define LOG_READS (false)
+#define LOG_WRITES (false)
+#else
+#define LOG_STR(...) fprintf(mem->logFile, __VA_ARGS__)
+#define LOG_READS (mem->logsReads)
+#define LOG_WRITES (mem->logsWrites)
+#endif
+
 memory_t *memory_new(char *name, uint32_t base, uint32_t length) {
   memory_t *mem = calloc(1, sizeof(memory_t));
   mem->contents = calloc(length, sizeof(uint8_t));
   mem->length = length;
   
   memory_add_mapping(mem, base, 0, length);
-
+  
   mem->logFile = stdout;
-
+  
   if (name != NULL) {
     mem->name = calloc(strlen(name) + 1, sizeof(char));
     strcpy(mem->name, name);
@@ -128,25 +138,25 @@ uint32_t memory_get_uint32(memory_t *mem, uint32_t address, uint32_t pc) {
   if (mem->flashSequence == 4 && physaddr == 4) {
     result = mem->flashCode;
   }
-
-  if (mem->logsReads == true) {
-    fprintf(mem->logFile, "[%s:READ] PC:0x%08x addr:0x%08x => val:0x%08x\n", mem->name, pc, address, result);
+  
+  if (LOG_READS) {
+    LOG_STR("[%s:READ] PC:0x%08x addr:0x%08x => val:0x%08x\n", mem->name, pc, address, result);
   }
-
+  
   return result;
 }
 
 uint32_t memory_set_uint32(memory_t *mem, uint32_t address, uint32_t val, uint32_t pc) {
-  if (mem->logsWrites == true) {
-    fprintf(mem->logFile, "[%s:WRITE] PC:0x%08x addr:0x%08x => val:0x%08x\n", mem->name, pc, address, val);
+  if (LOG_WRITES) {
+    LOG_STR("[%s:WRITE] PC:0x%08x addr:0x%08x => val:0x%08x\n", mem->name, pc, address, val);
   }
-
+  
   if (mem->readOnly == true) {
-    fprintf(mem->logFile, "[%s:WRITE] Attempted write to read-only memory! PC:0x%08x addr:0x%08x => val:0x%08x\n", mem->name, pc, address, val);
+    LOG_STR("[%s:WRITE] Attempted write to read-only memory! PC:0x%08x addr:0x%08x => val:0x%08x\n", mem->name, pc, address, val);
   }
   else {
     uint32_t physaddr = memory_physaddr_for_virtaddr(mem, address);
-
+    
     if (mem->flashCode != 0) {
       // Write to the command register?
       if (physaddr == 0) {
@@ -202,18 +212,18 @@ uint32_t memory_set_uint32(memory_t *mem, uint32_t address, uint32_t val, uint32
 uint8_t memory_get_uint8(memory_t *mem, uint32_t addr, uint32_t pc) {
   int bytenum = addr & 3;
   uint32_t aligned = addr - (bytenum);
-
+  
   uint32_t physaddr = memory_physaddr_for_virtaddr(mem, aligned);
-
+  
   uint32_t word = mem->contents[physaddr/4];
   word >>= ((3-bytenum) * 8);
-
+  
   uint8_t result = (word & 0xff);
   
-  if (mem->logsReads == true) {
-    fprintf(mem->logFile, "[%s:READ] PC:0x%08x addr:0x%08x => val:0x%02x\n", mem->name, pc, addr, result);
+  if (LOG_READS) {
+    LOG_STR("[%s:READ] PC:0x%08x addr:0x%08x => val:0x%02x\n", mem->name, pc, addr, result);
   }
-
+  
   return result;
 }
 
@@ -232,17 +242,17 @@ uint8_t memory_set_uint8(memory_t *mem, uint32_t addr, uint8_t val, uint32_t pc)
   uint32_t newval = word & mask;
   newval |= (val << ((3 - bytenum) * 8));
   
-  if (mem->logsWrites == true) {
-    fprintf(mem->logFile, "[%s:WRITE] PC:0x%08x addr:0x%08x => val:0x%02x\n", mem->name, pc, addr, val);
+  if (LOG_WRITES) {
+    LOG_STR("[%s:WRITE] PC:0x%08x addr:0x%08x => val:0x%02x\n", mem->name, pc, addr, val);
   }
   
   if (mem->readOnly == true) {
-    fprintf(mem->logFile, "[%s:WRITE] Attempted write to read-only memory! PC:0x%08x addr:0x%08x => val:0x%02x\n", mem->name, pc, addr, val);
+    LOG_STR("[%s:WRITE] Attempted write to read-only memory! PC:0x%08x addr:0x%08x => val:0x%02x\n", mem->name, pc, addr, val);
   }
   else {
     mem->contents[physaddr/4] = newval;
   }
-
+  
   
   return val;
 }
