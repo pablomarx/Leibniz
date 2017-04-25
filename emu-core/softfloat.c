@@ -87,6 +87,7 @@ this code that are retained.
 #include "softfloat.h"
 
 /* We only need stdlib for abort() */
+#include <stdlib.h>
 
 /*----------------------------------------------------------------------------
 | Primitive arithmetic functions, including multi-word arithmetic, and
