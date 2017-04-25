@@ -242,7 +242,7 @@ void newton_set_system_panic(newton_t *c, newton_system_panic_f system_panic);
 void newton_set_undefined_opcode(newton_t *c, newton_undefined_opcode_f undefined_opcode);
 void newton_set_debugstr(newton_t *c, newton_debugstr_f debugstr);
 
-void newton_set_tapfilecntl_funtcions (newton_t *c, void *ext,
+void newton_set_tapfilecntl_functions (newton_t *c, void *ext,
                      newton_do_sys_open_f do_sys_open,
                      newton_do_sys_close_f do_sys_close,
                      newton_do_sys_istty_f do_sys_istty,

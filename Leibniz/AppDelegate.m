@@ -107,7 +107,7 @@ static NSString * kLastROMFile = @"lastROMFile";
   newton_set_undefined_opcode(_newton, leibniz_undefined_opcode);
   newton_set_system_panic(_newton, leibniz_system_panic);
   newton_set_debugstr(_newton, leibniz_debugstr);
-  newton_set_tapfilecntl_funtcions(_newton,
+  newton_set_tapfilecntl_functions(_newton,
                                    (__bridge void *)self,
                                    leibniz_sys_open,
                                    leibniz_sys_close,

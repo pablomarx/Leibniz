@@ -1360,7 +1360,7 @@ void newton_set_log_flags (newton_t *c, unsigned flags, int val) {
   pcmcia_set_log_flags(c->pcmcia, flags);
 }
 
-void newton_set_tapfilecntl_funtcions (newton_t *c, void *ext,
+void newton_set_tapfilecntl_functions (newton_t *c, void *ext,
                                        newton_do_sys_open_f do_sys_open,
                                        newton_do_sys_close_f do_sys_close,
                                        newton_do_sys_istty_f do_sys_istty,

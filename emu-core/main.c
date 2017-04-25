@@ -174,7 +174,7 @@ int main(int argc, char **argv) {
     newton_set_newt_config(newton, kConfigBit3 | kDontPauseCPU | kStopOnThrows | kEnableStdout | kDefaultStdioOn | kEnableListener);
   }
   
-  newton_set_tapfilecntl_funtcions(newton,
+  newton_set_tapfilecntl_functions(newton,
                    NULL,
                    leibniz_sys_open,
                    leibniz_sys_close,
