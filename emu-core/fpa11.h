@@ -105,6 +105,8 @@ unsigned int SingleCPDO(const unsigned int opcode);
 unsigned int DoubleCPDO(const unsigned int opcode);
 unsigned int ExtendedCPDO(const unsigned int opcode);
 
+void get_user_u32(uint32_t *val, uint32_t addr);
+void put_user_u32(uint32_t val, uint32_t addr);
 
 /* included only for get_user/put_user macros */
 //#include "qemu.h"
