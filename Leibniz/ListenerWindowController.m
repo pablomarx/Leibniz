@@ -29,6 +29,7 @@
 
 - (void)windowDidLoad {
     [super windowDidLoad];
+    self.textView.automaticQuoteSubstitutionEnabled = NO;
     self.font = [NSFont userFixedPitchFontOfSize:11];
     self.attributes = [NSMutableDictionary dictionaryWithObject:self.font
                                                          forKey:NSFontAttributeName];
