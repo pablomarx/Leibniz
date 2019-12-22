@@ -273,19 +273,22 @@ static NSString * kLastROMFile = @"lastROMFile";
 #pragma mark - Display
 - (void) createDisplayWithWidth:(int)width height:(int)height {
   NSSize buttonBarSize = self.buttonBarView.bounds.size;
-  NSSize contentSize = NSZeroSize;
-  contentSize.width = MAX(width, buttonBarSize.width);
-  
+  NSSize windowSize = NSZeroSize;
+  windowSize.width = MAX(width, buttonBarSize.width);
+  windowSize.height = height + buttonBarSize.height;
+
+  NSRect contentFrame = NSZeroRect;
+  contentFrame.size = windowSize;
+  self.window.contentView.frame = contentFrame;
+    
   NSRect screenFrame = NSZeroRect;
-  screenFrame.origin.x = floorf((width - contentSize.width)/2);
+  screenFrame.origin.x = floorf((width - windowSize.width)/2);
   screenFrame.origin.y = buttonBarSize.height;
   screenFrame.size.width = width;
   screenFrame.size.height = height;
   self.screenView.frame = screenFrame;
-  
-  contentSize.height = NSMaxY(screenFrame);
-  
-  [self.window setContentSize:contentSize];
+    
+  [self.window setContentSize:windowSize];
   [self.window makeKeyAndOrderFront:self];
 }
 
