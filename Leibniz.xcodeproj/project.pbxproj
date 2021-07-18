@@ -36,6 +36,50 @@
 		F19548A71E4E52C6001772E8 /* ListenerWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = F19548A51E4E52C5001772E8 /* ListenerWindowController.xib */; };
 		F19548AF1E4E7E59001772E8 /* EmulatorView.m in Sources */ = {isa = PBXBuildFile; fileRef = F19548AE1E4E7E59001772E8 /* EmulatorView.m */; };
 		F19548B21E4E7EE9001772E8 /* TouchView.m in Sources */ = {isa = PBXBuildFile; fileRef = F19548B11E4E7EE9001772E8 /* TouchView.m */; };
+		F1B05A8B26A4A09100878A2B /* pcmcia.c in Sources */ = {isa = PBXBuildFile; fileRef = F11F0DE11E43CB4800B963C2 /* pcmcia.c */; };
+		F1B05A8C26A4A09100878A2B /* PowerButton.m in Sources */ = {isa = PBXBuildFile; fileRef = F1F02C5A1E5681470061B21E /* PowerButton.m */; };
+		F1B05A8D26A4A09100878A2B /* fpa.c in Sources */ = {isa = PBXBuildFile; fileRef = F195488A1E47B170001772E8 /* fpa.c */; };
+		F1B05A8E26A4A09100878A2B /* runt.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD7119C508C200EC994F /* runt.c */; };
+		F1B05A8F26A4A09100878A2B /* ListenerWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = F19548A41E4E52C5001772E8 /* ListenerWindowController.m */; };
+		F1B05A9026A4A09100878A2B /* arm.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD4719C4FC8800EC994F /* arm.c */; };
+		F1B05A9126A4A09100878A2B /* fpa11_cpdt.c in Sources */ = {isa = PBXBuildFile; fileRef = F195488D1E47B170001772E8 /* fpa11_cpdt.c */; };
+		F1B05A9226A4A09100878A2B /* crc16.c in Sources */ = {isa = PBXBuildFile; fileRef = F100F3961E67C5830086F5FB /* crc16.c */; };
+		F1B05A9326A4A09100878A2B /* memory.c in Sources */ = {isa = PBXBuildFile; fileRef = F1DD99A51CC818DA00C718CC /* memory.c */; };
+		F1B05A9426A4A09100878A2B /* lcd_sharp.c in Sources */ = {isa = PBXBuildFile; fileRef = F1E09AE91B2D2AB000004CC8 /* lcd_sharp.c */; };
+		F1B05A9526A4A09100878A2B /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = F1E4AF1419C1327F00D8EFB4 /* AppDelegate.m */; };
+		F1B05A9626A4A09100878A2B /* double_cpdo.c in Sources */ = {isa = PBXBuildFile; fileRef = F19548881E47B170001772E8 /* double_cpdo.c */; };
+		F1B05A9726A4A09100878A2B /* softfloat.c in Sources */ = {isa = PBXBuildFile; fileRef = F19548971E47B170001772E8 /* softfloat.c */; };
+		F1B05A9826A4A09100878A2B /* PowerButtonAccessoryController.m in Sources */ = {isa = PBXBuildFile; fileRef = F1F02C5D1E5687E00061B21E /* PowerButtonAccessoryController.m */; };
+		F1B05A9926A4A09100878A2B /* TouchView.m in Sources */ = {isa = PBXBuildFile; fileRef = F19548B11E4E7EE9001772E8 /* TouchView.m */; };
+		F1B05A9A26A4A09100878A2B /* fpa11.c in Sources */ = {isa = PBXBuildFile; fileRef = F195488F1E47B170001772E8 /* fpa11.c */; };
+		F1B05A9B26A4A09100878A2B /* lcd_squirt.c in Sources */ = {isa = PBXBuildFile; fileRef = F1E09AEB1B2D2AB000004CC8 /* lcd_squirt.c */; };
+		F1B05A9C26A4A09100878A2B /* LeibnizFile.m in Sources */ = {isa = PBXBuildFile; fileRef = F1F02C501E566C6D0061B21E /* LeibnizFile.m */; };
+		F1B05A9D26A4A09100878A2B /* single_cpdo.c in Sources */ = {isa = PBXBuildFile; fileRef = F19548961E47B170001772E8 /* single_cpdo.c */; };
+		F1B05A9E26A4A09100878A2B /* disasm.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD4E19C4FC8800EC994F /* disasm.c */; };
+		F1B05A9F26A4A09100878A2B /* hexdump.c in Sources */ = {isa = PBXBuildFile; fileRef = F10F099B19C651A700C8C8FD /* hexdump.c */; };
+		F1B05AA026A4A09100878A2B /* fpa11_cpdo.c in Sources */ = {isa = PBXBuildFile; fileRef = F195488C1E47B170001772E8 /* fpa11_cpdo.c */; };
+		F1B05AA126A4A09100878A2B /* e8530.c in Sources */ = {isa = PBXBuildFile; fileRef = F100F38D1E676C4B0086F5FB /* e8530.c */; };
+		F1B05AA226A4A09100878A2B /* EmulatorView.m in Sources */ = {isa = PBXBuildFile; fileRef = F19548AE1E4E7E59001772E8 /* EmulatorView.m */; };
+		F1B05AA326A4A09100878A2B /* FileStream.m in Sources */ = {isa = PBXBuildFile; fileRef = F1F02C4D1E56672D0061B21E /* FileStream.m */; };
+		F1B05AA426A4A09100878A2B /* docker.c in Sources */ = {isa = PBXBuildFile; fileRef = F100F3991E67DA4A0086F5FB /* docker.c */; };
+		F1B05AA526A4A09100878A2B /* mmu.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD5519C4FC8800EC994F /* mmu.c */; };
+		F1B05AA626A4A09100878A2B /* copr14.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD4A19C4FC8800EC994F /* copr14.c */; };
+		F1B05AA726A4A09100878A2B /* extended_cpdo.c in Sources */ = {isa = PBXBuildFile; fileRef = F19548891E47B170001772E8 /* extended_cpdo.c */; };
+		F1B05AA826A4A09100878A2B /* copr15.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD4C19C4FC8800EC994F /* copr15.c */; };
+		F1B05AA926A4A09100878A2B /* newton.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD5819C4FC8800EC994F /* newton.c */; };
+		F1B05AAA26A4A09100878A2B /* opcodes.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD5B19C4FC8800EC994F /* opcodes.c */; };
+		F1B05AAB26A4A09100878A2B /* NSWindow+AccessoryView.m in Sources */ = {isa = PBXBuildFile; fileRef = F1F02C531E567C1C0061B21E /* NSWindow+AccessoryView.m */; };
+		F1B05AAC26A4A09100878A2B /* fpa11_cprt.c in Sources */ = {isa = PBXBuildFile; fileRef = F195488E1E47B170001772E8 /* fpa11_cprt.c */; };
+		F1B05AAD26A4A09100878A2B /* fpopcode.c in Sources */ = {isa = PBXBuildFile; fileRef = F19548921E47B170001772E8 /* fpopcode.c */; };
+		F1B05AAE26A4A09100878A2B /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = F1E4AF1119C1327F00D8EFB4 /* main.m */; };
+		F1B05AAF26A4A09100878A2B /* linenoise.c in Sources */ = {isa = PBXBuildFile; fileRef = F1DB3DDA19C63121006C7102 /* linenoise.c */; };
+		F1B05AB226A4A09100878A2B /* button_power_on.png in Resources */ = {isa = PBXBuildFile; fileRef = F1F02C571E567EFA0061B21E /* button_power_on.png */; };
+		F1B05AB326A4A09100878A2B /* newton-buttons.png in Resources */ = {isa = PBXBuildFile; fileRef = F1853F751CBD87B800CFA4F4 /* newton-buttons.png */; };
+		F1B05AB426A4A09100878A2B /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F1E4AF1619C1327F00D8EFB4 /* Images.xcassets */; };
+		F1B05AB526A4A09100878A2B /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = F1E4AF1819C1327F00D8EFB4 /* MainMenu.xib */; };
+		F1B05AB626A4A09100878A2B /* button_power.png in Resources */ = {isa = PBXBuildFile; fileRef = F1F02C551E567E320061B21E /* button_power.png */; };
+		F1B05AB726A4A09100878A2B /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = F136EF851E58D4880013BA91 /* Credits.rtf */; };
+		F1B05AB826A4A09100878A2B /* ListenerWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = F19548A51E4E52C5001772E8 /* ListenerWindowController.xib */; };
 		F1DB3DDC19C63121006C7102 /* linenoise.c in Sources */ = {isa = PBXBuildFile; fileRef = F1DB3DDA19C63121006C7102 /* linenoise.c */; };
 		F1DD99A71CC818DA00C718CC /* memory.c in Sources */ = {isa = PBXBuildFile; fileRef = F1DD99A51CC818DA00C718CC /* memory.c */; };
 		F1E09AED1B2D2AB000004CC8 /* lcd_sharp.c in Sources */ = {isa = PBXBuildFile; fileRef = F1E09AE91B2D2AB000004CC8 /* lcd_sharp.c */; };
@@ -44,7 +88,6 @@
 		F1E4AF1519C1327F00D8EFB4 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = F1E4AF1419C1327F00D8EFB4 /* AppDelegate.m */; };
 		F1E4AF1719C1327F00D8EFB4 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F1E4AF1619C1327F00D8EFB4 /* Images.xcassets */; };
 		F1E4AF1A19C1327F00D8EFB4 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = F1E4AF1819C1327F00D8EFB4 /* MainMenu.xib */; };
-		F1E4AF2619C1328000D8EFB4 /* LeibnizTests.m in Sources */ = {isa = PBXBuildFile; fileRef = F1E4AF2519C1328000D8EFB4 /* LeibnizTests.m */; };
 		F1F02C4E1E56672D0061B21E /* FileStream.m in Sources */ = {isa = PBXBuildFile; fileRef = F1F02C4D1E56672D0061B21E /* FileStream.m */; };
 		F1F02C511E566C6D0061B21E /* LeibnizFile.m in Sources */ = {isa = PBXBuildFile; fileRef = F1F02C501E566C6D0061B21E /* LeibnizFile.m */; };
 		F1F02C541E567C1C0061B21E /* NSWindow+AccessoryView.m in Sources */ = {isa = PBXBuildFile; fileRef = F1F02C531E567C1C0061B21E /* NSWindow+AccessoryView.m */; };
@@ -53,16 +96,6 @@
 		F1F02C5B1E5681470061B21E /* PowerButton.m in Sources */ = {isa = PBXBuildFile; fileRef = F1F02C5A1E5681470061B21E /* PowerButton.m */; };
 		F1F02C5E1E5687E00061B21E /* PowerButtonAccessoryController.m in Sources */ = {isa = PBXBuildFile; fileRef = F1F02C5D1E5687E00061B21E /* PowerButtonAccessoryController.m */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXContainerItemProxy section */
-		F1E4AF2019C1328000D8EFB4 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = F1E4AF0419C1327F00D8EFB4 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = F1E4AF0B19C1327F00D8EFB4;
-			remoteInfo = Leibniz;
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		F100F38D1E676C4B0086F5FB /* e8530.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = e8530.c; sourceTree = "<group>"; };
@@ -113,6 +146,8 @@
 		F19548AE1E4E7E59001772E8 /* EmulatorView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EmulatorView.m; sourceTree = "<group>"; };
 		F19548B01E4E7EE9001772E8 /* TouchView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TouchView.h; sourceTree = "<group>"; };
 		F19548B11E4E7EE9001772E8 /* TouchView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TouchView.m; sourceTree = "<group>"; };
+		F1B05ABC26A4A09100878A2B /* Leibniz.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Leibniz.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F1B05ACA26A4A19700878A2B /* Info_64bit.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info_64bit.plist; sourceTree = "<group>"; };
 		F1DB3DDA19C63121006C7102 /* linenoise.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = linenoise.c; sourceTree = "<group>"; };
 		F1DB3DDB19C63121006C7102 /* linenoise.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = linenoise.h; sourceTree = "<group>"; };
 		F1DD99A51CC818DA00C718CC /* memory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = memory.c; sourceTree = "<group>"; };
@@ -128,9 +163,6 @@
 		F1E4AF1419C1327F00D8EFB4 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		F1E4AF1619C1327F00D8EFB4 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		F1E4AF1919C1327F00D8EFB4 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
-		F1E4AF1F19C1327F00D8EFB4 /* LeibnizTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LeibnizTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		F1E4AF2419C1328000D8EFB4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		F1E4AF2519C1328000D8EFB4 /* LeibnizTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LeibnizTests.m; sourceTree = "<group>"; };
 		F1F02C4C1E56672D0061B21E /* FileStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileStream.h; sourceTree = "<group>"; };
 		F1F02C4D1E56672D0061B21E /* FileStream.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FileStream.m; sourceTree = "<group>"; };
 		F1F02C4F1E566C6D0061B21E /* LeibnizFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LeibnizFile.h; sourceTree = "<group>"; };
@@ -146,14 +178,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		F1E4AF0919C1327F00D8EFB4 /* Frameworks */ = {
+		F1B05AB026A4A09100878A2B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		F1E4AF1C19C1327F00D8EFB4 /* Frameworks */ = {
+		F1E4AF0919C1327F00D8EFB4 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -223,7 +255,6 @@
 			children = (
 				F123BD4619C4FC8800EC994F /* alt-emu */,
 				F1E4AF0E19C1327F00D8EFB4 /* Leibniz */,
-				F1E4AF2219C1328000D8EFB4 /* LeibnizTests */,
 				F1E4AF0D19C1327F00D8EFB4 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -232,7 +263,7 @@
 			isa = PBXGroup;
 			children = (
 				F1E4AF0C19C1327F00D8EFB4 /* Leibniz.app */,
-				F1E4AF1F19C1327F00D8EFB4 /* LeibnizTests.xctest */,
+				F1B05ABC26A4A09100878A2B /* Leibniz.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -274,24 +305,8 @@
 			children = (
 				F136EF851E58D4880013BA91 /* Credits.rtf */,
 				F1E4AF1019C1327F00D8EFB4 /* Info.plist */,
+				F1B05ACA26A4A19700878A2B /* Info_64bit.plist */,
 				F1E4AF1119C1327F00D8EFB4 /* main.m */,
-			);
-			name = "Supporting Files";
-			sourceTree = "<group>";
-		};
-		F1E4AF2219C1328000D8EFB4 /* LeibnizTests */ = {
-			isa = PBXGroup;
-			children = (
-				F1E4AF2519C1328000D8EFB4 /* LeibnizTests.m */,
-				F1E4AF2319C1328000D8EFB4 /* Supporting Files */,
-			);
-			path = LeibnizTests;
-			sourceTree = "<group>";
-		};
-		F1E4AF2319C1328000D8EFB4 /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-				F1E4AF2419C1328000D8EFB4 /* Info.plist */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -299,9 +314,26 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		F1E4AF0B19C1327F00D8EFB4 /* Leibniz */ = {
+		F1B05A8926A4A09100878A2B /* Leibniz 64-bit */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = F1E4AF2919C1328000D8EFB4 /* Build configuration list for PBXNativeTarget "Leibniz" */;
+			buildConfigurationList = F1B05AB926A4A09100878A2B /* Build configuration list for PBXNativeTarget "Leibniz 64-bit" */;
+			buildPhases = (
+				F1B05A8A26A4A09100878A2B /* Sources */,
+				F1B05AB026A4A09100878A2B /* Frameworks */,
+				F1B05AB126A4A09100878A2B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Leibniz 64-bit";
+			productName = Leibniz;
+			productReference = F1B05ABC26A4A09100878A2B /* Leibniz.app */;
+			productType = "com.apple.product-type.application";
+		};
+		F1E4AF0B19C1327F00D8EFB4 /* Leibniz 32-bit */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F1E4AF2919C1328000D8EFB4 /* Build configuration list for PBXNativeTarget "Leibniz 32-bit" */;
 			buildPhases = (
 				F1E4AF0819C1327F00D8EFB4 /* Sources */,
 				F1E4AF0919C1327F00D8EFB4 /* Frameworks */,
@@ -311,28 +343,10 @@
 			);
 			dependencies = (
 			);
-			name = Leibniz;
+			name = "Leibniz 32-bit";
 			productName = Leibniz;
 			productReference = F1E4AF0C19C1327F00D8EFB4 /* Leibniz.app */;
 			productType = "com.apple.product-type.application";
-		};
-		F1E4AF1E19C1327F00D8EFB4 /* LeibnizTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = F1E4AF2C19C1328000D8EFB4 /* Build configuration list for PBXNativeTarget "LeibnizTests" */;
-			buildPhases = (
-				F1E4AF1B19C1327F00D8EFB4 /* Sources */,
-				F1E4AF1C19C1327F00D8EFB4 /* Frameworks */,
-				F1E4AF1D19C1327F00D8EFB4 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				F1E4AF2119C1328000D8EFB4 /* PBXTargetDependency */,
-			);
-			name = LeibnizTests;
-			productName = LeibnizTests;
-			productReference = F1E4AF1F19C1327F00D8EFB4 /* LeibnizTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -346,10 +360,6 @@
 					F1E4AF0B19C1327F00D8EFB4 = {
 						CreatedOnToolsVersion = 6.0;
 					};
-					F1E4AF1E19C1327F00D8EFB4 = {
-						CreatedOnToolsVersion = 6.0;
-						TestTargetID = F1E4AF0B19C1327F00D8EFB4;
-					};
 				};
 			};
 			buildConfigurationList = F1E4AF0719C1327F00D8EFB4 /* Build configuration list for PBXProject "Leibniz" */;
@@ -357,6 +367,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 			);
@@ -365,13 +376,27 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				F1E4AF0B19C1327F00D8EFB4 /* Leibniz */,
-				F1E4AF1E19C1327F00D8EFB4 /* LeibnizTests */,
+				F1E4AF0B19C1327F00D8EFB4 /* Leibniz 32-bit */,
+				F1B05A8926A4A09100878A2B /* Leibniz 64-bit */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		F1B05AB126A4A09100878A2B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F1B05AB226A4A09100878A2B /* button_power_on.png in Resources */,
+				F1B05AB326A4A09100878A2B /* newton-buttons.png in Resources */,
+				F1B05AB426A4A09100878A2B /* Images.xcassets in Resources */,
+				F1B05AB526A4A09100878A2B /* MainMenu.xib in Resources */,
+				F1B05AB626A4A09100878A2B /* button_power.png in Resources */,
+				F1B05AB726A4A09100878A2B /* Credits.rtf in Resources */,
+				F1B05AB826A4A09100878A2B /* ListenerWindowController.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F1E4AF0A19C1327F00D8EFB4 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -386,16 +411,53 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		F1E4AF1D19C1327F00D8EFB4 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		F1B05A8A26A4A09100878A2B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F1B05A8B26A4A09100878A2B /* pcmcia.c in Sources */,
+				F1B05A8C26A4A09100878A2B /* PowerButton.m in Sources */,
+				F1B05A8D26A4A09100878A2B /* fpa.c in Sources */,
+				F1B05A8E26A4A09100878A2B /* runt.c in Sources */,
+				F1B05A8F26A4A09100878A2B /* ListenerWindowController.m in Sources */,
+				F1B05A9026A4A09100878A2B /* arm.c in Sources */,
+				F1B05A9126A4A09100878A2B /* fpa11_cpdt.c in Sources */,
+				F1B05A9226A4A09100878A2B /* crc16.c in Sources */,
+				F1B05A9326A4A09100878A2B /* memory.c in Sources */,
+				F1B05A9426A4A09100878A2B /* lcd_sharp.c in Sources */,
+				F1B05A9526A4A09100878A2B /* AppDelegate.m in Sources */,
+				F1B05A9626A4A09100878A2B /* double_cpdo.c in Sources */,
+				F1B05A9726A4A09100878A2B /* softfloat.c in Sources */,
+				F1B05A9826A4A09100878A2B /* PowerButtonAccessoryController.m in Sources */,
+				F1B05A9926A4A09100878A2B /* TouchView.m in Sources */,
+				F1B05A9A26A4A09100878A2B /* fpa11.c in Sources */,
+				F1B05A9B26A4A09100878A2B /* lcd_squirt.c in Sources */,
+				F1B05A9C26A4A09100878A2B /* LeibnizFile.m in Sources */,
+				F1B05A9D26A4A09100878A2B /* single_cpdo.c in Sources */,
+				F1B05A9E26A4A09100878A2B /* disasm.c in Sources */,
+				F1B05A9F26A4A09100878A2B /* hexdump.c in Sources */,
+				F1B05AA026A4A09100878A2B /* fpa11_cpdo.c in Sources */,
+				F1B05AA126A4A09100878A2B /* e8530.c in Sources */,
+				F1B05AA226A4A09100878A2B /* EmulatorView.m in Sources */,
+				F1B05AA326A4A09100878A2B /* FileStream.m in Sources */,
+				F1B05AA426A4A09100878A2B /* docker.c in Sources */,
+				F1B05AA526A4A09100878A2B /* mmu.c in Sources */,
+				F1B05AA626A4A09100878A2B /* copr14.c in Sources */,
+				F1B05AA726A4A09100878A2B /* extended_cpdo.c in Sources */,
+				F1B05AA826A4A09100878A2B /* copr15.c in Sources */,
+				F1B05AA926A4A09100878A2B /* newton.c in Sources */,
+				F1B05AAA26A4A09100878A2B /* opcodes.c in Sources */,
+				F1B05AAB26A4A09100878A2B /* NSWindow+AccessoryView.m in Sources */,
+				F1B05AAC26A4A09100878A2B /* fpa11_cprt.c in Sources */,
+				F1B05AAD26A4A09100878A2B /* fpopcode.c in Sources */,
+				F1B05AAE26A4A09100878A2B /* main.m in Sources */,
+				F1B05AAF26A4A09100878A2B /* linenoise.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F1E4AF0819C1327F00D8EFB4 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -440,23 +502,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		F1E4AF1B19C1327F00D8EFB4 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				F1E4AF2619C1328000D8EFB4 /* LeibnizTests.m in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		F1E4AF2119C1328000D8EFB4 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = F1E4AF0B19C1327F00D8EFB4 /* Leibniz */;
-			targetProxy = F1E4AF2019C1328000D8EFB4 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		F1E4AF1819C1327F00D8EFB4 /* MainMenu.xib */ = {
@@ -470,6 +516,38 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		F1B05ABA26A4A09100878A2B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD)";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
+				INFOPLIST_FILE = Leibniz/Info_64bit.plist;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				PRODUCT_BUNDLE_IDENTIFIER = org.swhite.leibniz;
+				PRODUCT_NAME = Leibniz;
+			};
+			name = Debug;
+		};
+		F1B05ABB26A4A09100878A2B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD)";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
+				INFOPLIST_FILE = Leibniz/Info_64bit.plist;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				PRODUCT_BUNDLE_IDENTIFIER = org.swhite.leibniz;
+				PRODUCT_NAME = Leibniz;
+			};
+			name = Release;
+		};
 		F1E4AF2719C1328000D8EFB4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -561,6 +639,7 @@
 		F1E4AF2A19C1328000D8EFB4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -570,13 +649,14 @@
 				INFOPLIST_FILE = Leibniz/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swhite.leibniz;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = Leibniz;
 			};
 			name = Debug;
 		};
 		F1E4AF2B19C1328000D8EFB4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -586,51 +666,22 @@
 				INFOPLIST_FILE = Leibniz/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swhite.leibniz;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Release;
-		};
-		F1E4AF2D19C1328000D8EFB4 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				COMBINE_HIDPI_IMAGES = YES;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(DEVELOPER_FRAMEWORKS_DIR)",
-					"$(inherited)",
-				);
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				INFOPLIST_FILE = LeibnizTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "org.swhite.$(PRODUCT_NAME:rfc1034identifier)";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Leibniz.app/Contents/MacOS/Leibniz";
-			};
-			name = Debug;
-		};
-		F1E4AF2E19C1328000D8EFB4 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				COMBINE_HIDPI_IMAGES = YES;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(DEVELOPER_FRAMEWORKS_DIR)",
-					"$(inherited)",
-				);
-				INFOPLIST_FILE = LeibnizTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "org.swhite.$(PRODUCT_NAME:rfc1034identifier)";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Leibniz.app/Contents/MacOS/Leibniz";
+				PRODUCT_NAME = Leibniz;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		F1B05AB926A4A09100878A2B /* Build configuration list for PBXNativeTarget "Leibniz 64-bit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F1B05ABA26A4A09100878A2B /* Debug */,
+				F1B05ABB26A4A09100878A2B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		F1E4AF0719C1327F00D8EFB4 /* Build configuration list for PBXProject "Leibniz" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -640,20 +691,11 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		F1E4AF2919C1328000D8EFB4 /* Build configuration list for PBXNativeTarget "Leibniz" */ = {
+		F1E4AF2919C1328000D8EFB4 /* Build configuration list for PBXNativeTarget "Leibniz 32-bit" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				F1E4AF2A19C1328000D8EFB4 /* Debug */,
 				F1E4AF2B19C1328000D8EFB4 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		F1E4AF2C19C1328000D8EFB4 /* Build configuration list for PBXNativeTarget "LeibnizTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				F1E4AF2D19C1328000D8EFB4 /* Debug */,
-				F1E4AF2E19C1328000D8EFB4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
