@@ -44,7 +44,6 @@
 		F1E4AF1519C1327F00D8EFB4 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = F1E4AF1419C1327F00D8EFB4 /* AppDelegate.m */; };
 		F1E4AF1719C1327F00D8EFB4 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F1E4AF1619C1327F00D8EFB4 /* Images.xcassets */; };
 		F1E4AF1A19C1327F00D8EFB4 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = F1E4AF1819C1327F00D8EFB4 /* MainMenu.xib */; };
-		F1E4AF2619C1328000D8EFB4 /* LeibnizTests.m in Sources */ = {isa = PBXBuildFile; fileRef = F1E4AF2519C1328000D8EFB4 /* LeibnizTests.m */; };
 		F1F02C4E1E56672D0061B21E /* FileStream.m in Sources */ = {isa = PBXBuildFile; fileRef = F1F02C4D1E56672D0061B21E /* FileStream.m */; };
 		F1F02C511E566C6D0061B21E /* LeibnizFile.m in Sources */ = {isa = PBXBuildFile; fileRef = F1F02C501E566C6D0061B21E /* LeibnizFile.m */; };
 		F1F02C541E567C1C0061B21E /* NSWindow+AccessoryView.m in Sources */ = {isa = PBXBuildFile; fileRef = F1F02C531E567C1C0061B21E /* NSWindow+AccessoryView.m */; };
@@ -53,16 +52,6 @@
 		F1F02C5B1E5681470061B21E /* PowerButton.m in Sources */ = {isa = PBXBuildFile; fileRef = F1F02C5A1E5681470061B21E /* PowerButton.m */; };
 		F1F02C5E1E5687E00061B21E /* PowerButtonAccessoryController.m in Sources */ = {isa = PBXBuildFile; fileRef = F1F02C5D1E5687E00061B21E /* PowerButtonAccessoryController.m */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXContainerItemProxy section */
-		F1E4AF2019C1328000D8EFB4 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = F1E4AF0419C1327F00D8EFB4 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = F1E4AF0B19C1327F00D8EFB4;
-			remoteInfo = Leibniz;
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		F100F38D1E676C4B0086F5FB /* e8530.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = e8530.c; sourceTree = "<group>"; };
@@ -128,9 +117,6 @@
 		F1E4AF1419C1327F00D8EFB4 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		F1E4AF1619C1327F00D8EFB4 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		F1E4AF1919C1327F00D8EFB4 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
-		F1E4AF1F19C1327F00D8EFB4 /* LeibnizTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LeibnizTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		F1E4AF2419C1328000D8EFB4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		F1E4AF2519C1328000D8EFB4 /* LeibnizTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LeibnizTests.m; sourceTree = "<group>"; };
 		F1F02C4C1E56672D0061B21E /* FileStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileStream.h; sourceTree = "<group>"; };
 		F1F02C4D1E56672D0061B21E /* FileStream.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FileStream.m; sourceTree = "<group>"; };
 		F1F02C4F1E566C6D0061B21E /* LeibnizFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LeibnizFile.h; sourceTree = "<group>"; };
@@ -147,13 +133,6 @@
 
 /* Begin PBXFrameworksBuildPhase section */
 		F1E4AF0919C1327F00D8EFB4 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		F1E4AF1C19C1327F00D8EFB4 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -223,7 +202,6 @@
 			children = (
 				F123BD4619C4FC8800EC994F /* alt-emu */,
 				F1E4AF0E19C1327F00D8EFB4 /* Leibniz */,
-				F1E4AF2219C1328000D8EFB4 /* LeibnizTests */,
 				F1E4AF0D19C1327F00D8EFB4 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -232,7 +210,6 @@
 			isa = PBXGroup;
 			children = (
 				F1E4AF0C19C1327F00D8EFB4 /* Leibniz.app */,
-				F1E4AF1F19C1327F00D8EFB4 /* LeibnizTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -279,23 +256,6 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		F1E4AF2219C1328000D8EFB4 /* LeibnizTests */ = {
-			isa = PBXGroup;
-			children = (
-				F1E4AF2519C1328000D8EFB4 /* LeibnizTests.m */,
-				F1E4AF2319C1328000D8EFB4 /* Supporting Files */,
-			);
-			path = LeibnizTests;
-			sourceTree = "<group>";
-		};
-		F1E4AF2319C1328000D8EFB4 /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-				F1E4AF2419C1328000D8EFB4 /* Info.plist */,
-			);
-			name = "Supporting Files";
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -316,24 +276,6 @@
 			productReference = F1E4AF0C19C1327F00D8EFB4 /* Leibniz.app */;
 			productType = "com.apple.product-type.application";
 		};
-		F1E4AF1E19C1327F00D8EFB4 /* LeibnizTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = F1E4AF2C19C1328000D8EFB4 /* Build configuration list for PBXNativeTarget "LeibnizTests" */;
-			buildPhases = (
-				F1E4AF1B19C1327F00D8EFB4 /* Sources */,
-				F1E4AF1C19C1327F00D8EFB4 /* Frameworks */,
-				F1E4AF1D19C1327F00D8EFB4 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				F1E4AF2119C1328000D8EFB4 /* PBXTargetDependency */,
-			);
-			name = LeibnizTests;
-			productName = LeibnizTests;
-			productReference = F1E4AF1F19C1327F00D8EFB4 /* LeibnizTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -346,10 +288,6 @@
 					F1E4AF0B19C1327F00D8EFB4 = {
 						CreatedOnToolsVersion = 6.0;
 					};
-					F1E4AF1E19C1327F00D8EFB4 = {
-						CreatedOnToolsVersion = 6.0;
-						TestTargetID = F1E4AF0B19C1327F00D8EFB4;
-					};
 				};
 			};
 			buildConfigurationList = F1E4AF0719C1327F00D8EFB4 /* Build configuration list for PBXProject "Leibniz" */;
@@ -357,6 +295,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 			);
@@ -366,7 +305,6 @@
 			projectRoot = "";
 			targets = (
 				F1E4AF0B19C1327F00D8EFB4 /* Leibniz */,
-				F1E4AF1E19C1327F00D8EFB4 /* LeibnizTests */,
 			);
 		};
 /* End PBXProject section */
@@ -383,13 +321,6 @@
 				F1F02C561E567E320061B21E /* button_power.png in Resources */,
 				F136EF861E58D4880013BA91 /* Credits.rtf in Resources */,
 				F19548A71E4E52C6001772E8 /* ListenerWindowController.xib in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		F1E4AF1D19C1327F00D8EFB4 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -440,23 +371,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		F1E4AF1B19C1327F00D8EFB4 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				F1E4AF2619C1328000D8EFB4 /* LeibnizTests.m in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		F1E4AF2119C1328000D8EFB4 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = F1E4AF0B19C1327F00D8EFB4 /* Leibniz */;
-			targetProxy = F1E4AF2019C1328000D8EFB4 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		F1E4AF1819C1327F00D8EFB4 /* MainMenu.xib */ = {
@@ -590,44 +505,6 @@
 			};
 			name = Release;
 		};
-		F1E4AF2D19C1328000D8EFB4 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				COMBINE_HIDPI_IMAGES = YES;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(DEVELOPER_FRAMEWORKS_DIR)",
-					"$(inherited)",
-				);
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				INFOPLIST_FILE = LeibnizTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "org.swhite.$(PRODUCT_NAME:rfc1034identifier)";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Leibniz.app/Contents/MacOS/Leibniz";
-			};
-			name = Debug;
-		};
-		F1E4AF2E19C1328000D8EFB4 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				COMBINE_HIDPI_IMAGES = YES;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(DEVELOPER_FRAMEWORKS_DIR)",
-					"$(inherited)",
-				);
-				INFOPLIST_FILE = LeibnizTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "org.swhite.$(PRODUCT_NAME:rfc1034identifier)";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Leibniz.app/Contents/MacOS/Leibniz";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -645,15 +522,6 @@
 			buildConfigurations = (
 				F1E4AF2A19C1328000D8EFB4 /* Debug */,
 				F1E4AF2B19C1328000D8EFB4 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		F1E4AF2C19C1328000D8EFB4 /* Build configuration list for PBXNativeTarget "LeibnizTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				F1E4AF2D19C1328000D8EFB4 /* Debug */,
-				F1E4AF2E19C1328000D8EFB4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
