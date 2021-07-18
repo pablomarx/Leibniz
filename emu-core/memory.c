@@ -97,6 +97,7 @@ FILE *memory_get_log_file(memory_t *mem) {
   return mem->logFile;
 }
 
+#ifndef EMSCRIPTEN
 void memory_write_to_file(memory_t *mem, const char *file) {
   FILE *fp = fopen(file, "w");
   for (uint32_t i=0; i<mem->length/4; i++) {
@@ -105,6 +106,7 @@ void memory_write_to_file(memory_t *mem, const char *file) {
   }
   fclose(fp);
 }
+#endif
 
 void memory_add_mapping(memory_t *mem, uint32_t virtaddr, uint32_t physaddr, uint32_t length) {
   memory_map_t *map = calloc(1, sizeof(memory_map_t));

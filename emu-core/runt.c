@@ -25,6 +25,10 @@
 
 #define RUNT_BASE 0x01400000
 
+#ifdef EMSCRIPTEN
+# define usleep(__sec__) sleep(__sec__)
+#endif
+
 #if DISABLE_LOGGING
 #define LOG_STR(...) {}
 #define SHOULD_LOG(__x__) false

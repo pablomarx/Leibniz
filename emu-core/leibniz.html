@@ -1,0 +1,111 @@
+<script src="newton.js"></script>
+<script>
+	var newton = null;
+	var canvas = null;
+	var context = null;
+	var last_pixels = null;
+	
+	function fatal(err) {
+		console.error(err);
+		//alert(err);
+	}
+	
+	function HandleMouseDown(evt) {
+		if (newton == null) {
+			return;
+		}
+		
+		var x = evt.clientY;
+		var y = canvas.width - evt.clientX;
+		_newton_touch_down(newton, x, y);
+	}
+	
+	function HandleMouseUp(evt) {
+		if (newton == null) {
+			return;
+		}
+		_newton_touch_up(newton);
+	}
+	
+	function lcd_set_size(width, height) {
+		context = canvas.getContext("2d");
+		canvas.width = width;
+		canvas.height = height;
+	}
+	
+	function lcd_set_pixels(pixels, width, height) {
+		last_pixels = pixels;
+		
+		var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+		var rgba = imageData.data;
+		var dest = 0;
+
+		const on = 0;
+		const off = 255;
+		var destidx = 0;
+		for (var x=0; x<width; x++) {
+			for (var y=height-1; y>=0; y--) {
+				var srcidx = (y * width) + x;
+				var pix = pixels[srcidx];
+				rgba[destidx++] = pix;
+				rgba[destidx++] = pix;
+				rgba[destidx++] = pix;
+				rgba[destidx++] = 255;
+			}
+		}
+		context.putImageData(imageData, 0, 0,);
+	}
+	
+	var stop = false;
+	function runSomeMore() {
+	  _newton_emulate(newton, 4000000);
+	  if (stop == true) {
+		  return;
+	  }
+	  window.setTimeout(runSomeMore, 10);
+	}
+
+	function romDownloaded(data) {
+	  //_newton_load_romdata(newton, data, data.byteLength);
+	  var result = ccall("newton_load_romdata", "number", ["number", "array", "number"], [newton, data, data.length]);
+	  if (result != 0) {
+		  fatal("newton_load_romdata returned: "+result);
+	  }
+	  runSomeMore();
+	}
+
+	/* For TapFileCtrl stuff:
+	 * Calling JavaScript functions as function pointers from C
+	 * You can use addFunction to return an integer value that represents a function pointer. 
+	 */
+
+	function downloadROM() {
+		var oReq = new XMLHttpRequest();
+		oReq.addEventListener("load", evt => {
+		    var arrayBuffer = oReq.response; 
+		    if (arrayBuffer) {
+		      var byteArray = new Uint8Array(arrayBuffer);
+			  romDownloaded(byteArray);
+		  }
+		});
+		oReq.open("GET", "armistice.rom");
+		oReq.responseType = "arraybuffer";
+		oReq.send();
+
+	}
+	
+	window.addEventListener("load", evt => {
+		canvas = document.getElementById("lcd");
+		canvas.addEventListener("mousedown", HandleMouseDown);
+		canvas.addEventListener("mouseup", HandleMouseUp);
+		Module["onRuntimeInitialized"] = () => {
+			newton = _newton_new();
+			if (newton == null) {
+				fatal("_newton_new failed");
+				return;
+			}
+			downloadROM();
+		}
+	});
+</script>
+<canvas id="lcd" style="background-color: magenta"></canvas>

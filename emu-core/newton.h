@@ -183,6 +183,7 @@ void arm_dasm_str (char *dst, arm_dasm_t *op);
 void newton_init (newton_t *c);
 newton_t *newton_new (void);
 int newton_load_rom(newton_t *c, const char *path);
+int newton_load_romdata(newton_t *c, uint8_t data[], size_t length);
 void newton_free (newton_t *c);
 void newton_del (newton_t *c);
 
@@ -191,9 +192,9 @@ void newton_set_log_flags (newton_t *c, unsigned flags, int val);
 uint32_t newton_get_mem32 (newton_t *c, uint32_t addr);
 uint8_t newton_get_mem8 (newton_t *c, uint32_t addr);
 uint16_t newton_get_mem16 (newton_t *c, uint32_t addr);
-uint8_t newton_set_mem8 (newton_t *c, uint32_t addr, uint8_t val);
-uint16_t newton_set_mem16 (newton_t *c, uint32_t addr, uint16_t val);
-uint32_t newton_set_mem32 (newton_t *c, uint32_t addr, uint32_t val);
+void newton_set_mem8 (newton_t *c, uint32_t addr, uint8_t val);
+void newton_set_mem16 (newton_t *c, uint32_t addr, uint16_t val);
+void newton_set_mem32 (newton_t *c, uint32_t addr, uint32_t val);
 
 runt_t *newton_get_runt (newton_t *c);
 pcmcia_t *newton_get_pcmcia (newton_t *c);

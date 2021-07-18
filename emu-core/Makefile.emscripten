@@ -1,0 +1,50 @@
+CC = emcc
+EXPORTED_FUNCTIONS=_newton_new,_newton_load_romdata,_runt_switch_toggle,_newton_touch_down,_newton_touch_up,_newton_emulate,_newton_set_debugger_bits,_newton_set_tapfilecntl_functions
+CFLAGS = -Wall -I. -g -std=c99 -DHOST_WORDS_BIGENDIAN=1 -DEMSCRIPTEN=1 -DDISABLE_DEBUGGER=1 
+LDFLAGS = -s EXPORTED_FUNCTIONS=$(EXPORTED_FUNCTIONS) --js-library jsglue.js -s LLD_REPORT_UNDEFINED
+LD = $(CC)
+DEBUG = 0
+
+ifeq (1,$(DEBUG))
+LDFLAGS += -g3 -gsource-map --source-map-base "http://localhost:8000/" --emit-symbol-map
+else
+CFLAGS += -O3
+endif
+
+OBJS := arm.o \
+		copr14.o \
+		copr15.o \
+		disasm.o \
+		mmu.o \
+		e8530.o \
+		opcodes.o \
+		fpa.o \
+		crc16.o \
+		double_cpdo.o \
+		extended_cpdo.o \
+		fpa11.o \
+		fpa11_cpdo.o \
+		fpa11_cpdt.o \
+		fpa11_cprt.o \
+		fpopcode.o \
+		single_cpdo.o \
+		softfloat.o \
+		lcd_sharp.o \
+		lcd_squirt.o \
+		pcmcia.o \
+		docker.o \
+		memory.o \
+		newton.o \
+		runt.o \
+		hexdump.o \
+
+all:	newton.js
+
+newton.js:	$(OBJS) 
+	$(LD) $(LDFLAGS) -o $@ $^
+
+%.o:	%.c
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
+
+clean:
+	rm -f *.o newton.js

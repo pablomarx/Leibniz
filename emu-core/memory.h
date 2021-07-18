@@ -46,7 +46,9 @@ void memory_clear(memory_t *mem);
 
 uint32_t memory_get_length(memory_t *mem);
 
+#ifndef EMSCRIPTEN
 void memory_write_to_file(memory_t *mem, const char *file);
+#endif
 
 void memory_set_flash_code(memory_t *mem, uint32_t flashCode);
 

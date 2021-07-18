@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <unistd.h>
 
 #include "arm.h"
@@ -34,6 +35,9 @@
 #define SHOULD_LOG(__x__) ((c->logFlags & __x__) == __x__)
 #endif
 
+#ifdef EMSCRIPTEN
+# define htonl(__word__) __word__
+#endif
 
 #pragma mark - Debugging helpers
 #if !DISABLE_DEBUGGER
@@ -478,7 +482,7 @@ uint32_t newton_get_mem32 (newton_t *c, uint32_t addr) {
   return result;
 }
 
-uint32_t newton_set_mem32 (newton_t *c, uint32_t addr, uint32_t val) {
+void newton_set_mem32 (newton_t *c, uint32_t addr, uint32_t val) {
   newton_set_mem_entry(c, addr, val);
   
   membank_t *membank = newton_get_membank_for_address(c, addr);
@@ -487,8 +491,6 @@ uint32_t newton_set_mem32 (newton_t *c, uint32_t addr, uint32_t val) {
   }
   
   newton_set_mem_exit(c, addr, val);
-  
-  return val;
 }
 
 uint8_t newton_get_mem8 (newton_t *c, uint32_t addr) {
@@ -513,7 +515,7 @@ uint8_t newton_get_mem8 (newton_t *c, uint32_t addr) {
   return result;
 }
 
-uint8_t newton_set_mem8 (newton_t *c, uint32_t addr, uint8_t val) {
+void newton_set_mem8 (newton_t *c, uint32_t addr, uint8_t val) {
   uint8_t result = val;
   newton_set_mem_entry(c, addr, val);
   
@@ -538,8 +540,6 @@ uint8_t newton_set_mem8 (newton_t *c, uint32_t addr, uint8_t val) {
   }
   
   newton_set_mem_exit(c, addr, result);
-  
-  return val;
 }
 
 
@@ -547,7 +547,7 @@ uint16_t newton_get_mem16 (newton_t *c, uint32_t addr) {
   abort();
 }
 
-uint16_t newton_set_mem16 (newton_t *c, uint32_t addr, uint16_t val) {
+void newton_set_mem16 (newton_t *c, uint32_t addr, uint16_t val) {
   abort();
 }
 
@@ -1087,7 +1087,10 @@ void newton_log_exception (void *ext, uint32_t addr) {
           case 0x0d:
           case 0x0f:
             LOG_STR(" ObjectId=%i, buffer=0x%08x, size=%i, permissions=%i\n", c->arm->reg[0], c->arm->reg[1], c->arm->reg[2], c->arm->reg[3]);
+#ifndef EMSCRIPTEN
+			// This is causing weird linker issues.
             newton_mem_hexdump((newton_t *)ext, c->arm->reg[1], c->arm->reg[2]);
+#endif
             break;
           case 0x0e:
           case 0x10:
@@ -1291,7 +1294,9 @@ void newton_emulate(newton_t *c, int32_t count) {
 #endif
     
     if (armAwake == false) {
+#ifndef EMSCRIPTEN
       usleep(10);
+#endif
     }
     else {
       arm_execute(c->arm);
@@ -1580,6 +1585,96 @@ int newton_configure_runt(newton_t *c, memory_t *rom) {
   return 0;
 }
 
+int newton_rom_loaded(newton_t *c, memory_t *rom) {
+    c->machineType = memory_get_uint32(rom, 0x000013ec, 0);
+    LOG_STR("Machine Type  : 0x%08x => ", c->machineType);
+    switch (c->machineType) {
+      case kGestalt_MachineType_MessagePad:
+        LOG_STR("Junior");
+        break;
+      case kGestalt_MachineType_Lindy:
+        LOG_STR("Lindy");
+        break;
+      case kGestalt_MachineType_Bic:
+        LOG_STR("Bic");
+        break;
+      case kGestalt_MachineType_Senior:
+        LOG_STR("Senior");
+        break;
+      case kGestalt_MachineType_Emate:
+        LOG_STR("eMate");
+        break;
+      default:
+        LOG_STR("UNKNOWN - Defaulting to Junior");
+        c->machineType = kGestalt_MachineType_MessagePad;
+        break;
+    }
+    LOG_STR("\n");
+  
+    c->romManufacturer = memory_get_uint32(rom, 0x000013f0, 0);
+    LOG_STR("ROM Manufacturer: 0x%08x => ", c->romManufacturer);
+    switch (c->romManufacturer) {
+      case kGestalt_Manufacturer_Apple:
+        LOG_STR("Apple");
+        break;
+      case kGestalt_Manufacturer_Sharp:
+        LOG_STR("Sharp");
+        break;
+      case kGestalt_Manufacturer_Motorola:
+        LOG_STR("Motorola");
+        break;
+      default:
+        LOG_STR("UNKNOWN - Defaulting to Apple");
+        c->romManufacturer = kGestalt_Manufacturer_Apple;
+        break;
+    }
+    LOG_STR("\n");
+  
+    uint32_t romVersion = memory_get_uint32(rom, 0x13dc, 0);
+    if (romVersion == 0x06290000) {
+      c->supportsRegularFiles = false;
+    }
+    else {
+      c->supportsRegularFiles = true;
+    }
+    c->romVersion = romVersion;
+  
+    if (c->machineType == kGestalt_MachineType_Senior || c->machineType == kGestalt_MachineType_Emate) {
+      return newton_configure_voyager(c, rom);
+    }
+    else {
+      return newton_configure_runt(c, rom);
+    }
+}
+
+int newton_load_romdata(newton_t *c, uint8_t data[], size_t length) {
+    if (data == NULL) {
+        printf("%s data is NULL\n", __PRETTY_FUNCTION__);
+        return -1;
+    }
+
+    memory_t *rom = memory_new("ROM", 0x0, (uint32_t)length);
+    memory_set_readonly(rom, true);
+    uint32_t src=0;
+    uint32_t dst=0;
+    
+    while (src < length) {
+        uint32_t word = (data[src+0] << 24) |
+        (data[src+1] << 16) |
+        (data[src+2] << 8 ) |
+        (data[src+3]      );
+        if (dst == 0 && word == 0xE1A00000) {
+            LOG_STR("ROM file appears to be an AIF image\n");
+            length -= 128;
+            src += 128;
+            continue;
+        }
+        rom->contents[dst++] = word;
+        src+=4;
+    }
+    return newton_rom_loaded(c, rom);
+}
+
 int newton_load_rom(newton_t *c, const char *path) {
   FILE *romFP = fopen(path, "r");
   if (romFP == NULL) {
@@ -1646,66 +1741,7 @@ int newton_load_rom(newton_t *c, const char *path) {
   fclose(romFP);
   
   LOG_STR("Loaded ROM: %s => %i bytes\n", path, romSize);
-  
-  c->machineType = memory_get_uint32(rom, 0x000013ec, 0);
-  LOG_STR("Machine Type  : 0x%08x => ", c->machineType);
-  switch (c->machineType) {
-    case kGestalt_MachineType_MessagePad:
-      LOG_STR("Junior");
-      break;
-    case kGestalt_MachineType_Lindy:
-      LOG_STR("Lindy");
-      break;
-    case kGestalt_MachineType_Bic:
-      LOG_STR("Bic");
-      break;
-    case kGestalt_MachineType_Senior:
-      LOG_STR("Senior");
-      break;
-    case kGestalt_MachineType_Emate:
-      LOG_STR("eMate");
-      break;
-    default:
-      LOG_STR("UNKNOWN - Defaulting to Junior");
-      c->machineType = kGestalt_MachineType_MessagePad;
-      break;
-  }
-  LOG_STR("\n");
-  
-  c->romManufacturer = memory_get_uint32(rom, 0x000013f0, 0);
-  LOG_STR("ROM Manufacturer: 0x%08x => ", c->romManufacturer);
-  switch (c->romManufacturer) {
-    case kGestalt_Manufacturer_Apple:
-      LOG_STR("Apple");
-      break;
-    case kGestalt_Manufacturer_Sharp:
-      LOG_STR("Sharp");
-      break;
-    case kGestalt_Manufacturer_Motorola:
-      LOG_STR("Motorola");
-      break;
-    default:
-      LOG_STR("UNKNOWN - Defaulting to Apple");
-      c->romManufacturer = kGestalt_Manufacturer_Apple;
-      break;
-  }
-  LOG_STR("\n");
-  
-  uint32_t romVersion = memory_get_uint32(rom, 0x13dc, 0);
-  if (romVersion == 0x06290000) {
-    c->supportsRegularFiles = false;
-  }
-  else {
-    c->supportsRegularFiles = true;
-  }
-  c->romVersion = romVersion;
-  
-  if (c->machineType == kGestalt_MachineType_Senior || c->machineType == kGestalt_MachineType_Emate) {
-    return newton_configure_voyager(c, rom);
-  }
-  else {
-    return newton_configure_runt(c, rom);
-  }
+  return newton_rom_loaded(c, rom);
 }
 
 void newton_free (newton_t *c)
