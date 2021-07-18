@@ -4,9 +4,9 @@ Work in progress emulator for RUNT based Newtons (OMP, Expert Pad, etc)
 ## Download
 
 ### Mac OS X
-Alpha 1 can be downloaded from https://www.dropbox.com/s/uvltellluemz70e/Leibniz%20%28Alpha%201%29.zip?dl=0
+Pre-built binaries can be downloaded from [the releases page](https://github.com/pablomarx/Leibniz/releases)
 
-Requires an Intel Mac running Mac OS X 10.6 or above.
+Requires an Intel or Apple Silicon Mac running Mac OS X 10.6 or above.
 
 ### UNIX
 No pre-built binaries are offered.  You should be able to clone this repo and:
