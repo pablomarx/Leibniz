@@ -48,6 +48,7 @@ static NSString * kLastROMFile = @"lastROMFile";
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
   self.files = @[];
+  gScreenView = self.screenView;
   
   [self setupTitlebarAccessory];
   [self createConsoleWindowAndFileStream];
@@ -292,18 +293,15 @@ static NSString * kLastROMFile = @"lastROMFile";
   [self.window makeKeyAndOrderFront:self];
 }
 
-- (void) updateEmulatorViewWithData:(const uint8_t *)data width:(uint16_t)width height:(uint16_t)height {
-  [self.screenView updateWithFramebuffer:data width:width height:height];
-}
-
 void newton_display_open(int width, int height) {
   dispatch_async(dispatch_get_main_queue(), ^{
     [(AppDelegate *)[NSApp delegate] createDisplayWithWidth:width height:height];
   });
 }
 
+static EmulatorView *gScreenView = nil;
 void newton_display_set_framebuffer(const uint8_t *display, int width, int height) {
-  [(AppDelegate *)[NSApp delegate] updateEmulatorViewWithData:display width:width height:height];
+  [gScreenView updateWithFramebuffer:display width:width height:height];
 }
 
 #pragma mark - Errors
