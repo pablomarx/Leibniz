@@ -1,21 +1,23 @@
 <script src="newton.js"></script>
 <script>
 	var newton = null;
+	var junior = null;
 	var canvas = null;
 	var context = null;
-	var last_pixels = null;
+	// The listeners work but seem to slow down execution a little
+	var listeners_enabled = false;
 	
 	function fatal(err) {
 		console.error(err);
 		//alert(err);
 	}
 	
+	
 	function HandleMouseDown(evt) {
 		if (newton == null) {
 			return;
 		}
 		HandleMouseMove(evt);
-		var junior = document.getElementById("junior");
 		junior.addEventListener("mousemove", HandleMouseMove);
 	}
 	
@@ -33,7 +35,6 @@
 			return;
 		}
 		_newton_touch_up(newton);
-		var junior = document.getElementById("junior");
 		junior.removeEventListener("mousemove", HandleMouseMove);
 	}
 	
@@ -76,7 +77,6 @@
 	}
 
 	function romDownloaded(data) {
-	  //_newton_load_romdata(newton, data, data.byteLength);
 	  var result = ccall("newton_load_romdata", "number", ["number", "array", "number"], [newton, data, data.length]);
 	  if (result != 0) {
 		  fatal("newton_load_romdata returned: "+result);
@@ -163,9 +163,11 @@
 	
 	window.addEventListener("load", evt => {
 		canvas = document.getElementById("lcd");
-		var junior = document.getElementById("junior");
+		
+		junior = document.getElementById("junior");
 		junior.addEventListener("mousedown", HandleMouseDown);
 		junior.addEventListener("mouseup", HandleMouseUp);
+		
 		Module["onRuntimeInitialized"] = () => {
 			newton = _newton_new();
 			if (newton == null) {
@@ -173,17 +175,21 @@
 				return;
 			}
 			
+			var config = 0x00002000/*kDontPauseCPU*/ | 0x00000008/*kConfigBit3*/;
+			if (listeners_enabled == true) {
+				_newton_set_tapfilecntl_functions(newton, 
+					null,
+					addFunction(TapFileOpen, "iiii"), 
+					addFunction(TapFileClose, "iii"), 
+					addFunction(TapFileIsTTY, "iii"), 
+					addFunction(TapFileRead, "iiiii"), 
+					addFunction(TapFileWrite, "iiiii"), 
+					addFunction(TapFileSetInputNotify, "iiii"),
+				);
+				config |= 0x00008000/*kEnableStdout*/ | 0x00000200/*kDefaultStdioOn*/ | 0x00000002/*kEnableListener*/;
+			}
+		    _newton_set_newt_config(newton, config);
 		    _newton_set_debugger_bits(newton, 1);
-		    _newton_set_newt_config(newton, 0x00000008/*kConfigBit3*/ | 0x00002000/*kDontPauseCPU*/ | 0x00008000/*kEnableStdout*/ | 0x00000200/*kDefaultStdioOn*/ | 0x00000002/*kEnableListener*/);
-			_newton_set_tapfilecntl_functions(newton, 
-				null,
-				addFunction(TapFileOpen, "iiii"), 
-				addFunction(TapFileClose, "iii"), 
-				addFunction(TapFileIsTTY, "iii"), 
-				addFunction(TapFileRead, "iiiii"), 
-				addFunction(TapFileWrite, "iiiii"), 
-				addFunction(TapFileSetInputNotify, "iiii"),
-			);
 			
 			downloadROM();
 		}
