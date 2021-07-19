@@ -14,7 +14,15 @@
 		if (newton == null) {
 			return;
 		}
-		
+		HandleMouseMove(evt);
+		var junior = document.getElementById("junior");
+		junior.addEventListener("mousemove", HandleMouseMove);
+	}
+	
+	function HandleMouseMove(evt) {
+		if (newton == null) {
+			return;
+		}
 		var x = evt.clientY;
 		var y = canvas.width - evt.clientX;
 		_newton_touch_down(newton, x, y);
@@ -25,6 +33,8 @@
 			return;
 		}
 		_newton_touch_up(newton);
+		var junior = document.getElementById("junior");
+		junior.removeEventListener("mousemove", HandleMouseMove);
 	}
 	
 	function lcd_set_size(width, height) {
