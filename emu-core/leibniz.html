@@ -83,6 +83,61 @@
 	  }
 	  runSomeMore();
 	}
+	
+	function StringFromPointer(pointer, length) {
+		// Like AsciiToString() but doesn't require 0-terminated
+		var result = "";
+		var offset = 0;
+		while (true) {
+			var char = HEAPU8.subarray(pointer+offset, pointer+offset+1);
+			if (char == 0x00) {
+				break;
+			}
+			result += String.fromCharCode(char);
+			offset += 1;
+			if (length != null && offset >= length) {
+				break;
+			}
+		}
+		return result;
+	}
+	
+	var files = [];
+	function TapFileOpen(context, namePtr, mode) {
+		var name = StringFromPointer(namePtr);
+		//console.log("TapFileOpen", context, name, mode);
+		files.push(name);
+		return files.length - 1;
+	}
+	
+	function TapFileClose(context, filedes) {
+		//console.log("TapFileClose", context, filedes);
+		return 1;
+	}
+	
+	function TapFileIsTTY(context, filedes) {
+		//console.log("TapFileIsTTY", context, filedes);
+		var name = files[filedes];
+		if (name[0] == "%") {
+			return 1;
+		}
+		return 0;
+	}
+	
+	function TapFileRead(context, filedes, buffer, nbyte) {
+		//console.log("TapFileRead", context, filedes, buffer, nbyte, chars);
+		return 0;
+	}
+	
+	function TapFileWrite(context, filedes, buffer, nbyte) {
+		console.log("["+files[filedes]+"] "+StringFromPointer(buffer, nbyte));
+		return 0;
+	}
+	
+	function TapFileSetInputNotify(context, filedes, addr) {
+		//console.log("TapFileSetInputNotify", context, filedes, addr);
+		return 1;
+	}
 
 	/* For TapFileCtrl stuff:
 	 * Calling JavaScript functions as function pointers from C
@@ -115,6 +170,19 @@
 				fatal("_newton_new failed");
 				return;
 			}
+			
+		    _newton_set_debugger_bits(newton, 1);
+		    _newton_set_newt_config(newton, 0x00000008/*kConfigBit3*/ | 0x00002000/*kDontPauseCPU*/ | 0x00008000/*kEnableStdout*/ | 0x00000200/*kDefaultStdioOn*/ | 0x00000002/*kEnableListener*/);
+			_newton_set_tapfilecntl_functions(newton, 
+				null,
+				addFunction(TapFileOpen, "iiii"), //"number", ["number", "string", "number"]),
+				addFunction(TapFileClose, "iii"), //"number", ["number", "number"]),
+				addFunction(TapFileIsTTY, "iii"), //"number", ["number", "number"]),
+				addFunction(TapFileRead, "iiiii"), //"number", ["number", "number", "array", "number"]),
+				addFunction(TapFileWrite, "iiiii"), //"number", ["number", "number", "array", "number"]),
+				addFunction(TapFileSetInputNotify, "iiii"), //"number", ["number", "number", "number"]),
+			);
+			
 			downloadROM();
 		}
 	});

@@ -1,7 +1,7 @@
 CC = emcc
-EXPORTED_FUNCTIONS=_newton_new,_newton_load_romdata,_runt_switch_toggle,_newton_touch_down,_newton_touch_up,_newton_emulate,_newton_set_debugger_bits,_newton_set_tapfilecntl_functions
+EXPORTED_FUNCTIONS=_newton_new,_newton_load_romdata,_runt_switch_toggle,_newton_touch_down,_newton_touch_up,_newton_emulate,_newton_set_debugger_bits,_newton_set_tapfilecntl_functions,_newton_set_newt_config
 CFLAGS = -Wall -I. -g -std=c99 -DHOST_WORDS_BIGENDIAN=1 -DEMSCRIPTEN=1 -DDISABLE_DEBUGGER=1 
-LDFLAGS = -s EXPORTED_FUNCTIONS=$(EXPORTED_FUNCTIONS) --js-library jsglue.js -s LLD_REPORT_UNDEFINED
+LDFLAGS = -s EXPORTED_FUNCTIONS=$(EXPORTED_FUNCTIONS) --js-library jsglue.js -s LLD_REPORT_UNDEFINED -s ALLOW_TABLE_GROWTH
 LD = $(CC)
 DEBUG = 0
 
