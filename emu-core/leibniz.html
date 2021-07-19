@@ -106,7 +106,7 @@
 	function TapFileOpen(context, namePtr, mode) {
 		var name = StringFromPointer(namePtr);
 		//console.log("TapFileOpen", context, name, mode);
-		files.push(name);
+		files.push({name:name, buffer:""});
 		return files.length - 1;
 	}
 	
@@ -117,7 +117,7 @@
 	
 	function TapFileIsTTY(context, filedes) {
 		//console.log("TapFileIsTTY", context, filedes);
-		var name = files[filedes];
+		var name = files[filedes].name;
 		if (name[0] == "%") {
 			return 1;
 		}
@@ -130,7 +130,14 @@
 	}
 	
 	function TapFileWrite(context, filedes, buffer, nbyte) {
-		console.log("["+files[filedes]+"] "+StringFromPointer(buffer, nbyte));
+		var file = files[filedes];
+		file.buffer += StringFromPointer(buffer, nbyte);
+		var newline;
+		while ((newline = file.buffer.indexOf("\r")) != -1) {
+			var line = file.buffer.substring(0, newline);
+			file.buffer = file.buffer.substring(newline+1);
+			console.log("["+file.name+"] "+line);
+		}
 		return 0;
 	}
 	
@@ -138,11 +145,6 @@
 		//console.log("TapFileSetInputNotify", context, filedes, addr);
 		return 1;
 	}
-
-	/* For TapFileCtrl stuff:
-	 * Calling JavaScript functions as function pointers from C
-	 * You can use addFunction to return an integer value that represents a function pointer. 
-	 */
 
 	function downloadROM() {
 		var oReq = new XMLHttpRequest();
@@ -175,12 +177,12 @@
 		    _newton_set_newt_config(newton, 0x00000008/*kConfigBit3*/ | 0x00002000/*kDontPauseCPU*/ | 0x00008000/*kEnableStdout*/ | 0x00000200/*kDefaultStdioOn*/ | 0x00000002/*kEnableListener*/);
 			_newton_set_tapfilecntl_functions(newton, 
 				null,
-				addFunction(TapFileOpen, "iiii"), //"number", ["number", "string", "number"]),
-				addFunction(TapFileClose, "iii"), //"number", ["number", "number"]),
-				addFunction(TapFileIsTTY, "iii"), //"number", ["number", "number"]),
-				addFunction(TapFileRead, "iiiii"), //"number", ["number", "number", "array", "number"]),
-				addFunction(TapFileWrite, "iiiii"), //"number", ["number", "number", "array", "number"]),
-				addFunction(TapFileSetInputNotify, "iiii"), //"number", ["number", "number", "number"]),
+				addFunction(TapFileOpen, "iiii"), 
+				addFunction(TapFileClose, "iii"), 
+				addFunction(TapFileIsTTY, "iii"), 
+				addFunction(TapFileRead, "iiiii"), 
+				addFunction(TapFileWrite, "iiiii"), 
+				addFunction(TapFileSetInputNotify, "iiii"),
 			);
 			
 			downloadROM();
