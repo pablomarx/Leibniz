@@ -42,13 +42,14 @@ Known to work with the following ROM images:
 1. [Notepad v1.0b1](https://archive.org/download/AppleNewtonROMs/Notepad%20v1.0b1.rom)
 2. [ARMistice J1 Image](https://archive.org/download/AppleNewtonROMs/Newt%20J1Armistice%20image)
 3. [OMP v1.0](https://archive.org/download/AppleNewtonROMs/MessagePad%20OMP%20v1.00.rom)
-4. [OMP v1.3](https://archive.org/download/AppleNewtonROMs/MessagePad%20OMP%20v1.3.rom)
-5. [MessagePad 110 v1.2](https://archive.org/download/AppleNewtonROMs/MessagePad%20110%20v1.2.rom)
-6. [MessagePad 120 v1.3](https://archive.org/download/AppleNewtonROMs/MessagePad%20120%20v1.3%20%28444217%29.rom)
-7. [MessagePad 130 v2.0](https://archive.org/download/AppleNewtonROMs/MessagePad%20130%20v2.x%20%28525314%29.rom)
-8. [Lindy 803AS.00 (2.0a6)](https://archive.org/download/AppleNewtonROMs/Lindy%20803AS.00%20%282.0a6%29.rom)
-9. [Sharp ExpertPad PI-7000 v1.1](https://archive.org/download/AppleNewtonROMs/Sharp%20ExpertPad%20PI-7000%20v1.10.rom)
-10. [Motorola Marco v1.3](https://archive.org/download/AppleNewtonROMs/Motorola%20Marco%20v1.3%20%28444347%29.rom)
+4. [Siemens NotePhone v1.1](https://archive.org/download/AppleNewtonROMs/Siemens%20NotePhone%20v1.1.rom)
+5. [OMP v1.3](https://archive.org/download/AppleNewtonROMs/MessagePad%20OMP%20v1.3.rom)
+6. [MessagePad 110 v1.2](https://archive.org/download/AppleNewtonROMs/MessagePad%20110%20v1.2.rom)
+7. [MessagePad 120 v1.3](https://archive.org/download/AppleNewtonROMs/MessagePad%20120%20v1.3%20%28444217%29.rom)
+8. [MessagePad 130 v2.0](https://archive.org/download/AppleNewtonROMs/MessagePad%20130%20v2.x%20%28525314%29.rom)
+9. [Lindy 803AS.00 (2.0a6)](https://archive.org/download/AppleNewtonROMs/Lindy%20803AS.00%20%282.0a6%29.rom)
+10. [Sharp ExpertPad PI-7000 v1.1](https://archive.org/download/AppleNewtonROMs/Sharp%20ExpertPad%20PI-7000%20v1.10.rom)
+11. [Motorola Marco v1.3](https://archive.org/download/AppleNewtonROMs/Motorola%20Marco%20v1.3%20%28444347%29.rom)
 
 You can dump your own ROM images using [my fork of NewTen](https://github.com/pablomarx/NewTen). 
 
