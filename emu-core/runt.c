@@ -20,8 +20,7 @@
 #include "newton.h"
 #include "lcd_sharp.h"
 #include "lcd_squirt.h"
-
-#define countof(__a__) (sizeof(__a__) / sizeof(__a__[0]))
+#include "utils.h"
 
 #define RUNT_BASE 0x01400000
 

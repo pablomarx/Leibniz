@@ -247,15 +247,47 @@ static NSString * kLastROMFile = @"lastROMFile";
 
 - (IBAction) insertSRAMCard:(id)sender {
   if (_newton == NULL) {
-    [sender setState:NSOffState];
+    return;
+  }
+
+  NSOpenPanel *openPanel = [NSOpenPanel openPanel];
+  NSInteger result = [openPanel runModal];
+  [openPanel close];
+  
+  if (result != NSFileHandlingPanelOKButton) {
+    return;
+  }
+  NSString *filepath = [[openPanel URL] path];
+  NSData *data = [NSData dataWithContentsOfFile:filepath];
+  
+  pcmcia_t *pcmcia = newton_get_pcmcia(_newton);
+  if (pcmcia_get_card_inserted(pcmcia) == false) {
+    [self setPCCardData:data];
   }
   else {
-    BOOL inserted = ([sender state] == NSOnState ? 0 : 1);
-    pcmcia_t *pcmcia = newton_get_pcmcia(_newton);
-    pcmcia_set_card_inserted(pcmcia, inserted);
-    [sender setState:(!inserted ? NSOffState : NSOnState)];
+    pcmcia_set_card_inserted(pcmcia, false);
+    // eject it, wait a smidge, re-insert.
+    [self performSelector:@selector(setPCCardData:)
+               withObject:data
+               afterDelay:0];
   }
 }
+
+- (void) setPCCardData:(NSData *)data {
+  pcmcia_t *pcmcia = newton_get_pcmcia(_newton);
+  bool success = pcmcia_set_pccard_data(pcmcia, (uint8_t *)[data bytes], (uint32_t)[data length]);
+  if (success == true) {
+    pcmcia_set_card_inserted(pcmcia, true);
+  }
+}
+
+  
+- (IBAction) ejectPCCard:(id)sender {
+    if (_newton != NULL) {
+      pcmcia_t *pcmcia = newton_get_pcmcia(_newton);
+      pcmcia_set_card_inserted(pcmcia, false);
+    }
+  }
 
 #pragma mark - Tablet
 

@@ -148,6 +148,7 @@
 		F19548B11E4E7EE9001772E8 /* TouchView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TouchView.m; sourceTree = "<group>"; };
 		F1B05ABC26A4A09100878A2B /* Leibniz.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Leibniz.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F1B05ACA26A4A19700878A2B /* Info_64bit.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info_64bit.plist; sourceTree = "<group>"; };
+		F1C6DE582FC020B400831413 /* utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = utils.h; sourceTree = "<group>"; };
 		F1DB3DDA19C63121006C7102 /* linenoise.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = linenoise.c; sourceTree = "<group>"; };
 		F1DB3DDB19C63121006C7102 /* linenoise.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = linenoise.h; sourceTree = "<group>"; };
 		F1DD99A51CC818DA00C718CC /* memory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = memory.c; sourceTree = "<group>"; };
@@ -244,6 +245,7 @@
 				F123BD7219C508C200EC994F /* runt.h */,
 				F19548961E47B170001772E8 /* single_cpdo.c */,
 				F19548971E47B170001772E8 /* softfloat.c */,
+				F1C6DE582FC020B400831413 /* utils.h */,
 				F19548981E47B170001772E8 /* softfloat.h */,
 			);
 			name = "alt-emu";

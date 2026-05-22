@@ -58,8 +58,9 @@ enum {
   NewtonLogVectorTable = (1 << 3),
   NewtonLogTapFileCntl = (1 << 4),
   NewtonLogUndefined   = (1 << 5),
-  NewtonLogCard        = (1 << 6),
-  NewtonLogPCMCIA      = (1 << 7),
+  NewtonLogCardData    = (1 << 6),
+  NewtonLogCardReg     = (1 << 7),
+  NewtonLogPCMCIA      = (1 << 8),
   NewtonLogAll         = 0xffffffff,
 };
 

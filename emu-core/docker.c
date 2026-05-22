@@ -13,6 +13,7 @@
 #include <string.h>
 
 #include "crc16.h"
+#include "utils.h"
 
 #define SYN 0x16
 #define DLE 0x10
@@ -26,7 +27,6 @@
 #define LN  6
 #define LNA 7
 
-#define countof(__a__) (sizeof(__a__) / sizeof(__a__[0]))
 
 void docker_init(docker_t *c) {
   c->bufferLen = 256;

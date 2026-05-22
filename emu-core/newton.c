@@ -22,9 +22,7 @@
 #include "runt.h"
 #include "pcmcia.h"
 #include "HammerConfigBits.h"
-
-#define countof(__a__) (sizeof(__a__) / sizeof(__a__[0]))
-
+#include "utils.h"
 
 #if DISABLE_LOGGING
 #define LOG_STR(...) {}

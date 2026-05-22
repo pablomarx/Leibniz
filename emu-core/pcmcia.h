@@ -19,7 +19,8 @@
 typedef struct pcmcia_s {
   uint32_t *registers;
   
-  memory_t *cardMemory;
+  memory_t *cardData;
+  memory_t *cardCIS;
   bool cardInserted;
   
   runt_t *runt;
@@ -36,7 +37,9 @@ void pcmcia_del (pcmcia_t *c);
 uint32_t pcmcia_set_mem32(pcmcia_t *c, uint32_t addr, uint32_t val, uint32_t pc);
 uint32_t pcmcia_get_mem32(pcmcia_t *c, uint32_t addr, uint32_t pc);
 
+bool pcmcia_set_pccard_data (pcmcia_t *c, uint8_t *data, uint32_t length);
 void pcmcia_set_card_inserted (pcmcia_t *c, bool cardInserted);
+bool pcmcia_get_card_inserted (pcmcia_t *c);
 
 void pcmcia_set_log_flags (pcmcia_t *c, uint32_t logFlags);
 void pcmcia_set_log_file (pcmcia_t *c, FILE *file);

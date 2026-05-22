@@ -373,13 +373,22 @@
                                 </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="kts-8e-Fcm"/>
-                            <menuItem title="Insert SRAM Card" id="aCr-D3-WDg">
+                            <menuItem title="Load PC Card..." id="aCr-D3-WDg">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
                                     <action selector="insertSRAMCard:" target="Voe-Tx-rLC" id="QAg-nH-JAT"/>
                                 </connections>
                             </menuItem>
+                            <menuItem title="Eject PC Card" id="R7O-SH-3jE">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="ejectPCCard:" target="Voe-Tx-rLC" id="sQE-rg-3oL"/>
+                                </connections>
+                            </menuItem>
                         </items>
+                        <connections>
+                            <outlet property="delegate" destination="Voe-Tx-rLC" id="jet-8H-h2s"/>
+                        </connections>
                     </menu>
                 </menuItem>
                 <menuItem title="Window" id="aUF-d1-5bR">
