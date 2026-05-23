@@ -8,15 +8,10 @@
 
 #include "fpa.h"
 #include "fpa11.h"
+#include "fpopcode.h"
 #include "internal.h"
 
 #include <stdlib.h>
-
-#if 0
-#define FPA_Debug(...) { printf(__VA_ARGS__); }
-#else
-#define FPA_Debug(...) {}
-#endif
 
 
 extern FPA11* qemufpa;
@@ -46,13 +41,17 @@ int fpa_reset(arm_t *arm, arm_copr_t *copro)
 
 void fpa_init(arm_t *arm) 
 {
-	fpa_bridge.copr_idx = 1;
-	fpa_bridge.exec = fpa_exec;
-	fpa_bridge.reset = fpa_reset;
-	fpa_bridge.ext = arm;
-	arm_set_copr(arm, 1, &fpa_bridge);
-	
-	qemufpa = calloc(1, sizeof(FPA11));
+  fpa_bridge.copr_idx = 1;
+  fpa_bridge.exec = fpa_exec;
+  fpa_bridge.reset = fpa_reset;
+  fpa_bridge.ext = arm;
+  arm_set_copr(arm, 1, &fpa_bridge);
+  
+  qemufpa = calloc(1, sizeof(FPA11));
+  
+  SetRoundingMode(ROUND_TO_NEAREST);
+  SetRoundingPrecision(ROUND_EXTENDED);
+  qemufpa->initflag = 1;
 }
 
 void fpa_delete(void)
@@ -91,7 +90,7 @@ void get_user_u32(uint32_t *val, uint32_t addr)
 {
 	arm_t *arm = (arm_t *)fpa_bridge.ext;
 	arm_dload32_t(arm, addr, val);
-    FPA_Debug("[FPA] %s %08x %08x\n", __PRETTY_FUNCTION__, addr, *val);
+  FPA_Debug("[FPA] %s %08x %08x\n", __PRETTY_FUNCTION__, addr, *val);
 }
 
 void put_user_u32(uint32_t val, uint32_t addr)

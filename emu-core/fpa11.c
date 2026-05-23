@@ -189,11 +189,11 @@ unsigned int EmulateAll(unsigned int opcode, FPA11* qfpa) //, CPUARMState* qregs
 //  restore_flags(flags);
   if(nRc == 1 && get_float_exception_flags(&fpa11->fp_status))
   {
-    //printf("fef 0x%x\n",float_exception_flags);
+    FPA_Debug("fef 0x%x\n",get_float_exception_flags(&fpa11->fp_status));
     nRc = -get_float_exception_flags(&fpa11->fp_status);
   }
 
-  //printf("returning %d\n",nRc);
+  FPA_Debug("returning %d\n",nRc);
   return(nRc);
 }
 

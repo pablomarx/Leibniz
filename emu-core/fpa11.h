@@ -22,6 +22,12 @@
 #define FPA11_H
 
 //#include "cpu.h"
+#if 1
+#include <stdio.h>
+#define FPA_Debug(...) { printf(__VA_ARGS__); }
+#else
+#define FPA_Debug(...) {}
+#endif
 
 #define GET_FPA11() (qemufpa)
 

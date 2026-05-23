@@ -27,7 +27,7 @@ unsigned int EmulateCPDO(const unsigned int opcode)
    FPA11 *fpa11 = GET_FPA11();
    unsigned int Fd, nType, nDest, nRc = 1;
 
-   //printk("EmulateCPDO(0x%08x)\n",opcode);
+  FPA_Debug("EmulateCPDO(0x%08x)\n",opcode);
 
    /* Get the destination size.  If not valid let Linux perform
       an invalid instruction trap. */

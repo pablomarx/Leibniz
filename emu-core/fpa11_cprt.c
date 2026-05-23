@@ -37,7 +37,7 @@ unsigned int EmulateCPRT(const unsigned int opcode)
 {
   unsigned int nRc = 1;
 
-  //printk("EmulateCPRT(0x%08x)\n",opcode);
+  FPA_Debug("EmulateCPRT(0x%08x)\n",opcode);
 
   if (opcode & 0x800000)
   {
@@ -127,7 +127,7 @@ unsigned int PerformFIX(const unsigned int opcode)
 
       case typeDouble:
       {
-         //printf("F%d is 0x%" PRIx64 "\n",Fn,fpa11->fpreg[Fn].fDouble);
+        //FPA_Debug("F%d is 0x%" PRIx64 "\n",Fn,fpa11->fpreg[Fn].fDouble);
          writeRegister(getRd(opcode),
 	               float64_to_int32(fpa11->fpreg[Fn].fDouble, &fpa11->fp_status));
       }
@@ -186,7 +186,7 @@ static unsigned int PerformComparison(const unsigned int opcode)
    int n_flag = opcode & 0x200000;	/* 1 if CNxx */
    unsigned int flags = 0;
 
-   //printk("PerformComparison(0x%08x)\n",opcode);
+  FPA_Debug("PerformComparison(0x%08x)\n",opcode);
 
    Fn = getFn(opcode);
    Fm = getFm(opcode);
@@ -199,21 +199,21 @@ static unsigned int PerformComparison(const unsigned int opcode)
    switch (fpa11->fType[Fn])
    {
       case typeSingle:
-        //printk("single.\n");
+       FPA_Debug("single.\n");
 	if (float32_is_any_nan(fpa11->fpreg[Fn].fSingle))
 	   goto unordered;
         rFn = float32_to_floatx80(fpa11->fpreg[Fn].fSingle, &fpa11->fp_status);
       break;
 
       case typeDouble:
-        //printk("double.\n");
+       FPA_Debug("double.\n");
 	if (float64_is_any_nan(fpa11->fpreg[Fn].fDouble))
 	   goto unordered;
         rFn = float64_to_floatx80(fpa11->fpreg[Fn].fDouble, &fpa11->fp_status);
       break;
 
       case typeExtended:
-        //printk("extended.\n");
+       FPA_Debug("extended.\n");
 	if (floatx80_is_any_nan(fpa11->fpreg[Fn].fExtended))
 	   goto unordered;
         rFn = fpa11->fpreg[Fn].fExtended;
@@ -224,32 +224,32 @@ static unsigned int PerformComparison(const unsigned int opcode)
 
    if (CONSTANT_FM(opcode))
    {
-     //printk("Fm is a constant: #%d.\n",Fm);
+     FPA_Debug("Fm is a constant: #%d.\n",Fm);
      rFm = getExtendedConstant(Fm);
      if (floatx80_is_any_nan(rFm))
         goto unordered;
    }
    else
    {
-     //printk("Fm = r%d which contains a ",Fm);
+     FPA_Debug("Fm = r%d which contains a ",Fm);
       switch (fpa11->fType[Fm])
       {
          case typeSingle:
-           //printk("single.\n");
+          FPA_Debug("single.\n");
 	   if (float32_is_any_nan(fpa11->fpreg[Fm].fSingle))
 	      goto unordered;
            rFm = float32_to_floatx80(fpa11->fpreg[Fm].fSingle, &fpa11->fp_status);
          break;
 
          case typeDouble:
-           //printk("double.\n");
+          FPA_Debug("double.\n");
 	   if (float64_is_any_nan(fpa11->fpreg[Fm].fDouble))
 	      goto unordered;
            rFm = float64_to_floatx80(fpa11->fpreg[Fm].fDouble, &fpa11->fp_status);
          break;
 
          case typeExtended:
-           //printk("extended.\n");
+          FPA_Debug("extended.\n");
 	   if (floatx80_is_any_nan(fpa11->fpreg[Fm].fExtended))
 	      goto unordered;
            rFm = fpa11->fpreg[Fm].fExtended;
