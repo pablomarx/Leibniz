@@ -568,17 +568,14 @@ void arm_execute (arm_t *c)
 #endif
 
   if (arm_check_cond_al (c->ir) || arm_check_cond (c, arm_ir_cond (c->ir))) {
-    if ((c->ir & 0xfffff0ff) == 0xe6000010) {
+    if ((c->ir & 0xfffff0f0) == 0xe6000010) {
       uint32_t pc = arm_get_pc(c);
       if (c->log_undef) {
         c->log_undef(c->log_ext, c->ir);
       }
+      // undef might've moved the PC...
       if (pc == arm_get_pc(c)) {
-#if 1
         arm_exception_undefined(c);
-#else
-        arm_set_clk (c, 4, 1);
-#endif
       }
     }
     else {
