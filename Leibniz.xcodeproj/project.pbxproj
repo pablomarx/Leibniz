@@ -22,55 +22,35 @@
 		F123BD7319C508C200EC994F /* runt.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD7119C508C200EC994F /* runt.c */; };
 		F136EF861E58D4880013BA91 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = F136EF851E58D4880013BA91 /* Credits.rtf */; };
 		F1853F761CBD87B800CFA4F4 /* newton-buttons.png in Resources */ = {isa = PBXBuildFile; fileRef = F1853F751CBD87B800CFA4F4 /* newton-buttons.png */; };
-		F19548991E47B170001772E8 /* double_cpdo.c in Sources */ = {isa = PBXBuildFile; fileRef = F19548881E47B170001772E8 /* double_cpdo.c */; };
-		F195489A1E47B170001772E8 /* extended_cpdo.c in Sources */ = {isa = PBXBuildFile; fileRef = F19548891E47B170001772E8 /* extended_cpdo.c */; };
-		F195489B1E47B170001772E8 /* fpa.c in Sources */ = {isa = PBXBuildFile; fileRef = F195488A1E47B170001772E8 /* fpa.c */; };
-		F195489C1E47B170001772E8 /* fpa11_cpdo.c in Sources */ = {isa = PBXBuildFile; fileRef = F195488C1E47B170001772E8 /* fpa11_cpdo.c */; };
-		F195489D1E47B170001772E8 /* fpa11_cpdt.c in Sources */ = {isa = PBXBuildFile; fileRef = F195488D1E47B170001772E8 /* fpa11_cpdt.c */; };
-		F195489E1E47B170001772E8 /* fpa11_cprt.c in Sources */ = {isa = PBXBuildFile; fileRef = F195488E1E47B170001772E8 /* fpa11_cprt.c */; };
-		F195489F1E47B170001772E8 /* fpa11.c in Sources */ = {isa = PBXBuildFile; fileRef = F195488F1E47B170001772E8 /* fpa11.c */; };
-		F19548A01E47B170001772E8 /* fpopcode.c in Sources */ = {isa = PBXBuildFile; fileRef = F19548921E47B170001772E8 /* fpopcode.c */; };
-		F19548A11E47B170001772E8 /* single_cpdo.c in Sources */ = {isa = PBXBuildFile; fileRef = F19548961E47B170001772E8 /* single_cpdo.c */; };
-		F19548A21E47B170001772E8 /* softfloat.c in Sources */ = {isa = PBXBuildFile; fileRef = F19548971E47B170001772E8 /* softfloat.c */; };
 		F19548A61E4E52C6001772E8 /* ListenerWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = F19548A41E4E52C5001772E8 /* ListenerWindowController.m */; };
 		F19548A71E4E52C6001772E8 /* ListenerWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = F19548A51E4E52C5001772E8 /* ListenerWindowController.xib */; };
 		F19548AF1E4E7E59001772E8 /* EmulatorView.m in Sources */ = {isa = PBXBuildFile; fileRef = F19548AE1E4E7E59001772E8 /* EmulatorView.m */; };
 		F19548B21E4E7EE9001772E8 /* TouchView.m in Sources */ = {isa = PBXBuildFile; fileRef = F19548B11E4E7EE9001772E8 /* TouchView.m */; };
 		F1B05A8B26A4A09100878A2B /* pcmcia.c in Sources */ = {isa = PBXBuildFile; fileRef = F11F0DE11E43CB4800B963C2 /* pcmcia.c */; };
 		F1B05A8C26A4A09100878A2B /* PowerButton.m in Sources */ = {isa = PBXBuildFile; fileRef = F1F02C5A1E5681470061B21E /* PowerButton.m */; };
-		F1B05A8D26A4A09100878A2B /* fpa.c in Sources */ = {isa = PBXBuildFile; fileRef = F195488A1E47B170001772E8 /* fpa.c */; };
 		F1B05A8E26A4A09100878A2B /* runt.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD7119C508C200EC994F /* runt.c */; };
 		F1B05A8F26A4A09100878A2B /* ListenerWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = F19548A41E4E52C5001772E8 /* ListenerWindowController.m */; };
 		F1B05A9026A4A09100878A2B /* arm.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD4719C4FC8800EC994F /* arm.c */; };
-		F1B05A9126A4A09100878A2B /* fpa11_cpdt.c in Sources */ = {isa = PBXBuildFile; fileRef = F195488D1E47B170001772E8 /* fpa11_cpdt.c */; };
 		F1B05A9226A4A09100878A2B /* crc16.c in Sources */ = {isa = PBXBuildFile; fileRef = F100F3961E67C5830086F5FB /* crc16.c */; };
 		F1B05A9326A4A09100878A2B /* memory.c in Sources */ = {isa = PBXBuildFile; fileRef = F1DD99A51CC818DA00C718CC /* memory.c */; };
 		F1B05A9426A4A09100878A2B /* lcd_sharp.c in Sources */ = {isa = PBXBuildFile; fileRef = F1E09AE91B2D2AB000004CC8 /* lcd_sharp.c */; };
 		F1B05A9526A4A09100878A2B /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = F1E4AF1419C1327F00D8EFB4 /* AppDelegate.m */; };
-		F1B05A9626A4A09100878A2B /* double_cpdo.c in Sources */ = {isa = PBXBuildFile; fileRef = F19548881E47B170001772E8 /* double_cpdo.c */; };
-		F1B05A9726A4A09100878A2B /* softfloat.c in Sources */ = {isa = PBXBuildFile; fileRef = F19548971E47B170001772E8 /* softfloat.c */; };
 		F1B05A9826A4A09100878A2B /* PowerButtonAccessoryController.m in Sources */ = {isa = PBXBuildFile; fileRef = F1F02C5D1E5687E00061B21E /* PowerButtonAccessoryController.m */; };
 		F1B05A9926A4A09100878A2B /* TouchView.m in Sources */ = {isa = PBXBuildFile; fileRef = F19548B11E4E7EE9001772E8 /* TouchView.m */; };
-		F1B05A9A26A4A09100878A2B /* fpa11.c in Sources */ = {isa = PBXBuildFile; fileRef = F195488F1E47B170001772E8 /* fpa11.c */; };
 		F1B05A9B26A4A09100878A2B /* lcd_squirt.c in Sources */ = {isa = PBXBuildFile; fileRef = F1E09AEB1B2D2AB000004CC8 /* lcd_squirt.c */; };
 		F1B05A9C26A4A09100878A2B /* LeibnizFile.m in Sources */ = {isa = PBXBuildFile; fileRef = F1F02C501E566C6D0061B21E /* LeibnizFile.m */; };
-		F1B05A9D26A4A09100878A2B /* single_cpdo.c in Sources */ = {isa = PBXBuildFile; fileRef = F19548961E47B170001772E8 /* single_cpdo.c */; };
 		F1B05A9E26A4A09100878A2B /* disasm.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD4E19C4FC8800EC994F /* disasm.c */; };
 		F1B05A9F26A4A09100878A2B /* hexdump.c in Sources */ = {isa = PBXBuildFile; fileRef = F10F099B19C651A700C8C8FD /* hexdump.c */; };
-		F1B05AA026A4A09100878A2B /* fpa11_cpdo.c in Sources */ = {isa = PBXBuildFile; fileRef = F195488C1E47B170001772E8 /* fpa11_cpdo.c */; };
 		F1B05AA126A4A09100878A2B /* e8530.c in Sources */ = {isa = PBXBuildFile; fileRef = F100F38D1E676C4B0086F5FB /* e8530.c */; };
 		F1B05AA226A4A09100878A2B /* EmulatorView.m in Sources */ = {isa = PBXBuildFile; fileRef = F19548AE1E4E7E59001772E8 /* EmulatorView.m */; };
 		F1B05AA326A4A09100878A2B /* FileStream.m in Sources */ = {isa = PBXBuildFile; fileRef = F1F02C4D1E56672D0061B21E /* FileStream.m */; };
 		F1B05AA426A4A09100878A2B /* docker.c in Sources */ = {isa = PBXBuildFile; fileRef = F100F3991E67DA4A0086F5FB /* docker.c */; };
 		F1B05AA526A4A09100878A2B /* mmu.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD5519C4FC8800EC994F /* mmu.c */; };
 		F1B05AA626A4A09100878A2B /* copr14.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD4A19C4FC8800EC994F /* copr14.c */; };
-		F1B05AA726A4A09100878A2B /* extended_cpdo.c in Sources */ = {isa = PBXBuildFile; fileRef = F19548891E47B170001772E8 /* extended_cpdo.c */; };
 		F1B05AA826A4A09100878A2B /* copr15.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD4C19C4FC8800EC994F /* copr15.c */; };
 		F1B05AA926A4A09100878A2B /* newton.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD5819C4FC8800EC994F /* newton.c */; };
 		F1B05AAA26A4A09100878A2B /* opcodes.c in Sources */ = {isa = PBXBuildFile; fileRef = F123BD5B19C4FC8800EC994F /* opcodes.c */; };
 		F1B05AAB26A4A09100878A2B /* NSWindow+AccessoryView.m in Sources */ = {isa = PBXBuildFile; fileRef = F1F02C531E567C1C0061B21E /* NSWindow+AccessoryView.m */; };
-		F1B05AAC26A4A09100878A2B /* fpa11_cprt.c in Sources */ = {isa = PBXBuildFile; fileRef = F195488E1E47B170001772E8 /* fpa11_cprt.c */; };
-		F1B05AAD26A4A09100878A2B /* fpopcode.c in Sources */ = {isa = PBXBuildFile; fileRef = F19548921E47B170001772E8 /* fpopcode.c */; };
 		F1B05AAE26A4A09100878A2B /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = F1E4AF1119C1327F00D8EFB4 /* main.m */; };
 		F1B05AAF26A4A09100878A2B /* linenoise.c in Sources */ = {isa = PBXBuildFile; fileRef = F1DB3DDA19C63121006C7102 /* linenoise.c */; };
 		F1B05AB226A4A09100878A2B /* button_power_on.png in Resources */ = {isa = PBXBuildFile; fileRef = F1F02C571E567EFA0061B21E /* button_power_on.png */; };
@@ -123,21 +103,6 @@
 		F136EF851E58D4880013BA91 /* Credits.rtf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.rtf; path = Credits.rtf; sourceTree = "<group>"; };
 		F1853F751CBD87B800CFA4F4 /* newton-buttons.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "newton-buttons.png"; sourceTree = "<group>"; };
 		F187B3091B24C4C6002F62E7 /* HammerConfigBits.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HammerConfigBits.h; sourceTree = "<group>"; };
-		F19548881E47B170001772E8 /* double_cpdo.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = double_cpdo.c; sourceTree = "<group>"; };
-		F19548891E47B170001772E8 /* extended_cpdo.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = extended_cpdo.c; sourceTree = "<group>"; };
-		F195488A1E47B170001772E8 /* fpa.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fpa.c; sourceTree = "<group>"; };
-		F195488B1E47B170001772E8 /* fpa.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fpa.h; sourceTree = "<group>"; };
-		F195488C1E47B170001772E8 /* fpa11_cpdo.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fpa11_cpdo.c; sourceTree = "<group>"; };
-		F195488D1E47B170001772E8 /* fpa11_cpdt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fpa11_cpdt.c; sourceTree = "<group>"; };
-		F195488E1E47B170001772E8 /* fpa11_cprt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fpa11_cprt.c; sourceTree = "<group>"; };
-		F195488F1E47B170001772E8 /* fpa11.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fpa11.c; sourceTree = "<group>"; };
-		F19548901E47B170001772E8 /* fpa11.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fpa11.h; sourceTree = "<group>"; };
-		F19548921E47B170001772E8 /* fpopcode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fpopcode.c; sourceTree = "<group>"; };
-		F19548931E47B170001772E8 /* fpopcode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fpopcode.h; sourceTree = "<group>"; };
-		F19548941E47B170001772E8 /* fpsr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fpsr.h; sourceTree = "<group>"; };
-		F19548961E47B170001772E8 /* single_cpdo.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = single_cpdo.c; sourceTree = "<group>"; };
-		F19548971E47B170001772E8 /* softfloat.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = softfloat.c; sourceTree = "<group>"; };
-		F19548981E47B170001772E8 /* softfloat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = softfloat.h; sourceTree = "<group>"; };
 		F19548A31E4E52C5001772E8 /* ListenerWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ListenerWindowController.h; sourceTree = "<group>"; };
 		F19548A41E4E52C5001772E8 /* ListenerWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ListenerWindowController.m; sourceTree = "<group>"; };
 		F19548A51E4E52C5001772E8 /* ListenerWindowController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ListenerWindowController.xib; sourceTree = "<group>"; };
@@ -198,53 +163,38 @@
 		F123BD4619C4FC8800EC994F /* alt-emu */ = {
 			isa = PBXGroup;
 			children = (
-				F123BD4719C4FC8800EC994F /* arm.c */,
 				F123BD4819C4FC8800EC994F /* arm.h */,
+				F123BD4719C4FC8800EC994F /* arm.c */,
 				F123BD4A19C4FC8800EC994F /* copr14.c */,
 				F123BD4C19C4FC8800EC994F /* copr15.c */,
-				F100F3961E67C5830086F5FB /* crc16.c */,
 				F100F3971E67C5830086F5FB /* crc16.h */,
+				F100F3961E67C5830086F5FB /* crc16.c */,
 				F123BD4E19C4FC8800EC994F /* disasm.c */,
-				F100F3991E67DA4A0086F5FB /* docker.c */,
 				F100F39A1E67DA4A0086F5FB /* docker.h */,
-				F19548881E47B170001772E8 /* double_cpdo.c */,
-				F100F38D1E676C4B0086F5FB /* e8530.c */,
+				F100F3991E67DA4A0086F5FB /* docker.c */,
 				F100F38E1E676C4B0086F5FB /* e8530.h */,
-				F19548891E47B170001772E8 /* extended_cpdo.c */,
-				F195488A1E47B170001772E8 /* fpa.c */,
-				F195488B1E47B170001772E8 /* fpa.h */,
-				F195488C1E47B170001772E8 /* fpa11_cpdo.c */,
-				F195488D1E47B170001772E8 /* fpa11_cpdt.c */,
-				F195488E1E47B170001772E8 /* fpa11_cprt.c */,
-				F195488F1E47B170001772E8 /* fpa11.c */,
-				F19548901E47B170001772E8 /* fpa11.h */,
-				F19548921E47B170001772E8 /* fpopcode.c */,
-				F19548931E47B170001772E8 /* fpopcode.h */,
-				F19548941E47B170001772E8 /* fpsr.h */,
+				F100F38D1E676C4B0086F5FB /* e8530.c */,
 				F187B3091B24C4C6002F62E7 /* HammerConfigBits.h */,
-				F10F099B19C651A700C8C8FD /* hexdump.c */,
 				F10F099C19C651A700C8C8FD /* hexdump.h */,
+				F10F099B19C651A700C8C8FD /* hexdump.c */,
 				F123BD5019C4FC8800EC994F /* internal.h */,
-				F1E09AE91B2D2AB000004CC8 /* lcd_sharp.c */,
-				F1E09AEA1B2D2AB000004CC8 /* lcd_sharp.h */,
-				F1E09AEB1B2D2AB000004CC8 /* lcd_squirt.c */,
-				F1E09AEC1B2D2AB000004CC8 /* lcd_squirt.h */,
 				F19548AC1E4E7D1C001772E8 /* lcd.h */,
-				F1DB3DDA19C63121006C7102 /* linenoise.c */,
+				F1E09AEA1B2D2AB000004CC8 /* lcd_sharp.h */,
+				F1E09AE91B2D2AB000004CC8 /* lcd_sharp.c */,
+				F1E09AEC1B2D2AB000004CC8 /* lcd_squirt.h */,
+				F1E09AEB1B2D2AB000004CC8 /* lcd_squirt.c */,
 				F1DB3DDB19C63121006C7102 /* linenoise.h */,
-				F1DD99A51CC818DA00C718CC /* memory.c */,
+				F1DB3DDA19C63121006C7102 /* linenoise.c */,
 				F1DD99A61CC818DA00C718CC /* memory.h */,
+				F1DD99A51CC818DA00C718CC /* memory.c */,
 				F123BD5519C4FC8800EC994F /* mmu.c */,
-				F123BD5819C4FC8800EC994F /* newton.c */,
 				F123BD7019C4FCF500EC994F /* newton.h */,
+				F123BD5819C4FC8800EC994F /* newton.c */,
 				F123BD5B19C4FC8800EC994F /* opcodes.c */,
-				F11F0DE11E43CB4800B963C2 /* pcmcia.c */,
 				F11F0DE21E43CB4800B963C2 /* pcmcia.h */,
-				F123BD7119C508C200EC994F /* runt.c */,
+				F11F0DE11E43CB4800B963C2 /* pcmcia.c */,
 				F123BD7219C508C200EC994F /* runt.h */,
-				F19548961E47B170001772E8 /* single_cpdo.c */,
-				F19548971E47B170001772E8 /* softfloat.c */,
-				F19548981E47B170001772E8 /* softfloat.h */,
+				F123BD7119C508C200EC994F /* runt.c */,
 			);
 			name = "alt-emu";
 			path = "emu-core";
@@ -420,39 +370,29 @@
 			files = (
 				F1B05A8B26A4A09100878A2B /* pcmcia.c in Sources */,
 				F1B05A8C26A4A09100878A2B /* PowerButton.m in Sources */,
-				F1B05A8D26A4A09100878A2B /* fpa.c in Sources */,
 				F1B05A8E26A4A09100878A2B /* runt.c in Sources */,
 				F1B05A8F26A4A09100878A2B /* ListenerWindowController.m in Sources */,
 				F1B05A9026A4A09100878A2B /* arm.c in Sources */,
-				F1B05A9126A4A09100878A2B /* fpa11_cpdt.c in Sources */,
 				F1B05A9226A4A09100878A2B /* crc16.c in Sources */,
 				F1B05A9326A4A09100878A2B /* memory.c in Sources */,
 				F1B05A9426A4A09100878A2B /* lcd_sharp.c in Sources */,
 				F1B05A9526A4A09100878A2B /* AppDelegate.m in Sources */,
-				F1B05A9626A4A09100878A2B /* double_cpdo.c in Sources */,
-				F1B05A9726A4A09100878A2B /* softfloat.c in Sources */,
 				F1B05A9826A4A09100878A2B /* PowerButtonAccessoryController.m in Sources */,
 				F1B05A9926A4A09100878A2B /* TouchView.m in Sources */,
-				F1B05A9A26A4A09100878A2B /* fpa11.c in Sources */,
 				F1B05A9B26A4A09100878A2B /* lcd_squirt.c in Sources */,
 				F1B05A9C26A4A09100878A2B /* LeibnizFile.m in Sources */,
-				F1B05A9D26A4A09100878A2B /* single_cpdo.c in Sources */,
 				F1B05A9E26A4A09100878A2B /* disasm.c in Sources */,
 				F1B05A9F26A4A09100878A2B /* hexdump.c in Sources */,
-				F1B05AA026A4A09100878A2B /* fpa11_cpdo.c in Sources */,
 				F1B05AA126A4A09100878A2B /* e8530.c in Sources */,
 				F1B05AA226A4A09100878A2B /* EmulatorView.m in Sources */,
 				F1B05AA326A4A09100878A2B /* FileStream.m in Sources */,
 				F1B05AA426A4A09100878A2B /* docker.c in Sources */,
 				F1B05AA526A4A09100878A2B /* mmu.c in Sources */,
 				F1B05AA626A4A09100878A2B /* copr14.c in Sources */,
-				F1B05AA726A4A09100878A2B /* extended_cpdo.c in Sources */,
 				F1B05AA826A4A09100878A2B /* copr15.c in Sources */,
 				F1B05AA926A4A09100878A2B /* newton.c in Sources */,
 				F1B05AAA26A4A09100878A2B /* opcodes.c in Sources */,
 				F1B05AAB26A4A09100878A2B /* NSWindow+AccessoryView.m in Sources */,
-				F1B05AAC26A4A09100878A2B /* fpa11_cprt.c in Sources */,
-				F1B05AAD26A4A09100878A2B /* fpopcode.c in Sources */,
 				F1B05AAE26A4A09100878A2B /* main.m in Sources */,
 				F1B05AAF26A4A09100878A2B /* linenoise.c in Sources */,
 			);
@@ -464,39 +404,29 @@
 			files = (
 				F11F0DE31E43CB4800B963C2 /* pcmcia.c in Sources */,
 				F1F02C5B1E5681470061B21E /* PowerButton.m in Sources */,
-				F195489B1E47B170001772E8 /* fpa.c in Sources */,
 				F123BD7319C508C200EC994F /* runt.c in Sources */,
 				F19548A61E4E52C6001772E8 /* ListenerWindowController.m in Sources */,
 				F123BD5D19C4FC8800EC994F /* arm.c in Sources */,
-				F195489D1E47B170001772E8 /* fpa11_cpdt.c in Sources */,
 				F100F3981E67C5830086F5FB /* crc16.c in Sources */,
 				F1DD99A71CC818DA00C718CC /* memory.c in Sources */,
 				F1E09AED1B2D2AB000004CC8 /* lcd_sharp.c in Sources */,
 				F1E4AF1519C1327F00D8EFB4 /* AppDelegate.m in Sources */,
-				F19548991E47B170001772E8 /* double_cpdo.c in Sources */,
-				F19548A21E47B170001772E8 /* softfloat.c in Sources */,
 				F1F02C5E1E5687E00061B21E /* PowerButtonAccessoryController.m in Sources */,
 				F19548B21E4E7EE9001772E8 /* TouchView.m in Sources */,
-				F195489F1E47B170001772E8 /* fpa11.c in Sources */,
 				F1E09AEE1B2D2AB000004CC8 /* lcd_squirt.c in Sources */,
 				F1F02C511E566C6D0061B21E /* LeibnizFile.m in Sources */,
-				F19548A11E47B170001772E8 /* single_cpdo.c in Sources */,
 				F123BD6319C4FC8800EC994F /* disasm.c in Sources */,
 				F10F099D19C651A700C8C8FD /* hexdump.c in Sources */,
-				F195489C1E47B170001772E8 /* fpa11_cpdo.c in Sources */,
 				F100F38F1E676C4B0086F5FB /* e8530.c in Sources */,
 				F19548AF1E4E7E59001772E8 /* EmulatorView.m in Sources */,
 				F1F02C4E1E56672D0061B21E /* FileStream.m in Sources */,
 				F100F39B1E67DA4A0086F5FB /* docker.c in Sources */,
 				F123BD6819C4FC8800EC994F /* mmu.c in Sources */,
 				F123BD5F19C4FC8800EC994F /* copr14.c in Sources */,
-				F195489A1E47B170001772E8 /* extended_cpdo.c in Sources */,
 				F123BD6119C4FC8800EC994F /* copr15.c in Sources */,
 				F123BD6B19C4FC8800EC994F /* newton.c in Sources */,
 				F123BD6E19C4FC8800EC994F /* opcodes.c in Sources */,
 				F1F02C541E567C1C0061B21E /* NSWindow+AccessoryView.m in Sources */,
-				F195489E1E47B170001772E8 /* fpa11_cprt.c in Sources */,
-				F19548A01E47B170001772E8 /* fpopcode.c in Sources */,
 				F1E4AF1219C1327F00D8EFB4 /* main.m in Sources */,
 				F1DB3DDC19C63121006C7102 /* linenoise.c in Sources */,
 			);

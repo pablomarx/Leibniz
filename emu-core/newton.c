@@ -16,7 +16,6 @@
 #include <unistd.h>
 
 #include "arm.h"
-#include "fpa.h"
 #include "hexdump.h"
 #include "newton.h"
 #include "runt.h"
@@ -895,6 +894,10 @@ void newton_log_undef (void *ext, uint32_t ir) {
     }
     c->arm->reg[15] = c->arm->reg[15] + 4;
   }
+  else if (ir == 0xE6000011) {
+    // Seems like an entry to fpe400 code.
+    // We don't need to stop or log this. 
+  }
   else if (ir == 0xE6000110) {
     if (shouldLog == true) {
       LOG_STR("ExitToShell");
@@ -1435,11 +1438,6 @@ void newton_init (newton_t *c)
   arm_reset(c->arm);
   
   //
-  // Setup floating point coprocessor
-  //
-  fpa_init(c->arm);
-  
-  //
   // Logging
   //
   newton_set_logfile(c, stdout);
@@ -1746,7 +1744,6 @@ void newton_free (newton_t *c)
   
   docker_del(c->docker);
   arm_del(c->arm);
-  fpa_delete();
 }
 
 void newton_del (newton_t *c)

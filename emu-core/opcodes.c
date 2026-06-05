@@ -1614,6 +1614,13 @@ void op12_00 (arm_t *c)
 	}
 	else {
 		val = arm_set_psr_field (arm_get_cpsr (c), val, fld);
+    // Mode 00 isn't valid.  Not sure what the right
+    // behavior is, but setting it back to user seems
+    // to make things work (unlike maintaining the current
+    // mode, etc).
+    if ((val & 0xff) == 0x00) {
+      val |= 0x10;
+    }
 		arm_write_cpsr (c, val, 0);
 	}
 

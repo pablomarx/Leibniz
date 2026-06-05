@@ -21,7 +21,6 @@ OBJS := arm.o \
 		newton.o \
 		opcodes.o \
 		memory.o \
-		fpa.o \
 		linenoise.o \
 		runt.o \
 		docker.o \
@@ -30,15 +29,6 @@ OBJS := arm.o \
 		hexdump.o \
 		lcd_sharp.o \
 		lcd_squirt.o \
-		double_cpdo.o \
-		extended_cpdo.o \
-		fpa11.o \
-		fpa11_cpdo.o \
-		fpa11_cpdt.o \
-		fpa11_cprt.o \
-		fpopcode.o \
-		single_cpdo.o \
-		softfloat.o \
 
 all:	newton
 
